@@ -78,20 +78,7 @@ Never assume; ask if something is ambiguous.
 - Format: `DR-NNNN-kebab-title.md`
 - Example: `DR-0003-use-postgresql-as-primary-datastore.md`
 
-### 4. Confirm Before Writing
-
-Use `AskUserQuestion` to present a concise summary and confirm before creating the file. Include
-in the question body:
-
-- **Title:** [title]
-- **Decision:** [one sentence]
-- **Main trade-off accepted:** [what is being accepted/sacrificed]
-- **File:** `[file path]`
-
-Offer two options: `Yes, write the file` and `No, let me revise`. Do not write the file until the
-user selects the first option.
-
-### 5. Write the DR File
+### 4. Write the DR File
 
 Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the
 gathered information. For any optional section with no content, remove both the
