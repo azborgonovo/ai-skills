@@ -86,10 +86,8 @@ Do not leave placeholder text.
 
 When writing the DR, include markdown links wherever relevant: to code files or directories affected
 by the decision, to PRs or issues that motivated it, to external docs (RFCs, benchmarks, vendor
-pages), and to related DRs. For in-repo links, use full web URLs — run `git remote get-url origin`
-to derive the GitHub base URL (e.g. `https://github.com/owner/repo`), then construct links like
-`https://github.com/owner/repo/blob/main/src/auth/service.ts`. Only use relative paths for links
-between DR files themselves.
+pages), and to related DRs. Use relative paths for links
+between DR files. Use full web URLs for any other links.
 
 If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)"
 note to its `## More Information` section (or append the section if absent), and reference that DR
