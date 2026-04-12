@@ -14,8 +14,7 @@ allowed-tools: [Read, Glob, Edit, Write, AskUserQuestion]
 Help the user capture a Decision Record for a significant, costly-to-change decision.
 
 If invoked via `/log-decision`, use `$ARGUMENTS` as the title if provided; otherwise ask for one.
-If triggered by a conversation, say something like: _"This looks like a decision that could be
-costly to change later — would you like to record it?"_ Wait for confirmation before proceeding.
+If triggered by a conversation, say something like: _"This looks like a significant decision — would you draft a Decision Record (DR)?"_ Wait for confirmation before proceeding.
 
 > **Not sure yet?** If the user is still exploring options or hasn't settled on a direction,
 > suggest `/decide` instead — it's a thinking-partner skill for working through the problem
