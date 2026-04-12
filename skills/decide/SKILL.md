@@ -34,6 +34,7 @@ Probing questions to draw on as needed — pick what fits, do not use them all:
 - "Who is affected by this, and how?"
 - "What does success look like — how would you know you made the right call?"
 - "Are you solving this problem, or a problem you *think* causes this problem?"
+- "Are there relevant code areas, issues, or prior decisions that provide context I should look at?"
 
 When the problem feels well-framed, reflect it back in one or two sentences and confirm before
 moving on. If the user reframes it, update your summary accordingly.
@@ -89,6 +90,7 @@ When the user reaches a clear preference or enough clarity to decide, summarise 
 - **Options considered:** [names only]
 - **Leading option:** [name + the core reason]
 - **Main trade-off accepted:** [what is being accepted/sacrificed]
+- **References:** [links to relevant code, issues, prior DRs, or external resources — omit if none]
 
 Confirm the summary with the user, then ask:
 

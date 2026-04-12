@@ -40,7 +40,7 @@ the key points rather than re-asking them, and move straight to the Decision fie
 | Field | Guidance |
 |---|---|
 | **Title** | Short phrase representing the problem and solution, e.g., "Use PostgreSQL as primary datastore" |
-| **Context and Problem Statement** | What situation led to this decision? What problem are you solving? |
+| **Context and Problem Statement** | What situation led to this decision? What problem are you solving? If there are relevant code locations, issues, or tickets that provide context, note them. |
 | **Considered Options** | What alternatives were evaluated? Aim for at least two. For each: brief description, pros, and cons. Be objective — rejected options should be fairly represented. |
 | **Decision** | Which option was chosen and why? Prefer the **Y-Statement format**: _"In the context of [situation], facing [concern], we decided [option], to achieve [quality], accepting [downside]."_ Free-form prose is also fine. |
 
@@ -50,7 +50,7 @@ the key points rather than re-asking them, and move straight to the Decision fie
 |---|---|
 | **Forces and Constraints** | What requirements, assumptions, forces, or constraints shaped the decision? |
 | **Consequences** | What are the ramifications — both positive and negative? |
-| **More Information** | Additional evidence, links, or related decisions to reference? |
+| **More Information** | Additional evidence, links, or related decisions to reference? Include links to relevant code files, PRs, issues, ADRs, or external resources (docs, RFCs, benchmarks) where applicable. |
 
 **Metadata** (ask only if provenance or governance matters):
 
@@ -99,6 +99,10 @@ Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every s
 gathered information. For any optional section with no content, remove both the
 `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
 Do not leave placeholder text.
+
+When writing the DR, include markdown links wherever relevant: to code files or directories affected
+by the decision, to PRs or issues that motivated it, to external docs (RFCs, benchmarks, vendor
+pages), and to related DRs. Prefer relative paths for in-repo links.
 
 If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)"
 note to its `## More Information` section (or append the section if absent), and reference that DR
