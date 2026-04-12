@@ -6,7 +6,7 @@ description: >
   TRIGGER when: the user invokes /decide; OR the user is uncertain about a direction, hasn't yet
   evaluated their options, or wants help thinking through a problem before deciding. This is the
   exploration phase — use /log-decision to record a decision that is ready for review or has already been decided.
-argument-hint: [topic or question]
+argument-hint: "[decision topic]"
 allowed-tools: [AskUserQuestion]
 ---
 
