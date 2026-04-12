@@ -18,6 +18,8 @@ Help the user capture a Decision Record for a significant, costly-to-change deci
 
 If invoked via `/dr`, use `$ARGUMENTS` as the title if provided; otherwise ask for one. If triggered by a conversation, say something like: _"This looks like a decision that could be costly to change later — would you like to record it?"_ Wait for confirmation before proceeding.
 
+> **Not sure yet?** If the user is still exploring options or hasn't settled on a direction, suggest `/decide` instead — it's a thinking-partner skill for working through the problem before documenting it.
+
 ## Execution Steps
 
 ### 1. Gather Information
