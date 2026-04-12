@@ -11,7 +11,7 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 
 ## Context and Problem Statement
 
-{{Describe the contextual circumstances which have necessitated this decision and the problem being solved, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in the form of a question and add links to collaboration boards or issue management systems.}}
+{{Describe the contextual circumstances which have necessitated this decision and the problem being solved, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in the form of a question and add links to relevant code, collaboration boards, or issue management systems.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## Forces and Constraints
@@ -46,4 +46,8 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 <!-- This is an optional element. Feel free to remove. -->
 ## More Information
 
-{{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision should be realized and if/when it should be revisited. Links to other decisions and resources might appear here as well.}}
+{{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision should be realized and if/when it should be revisited. Include links where helpful:
+- Related DRs (e.g. [DR-0001-previous-decision](DR-0001-previous-decision.md))
+- Affected code files or directories (e.g. [src/auth/](../src/auth/))
+- Issues or PRs that motivated or track this decision
+- External resources (RFCs, benchmarks, vendor documentation)}}
