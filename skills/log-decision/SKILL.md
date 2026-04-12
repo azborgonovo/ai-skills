@@ -1,8 +1,7 @@
 ---
 name: log-decision
 description: >
-  Log a Decision Record (DR) when a significant, costly-to-change decision has been made or is
-  ready to be proposed. TRIGGER when: the user invokes /log-decision; OR the conversation involves
+  Draft a structured document (DR) capturing the reasoning for a significant decision. TRIGGER when: the user invokes /log-decision; OR the conversation involves
   a decision that has already been reached on architectural trade-offs, technology choices
   (database, framework, API design, infrastructure, data model, integration patterns, build-vs-buy),
   or anything the user describes as "hard to reverse", "locked in", "a big commitment", or
