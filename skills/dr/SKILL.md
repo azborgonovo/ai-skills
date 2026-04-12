@@ -9,7 +9,7 @@ description: >
   weighing multiple options with clear long-term consequences. In those cases, proactively
   suggest recording a DR before the decision is finalised.
 argument-hint: [title]
-allowed-tools: [Read, Glob, Bash, Write]
+allowed-tools: [Read, Glob, Bash, Write, AskUserQuestion]
 ---
 
 # Decision Record (DR) Skill
@@ -34,7 +34,7 @@ Wait for explicit confirmation before creating anything.
 
 ### 1. Gather Information
 
-Ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the detail.
+Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the detail.
 
 **Round 1 — Essentials** (always required):
 
@@ -57,7 +57,7 @@ Ask one topic area at a time. Do not present all fields at once. Start with the 
 
 | Field | Guidance |
 |---|---|
-| **Status** | One of: `draft`, `proposed`, `adopted`, `retired`, `superseded` (default to `proposed`) |
+| **Status** | Use `AskUserQuestion` with options: `draft`, `proposed`, `adopted`, `retired`, `superseded` (default to `proposed`) |
 | **Date** | Date of the decision (default to today) |
 | **Decision-makers** | Who was involved in making the decision? |
 | **Consulted** | Who was consulted (two-way communication)? |
@@ -83,16 +83,14 @@ Never assume an answer — if something is ambiguous and it affects the quality 
 
 ### 4. Confirm Before Writing
 
-Present a concise summary of the decision to the user and ask them to confirm before creating the file:
+Use `AskUserQuestion` to present a concise summary and confirm before creating the file. Include in the question body:
 
-> **DR summary**
-> **Title:** [title]
-> **Decision:** [one sentence]
-> **Key trade-off:** [what is being accepted/sacrificed]
->
-> Shall I write this as `[file path]`?
+- **Title:** [title]
+- **Decision:** [one sentence]
+- **Key trade-off:** [what is being accepted/sacrificed]
+- **File:** `[file path]`
 
-Wait for explicit confirmation. Do not write the file until the user approves.
+Offer two options: `Yes, write the file` and `No, let me revise`. Do not write the file until the user selects the first option.
 
 ### 5. Write the DR File
 
