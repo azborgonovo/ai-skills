@@ -6,7 +6,7 @@ description: >
   architectural trade-offs, technology choices, or anything the user describes as "hard to reverse",
   "locked in", or "a big commitment" — in those cases, proactively suggest logging a DR.
 argument-hint: "[decision title]"
-allowed-tools: [Read, Glob, Bash, Write, AskUserQuestion]
+allowed-tools: [Read, Glob, Edit, Write, AskUserQuestion]
 ---
 
 # Log Decision Skill
