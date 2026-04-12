@@ -1,8 +1,7 @@
 ---
 name: decide
 description: >
-  A collaborative thinking-partner skill for exploring a problem and its options before
-  proposing a decision for review.
+  Explore a problem, its context and possible solutions before making a significant decision.
   TRIGGER when: the user invokes /decide; OR the user is uncertain about a direction, hasn't yet
   evaluated their options, or wants help thinking through a problem before deciding. This is the
   exploration phase — use /log-decision to record a decision that is ready for review or has already been decided.
