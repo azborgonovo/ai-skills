@@ -36,15 +36,12 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 
 ## Decision
 
-{{The decision that has been taken using Y-Statement or free format in a few sentences}}
+{{The decision that has been taken using Y-Statement. Bold the chosen option name/number in the Y-Statement to make the decision stand out.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ### Consequences
 
-{{The ramifications of this decision, both positive and negative.}}
-
-- Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-- Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
+{{The ramifications of this decision, both positive and negative, free format in a few sentences.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## More Information
