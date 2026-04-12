@@ -4,7 +4,7 @@ description: >
   Explore a problem, its context, and possible solutions before making a significant decision.
   TRIGGER when: the user invokes /decide; OR the user is uncertain about a direction, hasn't yet
   evaluated their options, or wants help thinking through a problem. This is the exploration phase —
-  use /log-decision to record a decision that is ready for review or has already been decided.
+  use /log-decision to record a decision that is ready for review or has already been adopted.
 argument-hint: "[decision topic]"
 allowed-tools: [AskUserQuestion]
 ---
