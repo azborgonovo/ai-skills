@@ -53,7 +53,7 @@ the key points rather than re-asking them, and move straight to the Decision fie
 
 | Field | Guidance |
 |---|---|
-| **Status** | `draft`, `proposed`, `adopted`, `retired`, `superseded` (default to `proposed`) |
+| **Status** | One of the following (default to `proposed`): `draft` — being written, not ready for review; `proposed` — complete and open for review/approval; `adopted` — accepted and in effect; `retired` — was adopted but is no longer active (without being replaced); `superseded` — replaced by a newer decision |
 | **Date** | Date of the decision (default to today) |
 | **Decision-makers** | Who was involved in making the decision? |
 | **Consulted** | Who was consulted (two-way communication)? |
