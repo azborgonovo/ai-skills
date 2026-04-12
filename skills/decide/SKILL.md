@@ -88,13 +88,13 @@ When the user reaches a clear preference or enough clarity to decide, summarise 
 - **Key constraints:** [bullet list]
 - **Options considered:** [names only]
 - **Leading option:** [name + the core reason]
-- **Main trade-off accepted:** [what is being given up]
+- **Main trade-off accepted:** [what is being accepted/sacrificed]
 
 Confirm the summary with the user, then ask:
 
 > "Would you like to log this as a decision record?"
 
-If yes, tell the user: _"Run `/dr [title]` and I'll carry this context forward into the record."_
+If yes, tell the user: _"Run `/log-decision [title]` and I'll carry this context forward into the record."_
 
 ---
 

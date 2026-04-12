@@ -1,30 +1,39 @@
 ---
-name: dr
+name: log-decision
 description: >
-  Record a Decision Record (DR) when a significant, costly-to-change decision is being made.
-  TRIGGER when: the user invokes /dr; OR the conversation involves architectural trade-offs,
-  significant technology choices (database, framework, API design, infrastructure, data model,
-  integration patterns, build-vs-buy), decisions the user describes as "hard to reverse",
-  "locked in", "a big commitment", or "can't easily change later", or when the user is
-  weighing multiple options with clear long-term consequences. In those cases, proactively
-  suggest recording a DR before the decision is finalised.
+  Log a Decision Record (DR) when a significant, costly-to-change decision has been made or is
+  ready to be proposed. TRIGGER when: the user invokes /log-decision; OR the conversation involves
+  a decision that has already been reached on architectural trade-offs, technology choices
+  (database, framework, API design, infrastructure, data model, integration patterns, build-vs-buy),
+  or anything the user describes as "hard to reverse", "locked in", "a big commitment", or
+  "can't easily change later". In those cases, proactively suggest logging a DR.
 argument-hint: [title]
 allowed-tools: [Read, Glob, Bash, Write, AskUserQuestion]
 ---
 
-# Decision Record (DR) Skill
+# Log Decision Skill
 
 Help the user capture a Decision Record for a significant, costly-to-change decision.
 
-If invoked via `/dr`, use `$ARGUMENTS` as the title if provided; otherwise ask for one. If triggered by a conversation, say something like: _"This looks like a decision that could be costly to change later — would you like to record it?"_ Wait for confirmation before proceeding.
+If invoked via `/log-decision`, use `$ARGUMENTS` as the title if provided; otherwise ask for one.
+If triggered by a conversation, say something like: _"This looks like a decision that could be
+costly to change later — would you like to record it?"_ Wait for confirmation before proceeding.
 
-> **Not sure yet?** If the user is still exploring options or hasn't settled on a direction, suggest `/decide` instead — it's a thinking-partner skill for working through the problem before documenting it.
+> **Not sure yet?** If the user is still exploring options or hasn't settled on a direction,
+> suggest `/decide` instead — it's a thinking-partner skill for working through the problem
+> before documenting it.
 
 ## Execution Steps
 
 ### 1. Gather Information
 
-Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the detail.
+Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields
+at once. Start with the essentials; ask about optional fields only if the user is engaged in the
+detail.
+
+**If the user has just come from a `/decide` session**, the Context and Problem Statement, Forces
+and Constraints, and Considered Options will already be established in the conversation. Confirm
+the key points rather than re-asking them, and move straight to the Decision field and any gaps.
 
 **Essentials** (always required):
 
@@ -73,19 +82,27 @@ Never assume; ask if something is ambiguous.
 
 ### 4. Confirm Before Writing
 
-Use `AskUserQuestion` to present a concise summary and confirm before creating the file. Include in the question body:
+Use `AskUserQuestion` to present a concise summary and confirm before creating the file. Include
+in the question body:
 
 - **Title:** [title]
 - **Decision:** [one sentence]
-- **Key trade-off:** [what is being accepted/sacrificed]
+- **Main trade-off accepted:** [what is being accepted/sacrificed]
 - **File:** `[file path]`
 
-Offer two options: `Yes, write the file` and `No, let me revise`. Do not write the file until the user selects the first option.
+Offer two options: `Yes, write the file` and `No, let me revise`. Do not write the file until the
+user selects the first option.
 
 ### 5. Write the DR File
 
-Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the gathered information. For any optional section with no content, remove both the `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself. Do not leave placeholder text.
+Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the
+gathered information. For any optional section with no content, remove both the
+`<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
+Do not leave placeholder text.
 
-If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)" note to its `## More Information` section (or append the section if absent), and reference that DR in the new file's `## More Information` section.
+If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)"
+note to its `## More Information` section (or append the section if absent), and reference that DR
+in the new file's `## More Information` section.
 
-After writing, tell the user the file path and a one-line summary of the decision. Do not offer to improve the DR unless asked.
+After writing, tell the user the file path and a one-line summary of the decision. Do not offer to
+improve the DR unless asked.
