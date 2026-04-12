@@ -47,7 +47,7 @@ the key points rather than re-asking them, and move straight to the Decision fie
 |---|---|
 | **Forces and Constraints** | What requirements, assumptions, forces, or constraints shaped the decision? |
 | **Consequences** | What are the ramifications — both positive and negative? |
-| **More Information** | Additional evidence, links, or related decisions to reference? Include links to relevant code files, PRs, issues, ADRs, or external resources (docs, RFCs, benchmarks) where applicable. |
+| **More Information** | Additional evidence, links, or related decisions to reference? Include links to relevant code files, PRs, issues, or external resources (docs, RFCs, benchmarks) where applicable. |
 
 **Metadata** (ask only if provenance or governance matters):
 
