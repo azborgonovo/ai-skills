@@ -1,11 +1,10 @@
 ---
 name: log-decision
 description: >
-  Draft a structured document (DR) capturing the reasoning for a significant decision. TRIGGER when: the user invokes /log-decision; OR the conversation involves
-  a decision that has already been reached on architectural trade-offs, technology choices
-  (database, framework, API design, infrastructure, data model, integration patterns, build-vs-buy),
-  or anything the user describes as "hard to reverse", "locked in", "a big commitment", or
-  "can't easily change later". In those cases, proactively suggest logging a DR.
+  Draft a structured document (DR) capturing the reasoning for a significant decision. TRIGGER when:
+  the user invokes /log-decision; OR the conversation involves a decision that has been reached about
+  architectural trade-offs, technology choices, or anything the user describes as "hard to reverse",
+  "locked in", or "a big commitment" — in those cases, proactively suggest logging a DR.
 argument-hint: "[decision title]"
 allowed-tools: [Read, Glob, Bash, Write, AskUserQuestion]
 ---
