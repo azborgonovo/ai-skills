@@ -48,6 +48,5 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 
 {{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision should be realized and if/when it should be revisited. Include links where helpful:
 - Related DRs (e.g. [DR-0001-previous-decision](DR-0001-previous-decision.md))
-- Affected code files or directories (e.g. [src/auth/](../src/auth/))
 - Issues or PRs that motivated or track this decision
 - External resources (RFCs, benchmarks, vendor documentation)}}
