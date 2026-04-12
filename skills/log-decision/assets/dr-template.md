@@ -41,7 +41,7 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 <!-- This is an optional element. Feel free to remove. -->
 ### Consequences
 
-{{The ramifications of this decision, both positive and negative, free format in a few sentences.}}
+{{The ramifications of this decision, both positive and negative. Write each distinct consequence as its own paragraph, separated by a blank line.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## More Information
