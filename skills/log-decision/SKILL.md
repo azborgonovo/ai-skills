@@ -47,7 +47,7 @@ the key points rather than re-asking them, and move straight to the Decision fie
 |---|---|
 | **Forces and Constraints** | What requirements, assumptions, forces, or constraints shaped the decision? |
 | **Consequences** | What are the ramifications — both positive and negative? |
-| **More Information** | Additional evidence, links, or related decisions to reference? Include links to relevant code files, PRs, issues, or external resources (docs, RFCs, benchmarks) where applicable. |
+| **More Information** | Additional evidence, links, or related decisions to reference? Include links to PRs, issues, or external resources (docs, RFCs, benchmarks) where applicable. |
 
 **Metadata** (ask only if provenance or governance matters):
 
@@ -84,10 +84,7 @@ gathered information. For any optional section with no content, remove both the
 `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
 Do not leave placeholder text.
 
-When writing the DR, include markdown links wherever relevant: to code files or directories affected
-by the decision, to PRs or issues that motivated it, to external docs (RFCs, benchmarks, vendor
-pages), and to related DRs. Use relative paths for links
-between DR files. Use full web URLs for any other links.
+When writing the DR, include markdown links wherever relevant: to PRs or issues that motivated the decision, to external docs (RFCs, benchmarks, vendor pages), and to related DRs. Use relative paths for links between DR files. Use full web URLs for any other links.
 
 If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)"
 note to its `## More Information` section (or append the section if absent), and reference that DR
