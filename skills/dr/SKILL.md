@@ -14,21 +14,9 @@ allowed-tools: [Read, Glob, Bash, Write, AskUserQuestion]
 
 # Decision Record (DR) Skill
 
-Help the user capture a Decision Record (DR) for a significant, costly-to-change decision using the project's DR template.
+Help the user capture a Decision Record for a significant, costly-to-change decision.
 
-## When Invoked on Demand (`/dr`)
-
-The user may optionally pass a title as `$ARGUMENTS`. If they do, use it; otherwise ask for one before proceeding.
-
-## When Suggested Automatically
-
-If you detect a high cost-of-change decision in conversation, say:
-
-> "This looks like a decision that could be costly to change later. Would you like to capture a Decision Record for it?"
-
-Wait for explicit confirmation before creating anything.
-
----
+If invoked via `/dr`, use `$ARGUMENTS` as the title if provided; otherwise ask for one. If triggered by a conversation, say something like: _"This looks like a decision that could be costly to change later — would you like to record it?"_ Wait for confirmation before proceeding.
 
 ## Execution Steps
 
@@ -36,7 +24,7 @@ Wait for explicit confirmation before creating anything.
 
 Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the detail.
 
-**Round 1 — Essentials** (always required):
+**Essentials** (always required):
 
 | Field | Guidance |
 |---|---|
@@ -45,7 +33,7 @@ Use `AskUserQuestion` for each question — ask one topic area at a time. Do not
 | **Considered Options** | What alternatives were evaluated? Aim for at least two. For each: brief description, pros, and cons. Be objective — rejected options should be fairly represented. |
 | **Decision** | Which option was chosen and why? Prefer the **Y-Statement format**: _"In the context of [situation], facing [concern], we decided [option], to achieve [quality], accepting [downside]."_ Free-form prose is also fine. |
 
-**Round 2 — Optional depth** (ask only if not already covered in conversation):
+**Depth** (ask only if not already covered):
 
 | Field | Guidance |
 |---|---|
@@ -53,17 +41,17 @@ Use `AskUserQuestion` for each question — ask one topic area at a time. Do not
 | **Consequences** | What are the ramifications — both positive and negative? |
 | **More Information** | Additional evidence, links, or related decisions to reference? |
 
-**Round 3 — Metadata** (ask only if the user cares about provenance or governance):
+**Metadata** (ask only if provenance or governance matters):
 
 | Field | Guidance |
 |---|---|
-| **Status** | Use `AskUserQuestion` with options: `draft`, `proposed`, `adopted`, `retired`, `superseded` (default to `proposed`) |
+| **Status** | `draft`, `proposed`, `adopted`, `retired`, `superseded` (default to `proposed`) |
 | **Date** | Date of the decision (default to today) |
 | **Decision-makers** | Who was involved in making the decision? |
 | **Consulted** | Who was consulted (two-way communication)? |
 | **Informed** | Who is kept up-to-date (one-way communication)? |
 
-Never assume an answer — if something is ambiguous and it affects the quality of the DR, ask.
+Never assume; ask if something is ambiguous.
 
 ### 2. Determine the DR Directory and Next Number
 
@@ -98,10 +86,4 @@ Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every s
 
 If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)" note to its `## More Information` section (or append the section if absent), and reference that DR in the new file's `## More Information` section.
 
-### 6. Confirm with the User
-
-After writing the file, tell the user:
-- The file path that was created
-- A one-line summary of the decision captured
-
-Do not offer to improve the DR unless the user asks.
+After writing, tell the user the file path and a one-line summary of the decision. Do not offer to improve the DR unless asked.
