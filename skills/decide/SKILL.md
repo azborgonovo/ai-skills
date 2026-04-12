@@ -5,7 +5,7 @@ description: >
   proposing a decision for review.
   TRIGGER when: the user invokes /decide; OR the user is uncertain about a direction, hasn't yet
   evaluated their options, or wants help thinking through a problem before deciding. This is the
-  exploration phase — use /dr to document a decision that has already been reached.
+  exploration phase — use /log-decision to record a decision that is ready for review or has already been decided.
 argument-hint: [topic or question]
 allowed-tools: [AskUserQuestion]
 ---
@@ -96,7 +96,7 @@ Confirm the summary with the user, then ask:
 
 > "Would you like to log this as a decision record?"
 
-If yes, tell the user: _"Run `/log-decision [title]` and I'll carry this context forward into the record."_
+If yes, proceed directly into the log-decision skill workflow — do not ask the user to type a command. Use the title derived from the decision summary as the DR title, and carry the context from this conversation (problem statement, forces, options, leading option, trade-off) forward so the user isn't re-asked for information already established here.
 
 ---
 
