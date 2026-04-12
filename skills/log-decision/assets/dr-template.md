@@ -11,7 +11,7 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 
 ## Context and Problem Statement
 
-{{Describe the contextual circumstances which have necessitated this decision and the problem being solved, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in the form of a question and add links to relevant code, collaboration boards, or issue management systems.}}
+{{Describe the contextual circumstances which have necessitated this decision and the problem being solved, e.g., in free form using two to three sentences or in the form of an illustrative story. Write each distinct aspect as its own paragraph, separated by a blank line. You may want to articulate the problem in the form of a question and add links to relevant code, collaboration boards, or issue management systems.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## Forces and Constraints

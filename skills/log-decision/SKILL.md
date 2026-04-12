@@ -24,13 +24,10 @@ If triggered by a conversation, say something like: _"This looks like a signific
 
 ### 1. Gather Information
 
-Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields
-at once. Start with the essentials; ask about optional fields only if the user is engaged in the
+Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the
 detail.
 
-**If the user has just come from a `/decide` session**, the Context and Problem Statement, Forces
-and Constraints, and Considered Options will already be established in the conversation. Confirm
-the key points rather than re-asking them, and move straight to the Decision field and any gaps.
+**If the user has just come from a `/decide` session**, the Context and Problem Statement, Forces and Constraints, and Considered Options will already be established in the conversation. Confirm the key points rather than re-asking them, and move straight to the Decision field and any gaps.
 
 **Essentials** (always required):
 
@@ -79,16 +76,11 @@ Never assume; ask if something is ambiguous.
 
 ### 4. Write the DR File
 
-Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the
-gathered information. For any optional section with no content, remove both the
-`<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
+Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the gathered information. For any optional section with no content, remove both the `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
 Do not leave placeholder text.
 
 When writing the DR, include markdown links wherever relevant: to PRs or issues that motivated the decision, to external docs (RFCs, benchmarks, vendor pages), and to related DRs. Use relative paths for links between DR files. Use full web URLs for any other links.
 
-If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)"
-note to its `## More Information` section (or append the section if absent), and reference that DR
-in the new file's `## More Information` section.
+If the status is `superseded`, find the DR being superseded, add a "Superseded by [DR-NNNN](path)" note to its `## More Information` section (or append the section if absent), and reference that DR in the new file's `## More Information` section.
 
-After writing, tell the user the file path and a one-line summary of the decision. Do not offer to
-improve the DR unless asked.
+After writing, tell the user the file path and a one-line summary of the decision. Do not offer to improve the DR unless asked.
