@@ -7,7 +7,7 @@ description: >
   (database, framework, API design, infrastructure, data model, integration patterns, build-vs-buy),
   or anything the user describes as "hard to reverse", "locked in", "a big commitment", or
   "can't easily change later". In those cases, proactively suggest logging a DR.
-argument-hint: [title]
+argument-hint: "[decision title]"
 allowed-tools: [Read, Glob, Bash, Write, AskUserQuestion]
 ---
 
