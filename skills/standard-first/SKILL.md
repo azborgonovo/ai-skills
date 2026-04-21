@@ -1,12 +1,12 @@
 ---
-name: docs-first
+name: standard-first
 description: >
-  Guides technical implementation to always prefer the simplest, officially-documented solution over custom or AI-generated code. Use this skill whenever the agent is about to: write new code for a feature, suggest or add a library/package, scaffold a new project, configure a framework, or solve a problem that an official package might already handle. TRIGGER for any .NET/C#, Node.js/npm, Python, Go, Java, or other language implementation task — especially when the problem sounds like something a package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Before writing any custom code, check for a technology-specific skill (e.g. dotnet-agent-skills), then fall back to official web docs and package registries. Do not skip this skill just because the answer feels obvious from training data.
+  Guides technical implementation to always prefer a standard, officially-documented solution over custom or AI-generated code. Use this skill whenever the agent is about to: write new code for a feature, suggest or add a library/package, scaffold a new project, configure a framework, or solve a problem that a built-in framework feature or package might already handle. TRIGGER for any .NET/C#, Node.js/npm, Python, Go, Java, or other language implementation task — especially when the problem sounds like something a built-in framework feature or package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Before writing any custom code, check for a technology-specific skill (e.g. dotnet-agent-skills), then fall back to official web docs and package registries. Do not skip this skill just because the answer feels obvious from training data.
 argument-hint: "[task description]"
 allowed-tools: [WebSearch, WebFetch, Read, Glob, Grep, Edit, Write, Bash]
 ---
 
-# Docs-First Skill
+# Standard-First Skill
 
 Before implementing anything, find what already exists — a built-in framework feature, a
 well-maintained package, or an official pattern. The simplest solution that fully solves the stated
