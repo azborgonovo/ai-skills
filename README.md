@@ -4,8 +4,9 @@ A personal directory of agent skills to extend Claude Code's capabilities.
 
 | Skill | Description | |
 |---|---|---|
-| `/decide` | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. | [SKILL.md](skills/decide/SKILL.md) |
-| `/log-decision` | Captures a structured Decision Record (DR) for significant decisions. | [SKILL.md](skills/log-decision/SKILL.md) |
+| [/decide](skills/decide) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. |
+| [/log-decision](skills/log-decision) | Captures a structured Decision Record (DR) for significant decisions. |
+| [/docs-first](skills/docs-first) | Guides technical implementation to prefer the simplest, officially-documented solution — searches official docs and package registries before writing custom code. |
 
 ## Installation
 
