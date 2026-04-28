@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 DEST="$HOME/.claude/skills"
 
 resolve_path() {
@@ -33,3 +34,29 @@ for skill_dir in "$REPO/skills"/*/; do
   ln -sfn "$skill_dir" "$target"
   echo "linked $name -> $skill_dir"
 done
+
+EXTERNAL_SKILLS_FILE="$SCRIPT_DIR/external-skills.md"
+
+if [ -f "$EXTERNAL_SKILLS_FILE" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    [[ "$line" =~ ^[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)+$ ]] || continue
+
+    source="${line%%/*}"
+    skill_path="${line#*/}"
+    skill_name="$(basename "$skill_path")"
+    src="$REPO/external/$source/skills/$skill_path"
+    target="$DEST/$skill_name"
+
+    if [ ! -d "$src" ]; then
+      echo "warning: external skill '$line' not found at $src" >&2
+      continue
+    fi
+
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      rm -rf "$target"
+    fi
+
+    ln -sfn "$src" "$target"
+    echo "linked (external) $skill_name -> $src"
+  done < "$EXTERNAL_SKILLS_FILE"
+fi
