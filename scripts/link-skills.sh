@@ -4,13 +4,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 DEST="$HOME/.claude/skills"
-CONF_FILE="$SCRIPT_DIR/external-repos.conf"
-EXTERNAL_SKILLS_FILE="$SCRIPT_DIR/external-skills.md"
+CONF_FILE="$SCRIPT_DIR/external-skills.conf"
 
-# --- Parse external-repos.conf ---
+# Derives a local folder name from a repo URL as <owner>-<repo>
+# e.g. https://github.com/mattpocock/skills -> mattpocock-skills
+derive_local_name() {
+  local path="${1#*://*/}"   # strip https://hostname/
+  local owner="${path%%/*}"
+  local repo="${path##*/}"
+  echo "${owner}-${repo}"
+}
+
+# --- Parse external-skills.conf ---
 
 CLONE_DIR=""
-declare -a REPO_ENTRIES=()
+declare -a SKILL_ENTRIES=()
 
 if [ -f "$CONF_FILE" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
@@ -19,22 +27,27 @@ if [ -f "$CONF_FILE" ]; then
       CLONE_DIR="${BASH_REMATCH[1]}"
       CLONE_DIR="${CLONE_DIR/#\~/$HOME}"
     elif [[ "$line" =~ ^https?:// ]]; then
-      REPO_ENTRIES+=("$line")
+      SKILL_ENTRIES+=("$line")
     fi
   done < "$CONF_FILE"
 fi
 
-if [ -n "$CLONE_DIR" ] && [ ${#REPO_ENTRIES[@]} -gt 0 ]; then
+# --- Clone or pull each unique external repository ---
+
+if [ -n "$CLONE_DIR" ] && [ ${#SKILL_ENTRIES[@]} -gt 0 ]; then
   mkdir -p "$CLONE_DIR"
-  for entry in "${REPO_ENTRIES[@]}"; do
+  declare -A SEEN_REPOS=()
+  for entry in "${SKILL_ENTRIES[@]}"; do
     url="${entry%% *}"
-    name="${entry##* }"
-    dest="$CLONE_DIR/$name"
+    [ -n "${SEEN_REPOS[$url]+x}" ] && continue
+    SEEN_REPOS[$url]=1
+    local_name="$(derive_local_name "$url")"
+    dest="$CLONE_DIR/$local_name"
     if [ -d "$dest/.git" ]; then
-      echo "pulling $name..."
+      echo "pulling $local_name..."
       git -C "$dest" pull
     else
-      echo "cloning $name into $dest..."
+      echo "cloning $local_name into $dest..."
       git clone "$url" "$dest"
     fi
   done
@@ -59,35 +72,29 @@ for skill_dir in "$REPO/skills"/*/; do
   [ -d "$skill_dir" ] || continue
   name="$(basename "$skill_dir")"
   target="$DEST/$name"
-  if [ -e "$target" ] && [ ! -L "$target" ]; then
-    rm -rf "$target"
-  fi
+  if [ -e "$target" ] && [ ! -L "$target" ]; then rm -rf "$target"; fi
   ln -sfn "$skill_dir" "$target"
   echo "linked $name -> $skill_dir"
 done
 
 # --- Symlink selected external skills ---
 
-if [ -f "$EXTERNAL_SKILLS_FILE" ] && [ -n "$CLONE_DIR" ]; then
-  while IFS= read -r line || [ -n "$line" ]; do
-    [[ "$line" =~ ^[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)+$ ]] || continue
-
-    source="${line%%/*}"
-    skill_path="${line#*/}"
+if [ -n "$CLONE_DIR" ]; then
+  for entry in "${SKILL_ENTRIES[@]}"; do
+    url="${entry%% *}"
+    skill_path="${entry#* }"
     skill_name="$(basename "$skill_path")"
-    src="$CLONE_DIR/$source/skills/$skill_path"
+    local_name="$(derive_local_name "$url")"
+    src="$CLONE_DIR/$local_name/skills/$skill_path"
     target="$DEST/$skill_name"
 
     if [ ! -d "$src" ]; then
-      echo "warning: external skill '$line' not found at $src" >&2
+      echo "warning: external skill '$skill_path' not found at $src" >&2
       continue
     fi
 
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-      rm -rf "$target"
-    fi
-
+    if [ -e "$target" ] && [ ! -L "$target" ]; then rm -rf "$target"; fi
     ln -sfn "$src" "$target"
     echo "linked (external) $skill_name -> $src"
-  done < "$EXTERNAL_SKILLS_FILE"
+  done
 fi

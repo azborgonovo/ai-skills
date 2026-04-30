@@ -37,20 +37,16 @@ Symlinks mean changes in any cloned repo are immediately reflected without re-ru
 
 ## Configuration
 
-**`scripts/external-repos.conf`** — defines where to clone external repos and which repos to include:
+**`scripts/external-skills.conf`** — single file that configures where to clone repos and which skills to symlink:
 
 ```
 CLONE_DIR=~/Code/github-azborgonovo
 
-https://github.com/mattpocock/skills mattpocock-skills
+https://github.com/mattpocock/skills productivity/grill-me
+https://github.com/mattpocock/skills engineering/tdd
 ```
 
-**`scripts/external-skills.md`** — lists which skills from external repos to symlink, in `<local-name>/<path-to-skill>` format:
-
-```
-mattpocock-skills/productivity/grill-me
-mattpocock-skills/engineering/tdd
-```
+Each skill entry is `<repo-url> <path-to-skill>`. The local folder name is derived automatically from the URL as `<owner>-<repo>` (e.g. `mattpocock-skills`).
 
 ## Updating external repositories
 
