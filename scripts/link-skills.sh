@@ -36,11 +36,7 @@ fi
 
 if [ -n "$CLONE_DIR" ] && [ ${#SKILL_ENTRIES[@]} -gt 0 ]; then
   mkdir -p "$CLONE_DIR"
-  declare -A SEEN_REPOS=()
-  for entry in "${SKILL_ENTRIES[@]}"; do
-    url="${entry%% *}"
-    [ -n "${SEEN_REPOS[$url]+x}" ] && continue
-    SEEN_REPOS[$url]=1
+  while IFS= read -r url; do
     local_name="$(derive_local_name "$url")"
     dest="$CLONE_DIR/$local_name"
     if [ -d "$dest/.git" ]; then
@@ -50,7 +46,7 @@ if [ -n "$CLONE_DIR" ] && [ ${#SKILL_ENTRIES[@]} -gt 0 ]; then
       echo "cloning $local_name into $dest..."
       git clone "$url" "$dest"
     fi
-  done
+  done < <(printf '%s\n' "${SKILL_ENTRIES[@]}" | awk '{print $1}' | sort -u)
 fi
 
 # --- Symlink personal skills ---
