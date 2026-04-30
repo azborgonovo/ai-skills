@@ -16,30 +16,46 @@ A personal directory of agent skills to extend Claude Code's capabilities.
 
 | Skill | Description |
 |---|---|
-| [/grill-me](external/mattpocock-skills/skills/productivity/grill-me/SKILL.md) | Interview the user relentlessly about a plan or design until reaching shared understanding. |
-| [/tdd](external/mattpocock-skills/skills/engineering/tdd/SKILL.md) | Test-driven development with red-green-refactor loop. |
+| [/grill-me](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md) | Interview the user relentlessly about a plan or design until reaching shared understanding. |
+| [/tdd](https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/SKILL.md) | Test-driven development with red-green-refactor loop. |
 
 ## Installation
 
-Clone the repo with submodules, then run the link script:
+Clone the repo, then run the link script:
 
 ```bash
-git clone --recurse-submodules https://github.com/azborgonovo/agent-skills
+git clone https://github.com/azborgonovo/agent-skills
 ./scripts/link-skills.sh
 ```
 
-If you already cloned without `--recurse-submodules`, initialize the submodules first:
+The script will:
+1. Read `scripts/external-repos.conf` and clone each listed repository into the configured `CLONE_DIR` (or `git pull` if already present)
+2. Symlink each local skill from `skills/` into `~/.claude/skills/`
+3. Symlink each selected external skill from `scripts/external-skills.md` into `~/.claude/skills/`
 
-```bash
-git submodule update --init --recursive
-./scripts/link-skills.sh
+Symlinks mean changes in any cloned repo are immediately reflected without re-running the script.
+
+## Configuration
+
+**`scripts/external-repos.conf`** — defines where to clone external repos and which repos to include:
+
+```
+CLONE_DIR=~/Code/github-azborgonovo
+
+https://github.com/mattpocock/skills mattpocock-skills
 ```
 
-This symlinks each local skill from `skills/` and each selected external skill from `external/`
-into `~/.claude/skills/`, so changes in this repo are immediately reflected without re-running.
+**`scripts/external-skills.md`** — lists which skills from external repos to symlink, in `<local-name>/<path-to-skill>` format:
 
-### Updating external skills
+```
+mattpocock-skills/productivity/grill-me
+mattpocock-skills/engineering/tdd
+```
+
+## Updating external repositories
+
+Re-run the link script — it automatically pulls the latest changes for already-cloned repos:
 
 ```bash
-git submodule update --remote external/mattpocock-skills
+./scripts/link-skills.sh
 ```
