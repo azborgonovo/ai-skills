@@ -1,0 +1,65 @@
+{
+  "skill_name": "team-topology",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a team of ML specialists building a recommendation engine that other product teams depend on. What team type should this be, and how should those product teams interact with it?",
+      "expected_output": "Should identify this as a Complicated Subsystem team due to specialist expertise requirements, recommend X-as-a-Service interaction mode for product teams consuming the engine, and explain why a stream-aligned team couldn't own this.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "identifies-complicated-subsystem-team",
+          "description": "Response correctly identifies the ML team as a Complicated Subsystem team"
+        },
+        {
+          "name": "recommends-xaas-interaction",
+          "description": "Response recommends X-as-a-Service as the interaction mode for product teams consuming the engine"
+        },
+        {
+          "name": "explains-reasoning",
+          "description": "Response explains WHY this team type fits (specialist expertise, complexity beyond stream-aligned team capacity)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Our platform team keeps getting pulled into every stream-aligned team's work because the teams can't use the platform self-sufficiently. What Team Topologies patterns apply and what should we change?",
+      "expected_output": "Should identify this as a failure of X-as-a-Service interaction mode and TVP principles — the platform isn't self-service enough. Should recommend improving platform usability/documentation, potentially using enabling teams to onboard stream-aligned teams, and applying TVP to simplify the platform.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "diagnoses-xaas-failure",
+          "description": "Response recognizes this as a broken X-as-a-Service interaction mode"
+        },
+        {
+          "name": "mentions-tvp",
+          "description": "Response mentions Thinnest Viable Platform or platform simplification"
+        },
+        {
+          "name": "suggests-enabling-team",
+          "description": "Response suggests using an enabling team (or facilitation mode) to help stream-aligned teams become self-sufficient"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We want to help our frontend teams adopt better testing practices. Should we create a separate QA team to own this, or is there a different approach?",
+      "expected_output": "Should recommend against a permanent QA team (creates handoff dependency), and suggest using an enabling team with facilitation interaction mode to temporarily coach frontend teams until they are self-sufficient. May reference cognitive load and the principle of eliminating team dependencies.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "recommends-enabling-team",
+          "description": "Response recommends an enabling team rather than a permanent QA team"
+        },
+        {
+          "name": "uses-facilitation-mode",
+          "description": "Response mentions facilitation as the appropriate interaction mode"
+        },
+        {
+          "name": "explains-dependency-risk",
+          "description": "Response explains the risk of creating a permanent dependency on a separate QA team"
+        }
+      ]
+    }
+  ]
+}
