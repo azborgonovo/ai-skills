@@ -1,0 +1,50 @@
+{
+  "skill_name": "backfill-decisions",
+  "evals": [
+    {
+      "id": 0,
+      "name": "planted-decisions-synthetic-repo",
+      "prompt": "This repo has no ADRs — go through the git history and backfill decision records for the architecturally significant decisions.",
+      "expected_output": "A docs/decisions/ directory containing DRs for the planted decisions (RabbitMQ adoption, SQLite-to-PostgreSQL migration, Docker+CI introduction, RabbitMQ-to-SQS replacement). The RabbitMQ/SQS pair recorded as two cross-linked DRs (superseded + adopted). Each DR dated with the commit date, listing evidence commits and a provenance line. No DRs for noise commits.",
+      "files": ["fixtures/planted-repo"],
+      "assertions": [
+        "Decision records are written to docs/decisions/ (the log-decision default for a repo with no existing DR directory)",
+        "All four planted decisions are covered: RabbitMQ adoption, SQLite-to-PostgreSQL migration, Docker+CI introduction, RabbitMQ-to-SQS replacement",
+        "The RabbitMQ-to-SQS reversal is recorded as two cross-linked records, with the original RabbitMQ record marked superseded",
+        "Each record's date metadata is the historical commit date (2022-2024), not today's date",
+        "Every record contains a provenance line stating it was reconstructed retroactively from git history",
+        "No records are written for noise commits (lodash bump, lint fixes, readme typo, retry-logic fix)",
+        "Every record cites at least one real commit hash that exists in the repo's history"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "madr-dedup-and-naming",
+      "prompt": "Reconstruct decision records from this repo's git history for any significant decisions we never documented.",
+      "expected_output": "The already-documented PostgreSQL decision is skipped (dedup against adr/0002-use-postgresql.md). The undocumented Docker adoption gets a new record matching the existing MADR naming convention (adr/0003-*.md), dated 2022-03-22 with a provenance line.",
+      "files": ["fixtures/madr-repo"],
+      "assertions": [
+        "No new record duplicates the PostgreSQL decision already documented in adr/0002-use-postgresql.md",
+        "The undocumented Docker adoption gets a new decision record",
+        "The new record matches the existing MADR naming convention and numbering (adr/0003-*.md), not a forked DR-0001-*.md scheme",
+        "The new record's date is the Docker commit date (2022-03-22), not today's date",
+        "The new record contains a provenance line stating it was reconstructed retroactively from git history",
+        "The new record cites the real Docker-introduction commit hash"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "real-repo-agent-skills",
+      "prompt": "we never wrote down why this repo is set up the way it is - can you reconstruct the decision records from git history?",
+      "expected_output": "Finds the genuine 'replace git submodule with auto-clone sibling pattern' decision (commit 6c96217) and writes a well-evidenced DR with commit references and a provenance line, without fabricating decisions from noise commits.",
+      "files": ["clone of the agent-skills repo itself"],
+      "assertions": [
+        "A record documents the replacement of git submodules with the auto-clone sibling pattern for external skills (commit 6c96217)",
+        "Every record cites at least one real commit hash from the repo's history",
+        "Every record contains a provenance line stating it was reconstructed retroactively from git history",
+        "Each record's date metadata is the historical commit date, not today's date",
+        "No record describes a decision that lacks supporting commit evidence (no fabrication)"
+      ]
+    }
+  ]
+}
