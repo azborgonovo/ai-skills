@@ -4,8 +4,10 @@ description: >
   Mine a repository's git history for architecturally significant decisions made in the past and
   retroactively write Decision Records for them, following the log-decision conventions. TRIGGER when:
   the user invokes /backfill-decisions; OR the user wants to document historical or undocumented
-  decisions, reconstruct ADRs/DRs from git history, or says things like "we never wrote down why we
-  chose X", "backfill our decision log", or "this repo has no ADRs".
+  decisions, reconstruct ADRs/DRs from git history, generate ADRs for a legacy or existing codebase,
+  document the architecture history, or says things like "we never wrote down why we chose X",
+  "why did we choose X?", "backfill our decision log", or "this repo has no ADRs". Do NOT use for a
+  decision being made right now — that is /log-decision.
 argument-hint: "[time range, path, or topic — e.g. 2023..2024, src/api, \"database\"]"
 allowed-tools: [Bash(git:*), Read, Glob, Grep, Write, Edit, AskUserQuestion]
 ---
@@ -25,13 +27,16 @@ capture the evidence and reasoning that history reveals, honestly marked as a re
 ### Phase 0 — Preconditions and Scope
 
 1. Run `git rev-parse --is-inside-work-tree`. If not inside a repository, stop and tell the user.
-2. Gauge the repo: `git rev-list --count HEAD` for commit count, and the date of the first commit
-   for age.
-3. Parse `$ARGUMENTS` if provided — any combination of:
+2. Run `git rev-parse --is-shallow-repository`. If `true`, warn the user that the clone is shallow —
+   the history is truncated and mining it would silently miss most decisions — and suggest
+   `git fetch --unshallow` before continuing.
+3. Gauge the repo: `git rev-list --count HEAD` for commit count, and
+   `git log --reverse --date=short --pretty='%ad' | head -1` for the first commit date.
+4. Parse `$ARGUMENTS` if provided — any combination of:
    - a **date range** like `2023..2024` → translate to `--since`/`--until` on every `git log`
    - a **path** like `src/api` → append `-- <path>` to every `git log`
    - a **topic keyword** like `"database"` → add it to the grep patterns in Phase 2
-4. If more than ~1,500 commits are in scope and no range was given, use `AskUserQuestion`: scan
+5. If more than ~1,500 commits are in scope and no range was given, use `AskUserQuestion`: scan
    the whole history **era-by-era** (one calendar year per era, oldest first — mine and triage
    each era before moving to the next), or let the user pick a narrower range.
 
@@ -81,10 +86,12 @@ Run these sweeps (per era when working era-by-era; all read-only):
    ```
    git log --diff-filter=AD --date=short --pretty='%h|%ad|%s' --name-status -- 'Dockerfile*' 'docker-compose*' '*.tf' '*.bicep' '.github/workflows' '.gitlab-ci.yml' 'azure-pipelines*'
    ```
-5. **Structural snapshots.** Compare top-level trees at era boundaries with
-   `git ls-tree --name-only <rev>`; a directory appearing or disappearing between boundaries is a
-   structural signal — locate the originating commits with
-   `git log --diff-filter=A --oneline -- <dir>`.
+5. **Structural snapshots.** Compare top-level trees at boundary revisions with
+   `git ls-tree --name-only <rev>`. When working era-by-era, the boundaries are the era edges;
+   in a single-pass scan, sample one revision per year via
+   `git rev-list -1 --before=<YYYY-12-31> HEAD` (or just compare the root commit against `HEAD`
+   for young repos). A directory appearing or disappearing between boundaries is a structural
+   signal — locate the originating commits with `git log --diff-filter=A --oneline -- <dir>`.
 6. **Big-bang commits:** `git log --date=short --pretty='%h|%ad|%s' --shortstat` and flag commits
    touching more than ~100 files.
 
@@ -97,9 +104,18 @@ Run these sweeps (per era when working era-by-era; all read-only):
   - inferred title in log-decision's imperative style, e.g. *"Adopt MediatR for in-process messaging"*
   - date range of the cluster
   - 2–5 representative commit hashes (first, last, most descriptive)
-  - authors: `git shortlog -sn <first>..<last> -- <path>`
+  - authors of the cluster's commits: `git shortlog -sn <first>~1..<last> -- <path>` (fall back to
+    `git shortlog -sn <last>` if `<first>` is the root commit — plain `<first>..<last>` would
+    exclude the first commit, often the most important one)
   - a one-line evidence summary
   - confidence: high / medium / low
+
+  Example evidence card:
+
+  > **Adopt SQS for asynchronous messaging** — 2023-03-02..2023-04-11 · commits `a1b2c3d`,
+  > `e4f5a6b`, `c7d8e9f` · authors: J. Doe, M. Silva · evidence: `aws-sdk-sqs` added to
+  > package.json, `rabbitmq` removed three weeks later, CI gained an SQS integration test job ·
+  > confidence: **high**
 - **Reversal detection:** if the same subject was adopted and later removed or replaced (e.g. a
   dependency added in 2022, deleted in 2024), pair them as **two linked candidates**: the original
   (will become `superseded by DR-NNNN`, or `retired` if nothing replaced it) and the reversal
@@ -109,7 +125,11 @@ Run these sweeps (per era when working era-by-era; all read-only):
 
 1. Print a numbered markdown table in chat:
    `# | Proposed DR title | Date | Evidence | Confidence | Note` — notes include
-   *"already recorded in DR-NNNN"* exclusions and *"pair: reverses #3"* links.
+   *"already recorded in DR-NNNN"* exclusions and *"pair: reverses #3"* links. Example row:
+
+   | # | Proposed DR title | Date | Evidence | Confidence | Note |
+   |---|---|---|---|---|---|
+   | 4 | Adopt SQS for asynchronous messaging | 2023-03 | aws-sdk-sqs added, rabbitmq removed, CI job added | high | pair: reverses #3 |
 2. Then `AskUserQuestion` (one question): **write all high-confidence** / **let me select** /
    **rescan with a different scope**. If "let me select", follow up with `multiSelect: true`
    questions batched four candidates at a time.
@@ -124,8 +144,13 @@ For each confirmed candidate, proceed directly into the log-decision skill's wri
 established by the mining. Apply these retroactive adaptations:
 
 - **Template:** read `${CLAUDE_SKILL_DIR}/../log-decision/assets/dr-template.md`. If that path
-  does not resolve, Glob for `~/.claude/skills/log-decision/assets/dr-template.md`. If neither
-  exists, stop and tell the user the log-decision skill is required.
+  does not resolve, try `$HOME/.claude/skills/log-decision/assets/dr-template.md` (use the
+  expanded absolute path — `~` is not expanded by file tools). If neither exists, stop and tell
+  the user the log-decision skill is required.
+- **File naming:** if the target directory already has an established naming convention (e.g.
+  MADR-style `0007-use-postgres.md` without a `DR-` prefix), match that pattern and continue its
+  numbering — forking the scheme would split the log in two. Use the log-decision default
+  (`DR-NNNN-kebab-title.md`) only when the directory is new or has no consistent pattern.
 - **Status:** default `adopted`. Reversal pairs: the original gets `superseded by DR-NNNN`
   (or `retired` if nothing replaced it) and both files cross-link each other in
   `## More Information` — both are new, so write the links directly rather than editing later.
@@ -148,8 +173,9 @@ established by the mining. Apply these retroactive adaptations:
   - cross-link paired DRs with relative paths
   - end with a provenance line: *"This DR was reconstructed retroactively from git history on
     YYYY-MM-DD."*
-- **Numbering:** continue sequentially from the highest existing `DR-NNNN`. When writing several
-  in one run, number them in chronological order of decision date so the log reads sensibly.
+- **Numbering:** continue sequentially from the highest existing number (in whatever naming
+  pattern applies). When writing several in one run, number them in chronological order of
+  decision date so the log reads sensibly.
 
 ### Phase 6 — Wrap Up
 
