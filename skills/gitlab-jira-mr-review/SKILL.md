@@ -71,14 +71,20 @@ tool call batch.
 
 ### Step 4 — Fetch diffs
 
+Use `limit: 150000` to avoid truncation on large MRs:
+
 ```
-GET projects/<project_path_encoded>/merge_requests/<mr_iid>/changes
+GET projects/<project_path_encoded>/merge_requests/<mr_iid>/changes   (limit: 150000)
 ```
 
 The response is the full MR object with an additional `changes` array. Each element has:
 - `new_path`, `old_path`
 - `diff` — unified diff string (the hunks)
 - `new_file`, `deleted_file`, `renamed_file` booleans
+
+**Truncation check**: compare `response.changes.length` with `mr.changes_count` from Step 2. If
+they differ, the diff is truncated — note "diff truncated — only N of M files reviewed" in the
+summary and prioritise the highest-risk files (auth, data access, public API surface).
 
 **Line numbers**: Don't count lines from the diff manually — it's error-prone. After checking out
 the branch in Step 5, use `grep -n` or `cat -n` on the actual file to find exact line numbers for
@@ -104,9 +110,17 @@ find ~/projects -maxdepth 5 -name ".git" -exec sh -c \
 git -C <repo_path> fetch origin
 git -C <repo_path> checkout <source_branch> 2>/dev/null || \
   git -C <repo_path> checkout -b <source_branch> origin/<source_branch>
+
+# 4. Verify local HEAD matches the MR's head_sha — the branch may have new commits
+#    that aren't reflected in the local tracking branch yet.
+LOCAL_HEAD=$(git -C <repo_path> log -1 --format=%H)
+if [ "$LOCAL_HEAD" != "<diff_refs.head_sha>" ]; then
+  git -C <repo_path> pull origin <source_branch>
+fi
 ```
 
 If the repo isn't found locally, proceed with diff-only review and note the limitation.
+If the pull fails, note that local files may not match the MR's head and read with caution.
 
 ---
 
@@ -130,14 +144,10 @@ map each criterion to the code explicitly and flag any that aren't met.
 Post each finding as a **draft note** — only you can see them until you submit the review in the
 GitLab UI. This lets you remove or edit comments before they become visible to others.
 
-```
-POST projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes
-```
-
-**Use a JSON body** (not form fields) so the nested `position` object is correctly parsed by
-GitLab. Pass it via `input` with a `Content-Type: application/json` header:
+1. Write the JSON body to a temp file (one file per note):
 
 ```json
+// /tmp/mr<iid>_note<n>.json
 {
   "note": "<observation>\n\n<suggested fix if applicable>\n\nCo-reviewed with :robot:",
   "position": {
@@ -152,9 +162,25 @@ GitLab. Pass it via `input` with a `Content-Type: application/json` header:
 }
 ```
 
-In `mcp__glab__glab_api` terms: set `method: "POST"`, `header: ["Content-Type: application/json"]`,
-and `input: <the JSON string above>`. Do **not** use the `field` array — it sends form-encoded
-data which GitLab cannot deserialize into a nested `position` object for this endpoint.
+2. Post via Bash:
+
+```bash
+glab api --method POST \
+  --header "Content-Type: application/json" \
+  --input /tmp/mr<iid>_note<n>.json \
+  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes"
+```
+
+You can batch multiple notes in a loop or post them sequentially — the loop approach is cleaner:</p>
+
+```bash
+for i in 1 2 3 4 5; do
+  glab api --method POST --header "Content-Type: application/json" \
+    --input /tmp/mr<iid>_note$i.json \
+    "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes" 2>&1 | \
+    python3 -c "import sys,json; d=json.load(sys.stdin); print(f'posted id={d[\"id\"]}')" || echo "note $i failed"
+done
+```
 
 **`position.old_path` is required for inline placement.** GitLab silently falls back to a plain
 discussion note (not inline on the diff) if it is omitted. For new and unmodified files use the
@@ -214,6 +240,6 @@ post it to the MR):
 
 - **Never** approve, reject, mark as reviewed, or submit the review — only post comments and notes
 - **Never** checkout a branch if the local repo has uncommitted changes without warning the user first
-- **Always** start every comment and the summary with `:robot:`
+- **Always** end every inline comment with `Co-reviewed with :robot:` as the last line (see comment format above). The summary is conversation-only and is exempt.
 - **Large diffs (>500 changed lines)**: note the scope in the summary, focus on highest-risk files
   (those touching APIs, auth, data access), and explicitly state not all changes were reviewed
