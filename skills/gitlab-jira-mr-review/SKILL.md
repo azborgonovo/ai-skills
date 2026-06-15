@@ -139,7 +139,7 @@ GitLab. Pass it via `input` with a `Content-Type: application/json` header:
 
 ```json
 {
-  "note": ":robot: **[Layer]** <observation. Suggested fix if applicable.>",
+  "note": ":robot:\n\n<observation>\n\n<suggested fix if applicable>",
   "position": {
     "base_sha": "<diff_refs.base_sha>",
     "start_sha": "<diff_refs.start_sha>",
@@ -162,7 +162,11 @@ same value as `new_path`. For renamed files use the path before renaming.
 
 **Comment format:**
 ```
-:robot: **[Implementation]** `fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime. Add a nil check or return an early error.
+:robot:
+
+`fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime.
+
+Add a nil check or return an early error.
 ```
 
 **Posting guidelines:**
