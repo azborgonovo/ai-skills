@@ -125,25 +125,31 @@ map each criterion to the code explicitly and flag any that aren't met.
 
 ---
 
-### Step 7 — Post inline comments
+### Step 7 — Post comments as draft notes
 
-For each finding worth commenting on, post an inline comment via `mcp__glab__glab_api`:
-
-```
-POST projects/<project_path_encoded>/merge_requests/<mr_iid>/discussions
-```
-
-Build the `field` array for the request flags:
+Post each finding as a **draft note** — only you can see them until you submit the review in the
+GitLab UI. This lets you remove or edit comments before they become visible to others.
 
 ```
-body=":robot: **[Layer]** <observation. Suggested fix if applicable.>"
+POST projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes
+```
+
+Build the `field` array for the request. Note: draft notes use `note=` (not `body=`).
+
+```
+note=":robot: **[Layer]** <observation. Suggested fix if applicable.>"
 position[base_sha]=<diff_refs.base_sha>
 position[start_sha]=<diff_refs.start_sha>
 position[head_sha]=<diff_refs.head_sha>
 position[position_type]=text
 position[new_path]=<relative file path>
-position[new_line]=<computed new-file line number>
+position[old_path]=<old file path — same as new_path unless the file was renamed>
+position[new_line]=<new-file line number>
 ```
+
+**`position[old_path]` is required for inline placement.** GitLab silently falls back to a plain
+discussion note (not inline on the diff) if it is omitted. For new and unmodified files use the
+same value as `new_path`. For renamed files use the path before renaming.
 
 **Comment format:**
 ```
@@ -186,7 +192,7 @@ post it to the MR):
 | Tests | N |
 | Code Style | N |
 
-*Inline comments have been posted to the MR. Please review and submit when ready.*
+*Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish.*
 ```
 
 ---
