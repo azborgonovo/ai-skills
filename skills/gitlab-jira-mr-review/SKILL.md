@@ -162,11 +162,11 @@ same value as `new_path`. For renamed files use the path before renaming.
 
 **Comment format:**
 ```
-:robot:
-
 `fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime.
 
 Add a nil check or return an early error.
+
+Co-reviewed with :robot:
 ```
 
 **Posting guidelines:**
