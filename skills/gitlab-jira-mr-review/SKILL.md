@@ -32,7 +32,13 @@ From the URL (e.g. `https://gitlab.com/acme/my-service/-/merge_requests/42`) ext
 
 ### Step 2 — Fetch MR metadata
 
-Call `mcp__glab__glab_api` (no repo context required — it's a direct HTTP wrapper):
+`mcp__glab__glab_api` is a deferred tool — load its schema first:
+
+```
+ToolSearch: select:mcp__glab__glab_api
+```
+
+Then call it:
 
 ```
 GET projects/<project_path_encoded>/merge_requests/<mr_iid>
@@ -49,7 +55,8 @@ From the response extract:
 ### Step 3 — Fetch JIRA context (if a ticket was found)
 
 If a JIRA key was found, load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch and call it
-with `issueIdOrKey: "<KEY>"`. Extract:
+with `issueIdOrKey: "<KEY>"` and `cloudId: "<org>.atlassian.net"` (e.g. `goodhabitz.atlassian.net`).
+If you don't know the org slug, try the domain from the JIRA URLs in the MR description. Extract:
 - Summary (the "what")
 - Description / acceptance criteria (the "done conditions")
 - Issue type (Story / Task / Bug)
@@ -57,26 +64,25 @@ with `issueIdOrKey: "<KEY>"`. Extract:
 If no ticket is found, or the fetch fails, continue without requirements context — note it in the
 summary at the end.
 
+**Parallelise Steps 3 and 4** — JIRA fetch and diff fetch are independent; issue both in the same
+tool call batch.
+
 ---
 
 ### Step 4 — Fetch diffs
 
 ```
-GET projects/<project_path_encoded>/merge_requests/<mr_iid>/diffs
+GET projects/<project_path_encoded>/merge_requests/<mr_iid>/changes
 ```
 
-Response is an array of file objects. Each has:
+The response is the full MR object with an additional `changes` array. Each element has:
 - `new_path`, `old_path`
 - `diff` — unified diff string (the hunks)
 - `new_file`, `deleted_file`, `renamed_file` booleans
 
-**Parse new-file line numbers from the diff.** For each hunk:
-1. `@@ -<old_start>,<old_count> +<new_start>,<new_count> @@` → set `new_line = new_start`
-2. Context line (` `): `new_line++`
-3. Added line (`+`): record `(new_path, new_line)` as commentable, then `new_line++`
-4. Deleted line (`-`): skip (line doesn't exist in new file)
-
-Build a map: `file → list of (new_line, content)` for added/modified lines.
+**Line numbers**: Don't count lines from the diff manually — it's error-prone. After checking out
+the branch in Step 5, use `grep -n` or `cat -n` on the actual file to find exact line numbers for
+your findings. Use the diff only to confirm the line was changed in this MR.
 
 ---
 
