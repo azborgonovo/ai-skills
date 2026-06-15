@@ -1,0 +1,48 @@
+{
+  "skill_name": "gitlab-jira-mr-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this MR for me: https://gitlab.com/goodhabitz/my-service/-/merge_requests/42",
+      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate and checkout the source branch locally, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts inline comments starting with :robot:, and outputs the review summary in the conversation (does NOT post it to the MR). Does NOT approve or submit the review.",
+      "files": [],
+      "expectations": [
+        "All inline comments start with the :robot: emoji",
+        "The review summary is output in the conversation, not posted to the MR",
+        "The conversation summary starts with :robot: and includes a Pyramid coverage table",
+        "The review covers Implementation Semantics and API Semantics (bottom layers)",
+        "The skill attempts to invoke the code-review-pyramid skill, or falls back to its own judgment if unavailable",
+        "The skill attempts to locate a local clone and checkout the source branch, or notes the limitation if not found",
+        "The skill does not call any approve, submit, or review-completion API endpoint",
+        "If a JIRA ticket is found in the MR, the summary references it"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Can you do a code review on https://gitlab.com/goodhabitz/platform/-/merge_requests/7? There's no JIRA ticket for this one, it's a quick hotfix.",
+      "expected_output": "Skill reviews the MR without JIRA context. The conversation summary explicitly states no JIRA ticket was found. Review still covers all pyramid layers. Inline comments are posted where issues exist. Skill attempts to checkout the source branch locally.",
+      "files": [],
+      "expectations": [
+        "Conversation summary states no JIRA ticket was found",
+        "Inline comments are still posted (review proceeds without JIRA context)",
+        "All comments start with :robot:",
+        "The review summary is output in the conversation, not posted to the MR",
+        "The skill does not halt or ask for a ticket — it continues without one",
+        "The skill attempts to locate a local clone and checkout the source branch, or notes the limitation if not found"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Please review https://gitlab.com/goodhabitz/backend/-/merge_requests/201 — the ticket is GH-4521 in the MR title",
+      "expected_output": "Skill finds GH-4521 in the MR title, fetches the JIRA ticket details, and uses the acceptance criteria to evaluate whether the implementation satisfies the requirements. The conversation summary links to the JIRA ticket.",
+      "files": [],
+      "expectations": [
+        "JIRA ticket GH-4521 is fetched and referenced in the summary",
+        "At least one inline comment references the JIRA requirements",
+        "The review summary is output in the conversation and links to the JIRA ticket",
+        "The review summary is not posted to the MR",
+        "All comments start with :robot:"
+      ]
+    }
+  ]
+}
