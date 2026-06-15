@@ -139,7 +139,7 @@ GitLab. Pass it via `input` with a `Content-Type: application/json` header:
 
 ```json
 {
-  "note": ":robot:\n\n<observation>\n\n<suggested fix if applicable>",
+  "note": "<observation>\n\n<suggested fix if applicable>\n\nCo-reviewed with :robot:",
   "position": {
     "base_sha": "<diff_refs.base_sha>",
     "start_sha": "<diff_refs.start_sha>",
