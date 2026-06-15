@@ -134,20 +134,29 @@ GitLab UI. This lets you remove or edit comments before they become visible to o
 POST projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes
 ```
 
-Build the `field` array for the request. Note: draft notes use `note=` (not `body=`).
+**Use a JSON body** (not form fields) so the nested `position` object is correctly parsed by
+GitLab. Pass it via `input` with a `Content-Type: application/json` header:
 
-```
-note=":robot: **[Layer]** <observation. Suggested fix if applicable.>"
-position[base_sha]=<diff_refs.base_sha>
-position[start_sha]=<diff_refs.start_sha>
-position[head_sha]=<diff_refs.head_sha>
-position[position_type]=text
-position[new_path]=<relative file path>
-position[old_path]=<old file path — same as new_path unless the file was renamed>
-position[new_line]=<new-file line number>
+```json
+{
+  "note": ":robot: **[Layer]** <observation. Suggested fix if applicable.>",
+  "position": {
+    "base_sha": "<diff_refs.base_sha>",
+    "start_sha": "<diff_refs.start_sha>",
+    "head_sha": "<diff_refs.head_sha>",
+    "position_type": "text",
+    "new_path": "<relative file path>",
+    "old_path": "<old file path — same as new_path unless the file was renamed>",
+    "new_line": <new-file line number as an integer, not a quoted string>
+  }
+}
 ```
 
-**`position[old_path]` is required for inline placement.** GitLab silently falls back to a plain
+In `mcp__glab__glab_api` terms: set `method: "POST"`, `header: ["Content-Type: application/json"]`,
+and `input: <the JSON string above>`. Do **not** use the `field` array — it sends form-encoded
+data which GitLab cannot deserialize into a nested `position` object for this endpoint.
+
+**`position.old_path` is required for inline placement.** GitLab silently falls back to a plain
 discussion note (not inline on the diff) if it is omitted. For new and unmodified files use the
 same value as `new_path`. For renamed files use the path before renaming.
 
