@@ -4,12 +4,13 @@
     {
       "id": 1,
       "prompt": "Review this MR for me: https://gitlab.com/goodhabitz/my-service/-/merge_requests/42",
-      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate and checkout the source branch locally, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts inline comments starting with :robot:, and outputs the review summary in the conversation (does NOT post it to the MR). Does NOT approve or submit the review.",
+      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate and checkout the source branch locally, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts inline comments via scripts/post_review_notes.py (each ending with 'Co-reviewed with :robot:'), and outputs the review summary in the conversation (does NOT post it to the MR). Does NOT approve or submit the review.",
       "files": [],
       "expectations": [
-        "All inline comments start with the :robot: emoji",
+        "Inline comments are posted via scripts/post_review_notes.py rather than hand-written glab api calls",
+        "Each inline comment ends with the 'Co-reviewed with :robot:' footer",
         "The review summary is output in the conversation, not posted to the MR",
-        "The conversation summary starts with :robot: and includes a Pyramid coverage table",
+        "The conversation summary starts with '## Code Review Summary' and includes a Pyramid coverage table",
         "The review covers Implementation Semantics and API Semantics (bottom layers)",
         "The skill attempts to invoke the code-review-pyramid skill, or falls back to its own judgment if unavailable",
         "The skill attempts to locate a local clone and checkout the source branch, or notes the limitation if not found",
@@ -25,7 +26,7 @@
       "expectations": [
         "Conversation summary states no JIRA ticket was found",
         "Inline comments are still posted (review proceeds without JIRA context)",
-        "All comments start with :robot:",
+        "Each inline comment ends with the 'Co-reviewed with :robot:' footer",
         "The review summary is output in the conversation, not posted to the MR",
         "The skill does not halt or ask for a ticket — it continues without one",
         "The skill attempts to locate a local clone and checkout the source branch, or notes the limitation if not found"
@@ -41,7 +42,7 @@
         "At least one inline comment references the JIRA requirements",
         "The review summary is output in the conversation and links to the JIRA ticket",
         "The review summary is not posted to the MR",
-        "All comments start with :robot:"
+        "Each inline comment ends with the 'Co-reviewed with :robot:' footer"
       ]
     }
   ]

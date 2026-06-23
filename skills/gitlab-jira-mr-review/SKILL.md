@@ -111,14 +111,10 @@ they differ, the diff is truncated — note "diff truncated — only N of M file
 summary and prioritise the highest-risk files (auth, data access, public API surface).
 
 **Line numbers**: Don't count lines from the diff manually — it's error-prone. After checking out
-the branch in Step 5, use `grep -n` or `cat -n` on the actual file to find exact line numbers for
-your findings. Use the diff only to confirm the line was changed in this MR.
-
-**Prefer `+` lines as comment anchors**: When picking a line to anchor an inline comment, prefer
-a line that appears with a `+` prefix in the diff (newly added in this MR). GitLab resolves these
-positions reliably. Anchoring to a context line (an unchanged line that survived inside a hunk
-with large deletions) can silently fail at submit time — the draft is accepted but never publishes.
-If there is no `+` line close to your finding, post a general note instead (see Step 7).
+the branch in Step 5, use a targeted `grep -n '<snippet>' <file>` on the actual file to find exact
+line numbers (prefer `grep -n` over `cat -n` of the whole file — it's far cheaper). Use the diff
+only to confirm the line was changed in this MR. Anchor-line selection (`+` lines vs context
+lines) is covered in Step 7.
 
 ---
 
@@ -172,99 +168,58 @@ map each criterion to the code explicitly and flag any that aren't met.
 ### Step 7 — Post comments as draft notes
 
 Post each finding as a **draft note** — only you can see them until you submit the review in the
-GitLab UI. This lets you remove or edit comments before they become visible to others.
+GitLab UI, so you can edit or remove comments before they go live.
 
-1. Write the JSON body to a temp file (one file per note):
+The mechanics of posting are deterministic and easy to get subtly wrong, so they live in a
+bundled script: **`scripts/post_review_notes.py`** (relative to this SKILL.md). It posts an
+arbitrary number of notes, verifies each one anchored to the diff, and falls back gracefully when
+it can't. Your job is to produce good findings; the script handles the GitLab plumbing.
+
+1. Write your findings to a JSON array — one object per finding:
 
 ```json
-// /tmp/mr<iid>_note<n>.json
-{
-  "note": "<observation>\n\n<suggested fix if applicable>\n\nCo-reviewed with :robot:",
-  "position": {
-    "base_sha": "<diff_refs.base_sha>",
-    "start_sha": "<diff_refs.start_sha>",
-    "head_sha": "<diff_refs.head_sha>",
-    "position_type": "text",
-    "new_path": "<relative file path>",
-    "old_path": "<old file path — same as new_path unless the file was renamed>",
-    "new_line": <new-file line number as an integer, not a quoted string>
-  }
-}
+// /tmp/mr<iid>_notes.json
+[
+  { "note": "<observation>\n\n<suggested fix if applicable>", "new_path": "src/user.go", "new_line": 47 },
+  { "note": "<a finding with no good line anchor>", "general": true }
+]
 ```
 
-2. Post via Bash:
+- `new_line` is the **new-file** line number (integer). `old_path` defaults to `new_path` — set it
+  explicitly only for renamed files (use the pre-rename path).
+- Use `"general": true` (or simply omit `new_line`) for a positionless note that publishes as a
+  general discussion comment.
+- Don't add the `Co-reviewed with :robot:` line yourself — the script appends it if missing.
+
+2. Run the script (it reads `diff_refs` from Step 2 and purges this skill's own prior drafts so
+   reruns don't duplicate):
 
 ```bash
-glab api --method POST \
-  --header "Content-Type: application/json" \
-  --input /tmp/mr<iid>_note<n>.json \
-  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes"
+python3 <skill_dir>/scripts/post_review_notes.py \
+  --project <project_path_encoded> --mr <mr_iid> \
+  --base-sha <diff_refs.base_sha> --start-sha <diff_refs.start_sha> --head-sha <diff_refs.head_sha> \
+  --notes /tmp/mr<iid>_notes.json --purge
 ```
 
-**Before posting — purge stale drafts**: List existing draft notes and delete any that duplicate
-what you're about to post. This prevents leftover drafts from a previous review run appearing as
-duplicates to the author.
+3. Read the per-note summary it prints. Each line reports `resolved=True/False` or `general=True`.
 
-```bash
-# List existing drafts and their IDs
-glab api "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes" \
-  | python3 -c "import sys,json; [print(f'id={n[\"id\"]} | {n[\"note\"][:80]}') for n in json.load(sys.stdin)]"
+**Why the script, and what it protects you from:**
+- GitLab **always returns HTTP 200** for `draft_notes`, even when it can't resolve the position. An
+  unresolvable draft silently never publishes as an inline comment. The script checks for a
+  resolved position and, on failure, deletes the draft and re-posts it positionless so the finding
+  is never lost — it just lands as a general discussion comment instead of inline.
+- `old_path` is required for inline placement; omitting it silently downgrades to a plain note. The
+  script always sends it.
+- **Prefer `+` lines as anchors**: pick a `new_line` that appears with a `+` prefix in the diff
+  (added in this MR) — GitLab resolves those reliably. Context lines inside large-deletion hunks
+  often fail to resolve. If no `+` line is near your finding, mark it `general` from the start.
 
-# Delete a stale draft by ID
-glab api --method DELETE \
-  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes/<draft_id>"
-```
-
-Post notes sequentially and verify each one was accepted with a resolved position:
-
-```bash
-for i in 1 2 3 4 5; do
-  response=$(glab api --method POST --header "Content-Type: application/json" \
-    --input /tmp/mr<iid>_note$i.json \
-    "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes" 2>&1)
-  if [ $? -eq 0 ]; then
-    echo "$response" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-pos = d.get('position')
-print(f'note $i: id={d[\"id\"]} position_resolved={pos is not None}')
-" 2>/dev/null || echo "note $i posted (could not parse response)"
-  else
-    echo "note $i failed: $response"
-  fi
-done
-```
-
-**Critical**: GitLab **always returns HTTP 200** for `draft_notes`, even when the position cannot
-be resolved. A draft with an unresolvable position will silently remain as a draft at submit time
-— it will never publish as an inline comment. Check `position_resolved=True` in the response
-above. If you see `position_resolved=False`, delete that draft immediately and re-post without a
-position (as a general discussion note):
-
-```bash
-# Delete the failed draft
-glab api --method DELETE \
-  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes/<id>"
-
-# Re-post as a positionless draft note — stays in the review queue, publishes as
-# a general discussion when the user hits Submit (no position field)
-glab api --method POST \
-  --header "Content-Type: application/json" \
-  --field "note=<note text>" \
-  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes"
-```
-
-**`position.old_path` is required for inline placement.** GitLab silently falls back to a plain
-discussion note (not inline on the diff) if it is omitted. For new and unmodified files use the
-same value as `new_path`. For renamed files use the path before renaming.
-
-**Comment format:**
+**Comment format** (what goes in each `note` — the script adds the `Co-reviewed with :robot:`
+footer for you, so don't write it yourself):
 ```
 `fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime.
 
 Add a nil check or return an early error.
-
-Co-reviewed with :robot:
 ```
 
 **Posting guidelines:**
@@ -311,6 +266,6 @@ post it to the MR):
 
 - **Never** approve, reject, mark as reviewed, or submit the review — only post comments and notes
 - **Never** checkout a branch if the local repo has uncommitted changes without warning the user first
-- **Always** end every inline comment with `Co-reviewed with :robot:` as the last line (see comment format above). The summary is conversation-only and is exempt.
+- **Always** post comments through `scripts/post_review_notes.py`, which ends every comment with `Co-reviewed with :robot:`. Don't post draft notes by hand. The conversation summary is exempt from the footer.
 - **Large diffs (>500 changed lines)**: note the scope in the summary, focus on highest-risk files
   (those touching APIs, auth, data access), and explicitly state not all changes were reviewed
