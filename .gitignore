@@ -1,3 +1,7 @@
 # Skill development scratch space (eval runs, grading results, benchmark data).
 # Generated during skill creation/iteration; not part of the skill itself.
 *-workspace/
+
+# Python bytecode cache from bundled skill scripts (e.g. post_review_notes.py).
+__pycache__/
+*.py[cod]
