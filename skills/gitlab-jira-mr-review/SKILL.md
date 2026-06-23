@@ -19,16 +19,12 @@ Structured code review for GitLab MRs. Fetches JIRA requirements when available,
 Work through steps in order. Prioritise reading the diff over full files — fetch full file content
 only when the diff lacks enough context to make a confident judgment.
 
----
-
 ### Step 1 — Parse the URL
 
 From the URL (e.g. `https://gitlab.com/acme/my-service/-/merge_requests/42`) extract:
 - `project_path`: e.g. `acme/my-service`
 - `project_path_encoded`: URL-encode `/` as `%2F` → `acme%2Fmy-service`
 - `mr_iid`: the MR number (`42`)
-
----
 
 ### Step 2 — Fetch MR metadata
 
@@ -38,31 +34,25 @@ From the URL (e.g. `https://gitlab.com/acme/my-service/-/merge_requests/42`) ext
 ToolSearch: select:mcp__glab__glab_api
 ```
 
-**Check glab authentication first** — run this before any API call:
-
-```bash
-glab auth status
-```
-
-If it exits non-zero or prints "You are not logged in", stop and ask the user to authenticate:
-
-> `glab` is not authenticated. Please run `! glab auth login` in the prompt and complete the login flow, then let me know when done.
-
-Do not proceed until auth is confirmed.
-
 Then call it:
 
 ```
 GET projects/<project_path_encoded>/merge_requests/<mr_iid>
 ```
 
+**If this first call fails with an auth error** (401, or a "not logged in" message), `glab` isn't
+authenticated. Stop and ask the user — don't pre-check auth separately, since this call surfaces
+it anyway, and a success here proves auth is good for posting in Step 7 too (same credentials):
+
+> `glab` is not authenticated. Please run `! glab auth login` in the prompt and complete the login flow, then let me know when done.
+
+Do not proceed until auth is confirmed.
+
 From the response extract:
 - `title`, `description` — scan both for a JIRA key: regex `[A-Z][A-Z0-9]+-\d+`
 - `source_branch`, `target_branch`
 - `diff_refs.base_sha`, `diff_refs.start_sha`, `diff_refs.head_sha` — needed for inline comment positions
 - `web_url` — for the summary note
-
----
 
 ### Step 3 — Fetch JIRA context (if a ticket was found)
 
@@ -91,8 +81,6 @@ context — note it in the summary at the end.
 **Parallelise Steps 3 and 4** — JIRA fetch and diff fetch are independent; issue both in the same
 tool call batch.
 
----
-
 ### Step 4 — Fetch diffs
 
 Use `limit: 150000` to avoid truncation on large MRs:
@@ -115,8 +103,6 @@ the branch in Step 5, use a targeted `grep -n '<snippet>' <file>` on the actual 
 line numbers (prefer `grep -n` over `cat -n` of the whole file — it's far cheaper). Use the diff
 only to confirm the line was changed in this MR. Anchor-line selection (`+` lines vs context
 lines) is covered in Step 7.
-
----
 
 ### Step 5 — Check out the source branch locally
 
@@ -148,8 +134,6 @@ fi
 If the repo isn't found locally, proceed with diff-only review and note the limitation.
 If the pull fails, note that local files may not match the MR's head and read with caution.
 
----
-
 ### Step 6 — Review
 
 If the `code-review-pyramid` skill is listed in the available skills, invoke it (via the Skill
@@ -162,8 +146,6 @@ the most impactful findings.
 
 If a JIRA ticket was fetched, use its acceptance criteria as the ground truth for correctness —
 map each criterion to the code explicitly and flag any that aren't met.
-
----
 
 ### Step 7 — Post comments as draft notes
 
@@ -229,8 +211,6 @@ Add a nil check or return an early error.
 - Avoid style nits unless they cross into real readability problems
 - Don't repeat the same finding across multiple files — pick the clearest occurrence
 
----
-
 ### Step 8 — Output the review summary
 
 After posting all inline comments, output the summary directly in the conversation (do **not**
@@ -259,8 +239,6 @@ post it to the MR):
 
 *Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish.*
 ```
-
----
 
 ## Hard constraints
 
