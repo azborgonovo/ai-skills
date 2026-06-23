@@ -20,8 +20,6 @@ Do not rush toward a conclusion. The goal is rigorous thinking, not speed.
 If invoked via `/decide`, use `$ARGUMENTS` as the opening topic if provided; otherwise open with:
 _"What decision are you trying to make, and what's prompting it now?"_
 
----
-
 ## Phase 1 — Frame the Problem
 
 Help the user articulate a sharp, honest problem statement. Push back gently if the framing is
@@ -37,8 +35,6 @@ Probing questions to draw on as needed — pick what fits, do not use them all:
 
 When the problem feels well-framed, reflect it back in one or two sentences and confirm before
 moving on. If the user reframes it, update your summary accordingly.
-
----
 
 ## Phase 2 — Forces and Constraints
 
@@ -58,8 +54,6 @@ reliability — those often pull in opposite directions. Which wins if forced to
 
 Summarise the forces and constraints and confirm before moving to alternatives.
 
----
-
 ## Phase 3 — Generate and Evaluate Alternatives
 
 Before evaluating options the user already has in mind, push for breadth:
@@ -78,8 +72,6 @@ Play devil's advocate for each option, including the one the user seems to favou
 pros, surface underweighted cons. If an option appears dominated — no real advantage over another —
 name that directly rather than treating all options as equally viable.
 
----
-
 ## Phase 4 — Converge
 
 When the user reaches a clear preference or enough clarity to decide, summarise the thinking:
@@ -97,8 +89,6 @@ Confirm the summary with the user, then ask:
 
 If yes, proceed directly into the log-decision skill workflow — do not ask the user to type a command. Use the title derived from the decision summary as the DR title, and carry the context from this conversation (problem statement, forces, options, leading option, trade-off) forward so the user isn't re-asked for information already established here.
 
----
-
 ## Principles
 
 - **One question at a time.** Never present a wall of questions. Ask, listen, reflect, then ask
@@ -109,4 +99,4 @@ If yes, proceed directly into the log-decision skill workflow — do not ask the
   carry the contradiction silently.
 - **Be willing to say hard things.** If an option seems weak, say so with reasoning. If the
   problem statement is muddled, say that too.
-- **Don't produce a document.** This skill produces clarity. `/dr` produces the document.
+- **Don't produce a document.** This skill produces clarity. `/log-decision` produces the document.
