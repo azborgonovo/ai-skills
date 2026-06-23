@@ -38,6 +38,18 @@ From the URL (e.g. `https://gitlab.com/acme/my-service/-/merge_requests/42`) ext
 ToolSearch: select:mcp__glab__glab_api
 ```
 
+**Check glab authentication first** — run this before any API call:
+
+```bash
+glab auth status
+```
+
+If it exits non-zero or prints "You are not logged in", stop and ask the user to authenticate:
+
+> `glab` is not authenticated. Please run `! glab auth login` in the prompt and complete the login flow, then let me know when done.
+
+Do not proceed until auth is confirmed.
+
 Then call it:
 
 ```
@@ -54,15 +66,27 @@ From the response extract:
 
 ### Step 3 — Fetch JIRA context (if a ticket was found)
 
-If a JIRA key was found, load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch and call it
-with `issueIdOrKey: "<KEY>"` and `cloudId: "<org>.atlassian.net"` (e.g. `goodhabitz.atlassian.net`).
-If you don't know the org slug, try the domain from the JIRA URLs in the MR description. Extract:
+If a JIRA key was found, try to load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch.
+
+**If ToolSearch returns only `mcp__claude_ai_Atlassian__authenticate`** (not `getJiraIssue`), the
+Atlassian MCP server needs OAuth. Handle it before continuing:
+
+1. Call `mcp__claude_ai_Atlassian__authenticate` (no parameters needed).
+2. Share the returned authorization URL with the user:
+   > Atlassian needs authorization. Please open this URL and complete the login: `<url>`
+   > Let me know when done.
+3. **Pause** — do not proceed until the user confirms.
+4. Once confirmed, retry ToolSearch for `mcp__claude_ai_Atlassian__getJiraIssue`. If it's now
+   available, call it. If it still isn't, skip JIRA context and note it in the summary.
+
+Once authenticated, call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and
+`cloudId: "<org>.atlassian.net"` (e.g. `goodhabitz.atlassian.net`). Extract:
 - Summary (the "what")
 - Description / acceptance criteria (the "done conditions")
 - Issue type (Story / Task / Bug)
 
-If no ticket is found, or the fetch fails, continue without requirements context — note it in the
-summary at the end.
+If no ticket is found, or the fetch fails for any other reason, continue without requirements
+context — note it in the summary at the end.
 
 **Parallelise Steps 3 and 4** — JIRA fetch and diff fetch are independent; issue both in the same
 tool call batch.
