@@ -90,6 +90,12 @@ summary and prioritise the highest-risk files (auth, data access, public API sur
 the branch in Step 5, use `grep -n` or `cat -n` on the actual file to find exact line numbers for
 your findings. Use the diff only to confirm the line was changed in this MR.
 
+**Prefer `+` lines as comment anchors**: When picking a line to anchor an inline comment, prefer
+a line that appears with a `+` prefix in the diff (newly added in this MR). GitLab resolves these
+positions reliably. Anchoring to a context line (an unchanged line that survived inside a hunk
+with large deletions) can silently fail at submit time — the draft is accepted but never publishes.
+If there is no `+` line close to your finding, post a general note instead (see Step 7).
+
 ---
 
 ### Step 5 — Check out the source branch locally
@@ -171,15 +177,57 @@ glab api --method POST \
   "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes"
 ```
 
-You can batch multiple notes in a loop or post them sequentially — the loop approach is cleaner:</p>
+**Before posting — purge stale drafts**: List existing draft notes and delete any that duplicate
+what you're about to post. This prevents leftover drafts from a previous review run appearing as
+duplicates to the author.
+
+```bash
+# List existing drafts and their IDs
+glab api "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes" \
+  | python3 -c "import sys,json; [print(f'id={n[\"id\"]} | {n[\"note\"][:80]}') for n in json.load(sys.stdin)]"
+
+# Delete a stale draft by ID
+glab api --method DELETE \
+  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes/<draft_id>"
+```
+
+Post notes sequentially and verify each one was accepted with a resolved position:
 
 ```bash
 for i in 1 2 3 4 5; do
-  glab api --method POST --header "Content-Type: application/json" \
+  response=$(glab api --method POST --header "Content-Type: application/json" \
     --input /tmp/mr<iid>_note$i.json \
-    "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes" 2>&1 | \
-    python3 -c "import sys,json; d=json.load(sys.stdin); print(f'posted id={d[\"id\"]}')" || echo "note $i failed"
+    "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes" 2>&1)
+  if [ $? -eq 0 ]; then
+    echo "$response" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+pos = d.get('position')
+print(f'note $i: id={d[\"id\"]} position_resolved={pos is not None}')
+" 2>/dev/null || echo "note $i posted (could not parse response)"
+  else
+    echo "note $i failed: $response"
+  fi
 done
+```
+
+**Critical**: GitLab **always returns HTTP 200** for `draft_notes`, even when the position cannot
+be resolved. A draft with an unresolvable position will silently remain as a draft at submit time
+— it will never publish as an inline comment. Check `position_resolved=True` in the response
+above. If you see `position_resolved=False`, delete that draft immediately and re-post without a
+position (as a general discussion note):
+
+```bash
+# Delete the failed draft
+glab api --method DELETE \
+  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes/<id>"
+
+# Re-post as a positionless draft note — stays in the review queue, publishes as
+# a general discussion when the user hits Submit (no position field)
+glab api --method POST \
+  --header "Content-Type: application/json" \
+  --field "note=<note text>" \
+  "projects/<project_path_encoded>/merge_requests/<mr_iid>/draft_notes"
 ```
 
 **`position.old_path` is required for inline placement.** GitLab silently falls back to a plain
@@ -201,7 +249,6 @@ Co-reviewed with :robot:
 - If a JIRA acceptance criterion isn't met, quote it explicitly
 - Avoid style nits unless they cross into real readability problems
 - Don't repeat the same finding across multiple files — pick the clearest occurrence
-- If the API rejects a position (line outside diff), fall back to a general note quoting the code
 
 ---
 
