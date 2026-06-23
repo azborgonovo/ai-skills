@@ -10,8 +10,6 @@ allowed-tools: [WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__con
 
 Before implementing anything, find what already exists — a built-in framework feature, a well-maintained package, or an official pattern. The simplest solution that fully solves the stated problem is the right one; do not add custom implementations for problems that an existing package already covers.
 
----
-
 ## Step 1 — Understand the Stack
 
 Before searching for solutions, read the project's dependency and configuration files to identify the exact technology stack and what is already installed.
@@ -31,8 +29,6 @@ Reading these files prevents mismatches — e.g., looking up ASP.NET Core 9 docs
 
 If no project files are found, ask the user for the tech stack before proceeding.
 
----
-
 ## Step 2 — Check for a Technology-Specific Skill
 
 Before going to the web, check whether a skill is already available for the detected technology. Look at the `available_skills` list in your context and match against the stack identified in Step 1.
@@ -51,8 +47,6 @@ Examples of what to look for:
 If a matching skill is available, invoke it and follow its guidance. A dedicated skill has curated, up-to-date knowledge for that ecosystem and should be preferred over a web search. Skip Step 3 entirely if the skill covers the task.
 
 If no matching skill is found, continue to Step 3.
-
----
 
 ## Step 3 — Search Before Implementing
 
@@ -125,8 +119,6 @@ Search for: `[framework name] getting started official documentation site:[offic
 
 Follow the guide's structure, naming conventions, and project layout exactly as shown. The official guide reflects the current recommended approach and avoids patterns that may have been superseded.
 
----
-
 ## Step 4 — Choose the Simplest Solution
 
 After searching, apply Occam's Razor: prefer the solution with the fewest moving parts that fully solves the stated problem.
@@ -135,8 +127,6 @@ After searching, apply Occam's Razor: prefer the solution with the fewest moving
 1. **Built-in framework feature** — zero extra dependencies; always prefer if it covers the need
 2. **Official or well-maintained package** — prefer over custom code if it cleanly solves it
 3. **Custom code** — only when no package or built-in handles the problem adequately
-
----
 
 ## Step 5 — Implement
 
@@ -150,8 +140,6 @@ Every solution must include:
 3. **A note on any best-practice deviations** — if the project's existing code diverges from an official recommendation, call it out rather than silently matching the deviation
 
 Keep the implementation concise. Show the minimum necessary to solve the problem correctly, not a comprehensive tutorial.
-
----
 
 ## Principles
 

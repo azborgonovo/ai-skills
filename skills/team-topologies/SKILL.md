@@ -11,8 +11,6 @@ Team Topologies is an approach to designing team-of-teams organizations for fast
 
 The central insight: organizational design is not a one-time event. Teams and their interactions must evolve continuously as products, architectures, and business needs change.
 
----
-
 ## Four Fundamental Team Types
 
 Every team in the organization should map to exactly one of these types. Hybrids create confusion and slow delivery.
@@ -47,8 +45,6 @@ Handles a component so technically complex that it requires dedicated specialist
 - Avoids becoming a bottleneck by providing a clean, well-documented interface
 - Should be the rarest team type
 
----
-
 ## Three Team Interaction Modes
 
 Replaces vague "coordination" mandates with precise, intentional interaction contracts between teams.
@@ -76,8 +72,6 @@ One team (typically an enabling team) helps another team overcome an obstacle, i
 - Success means the other team no longer needs facilitation
 - Distinct from collaboration: the receiving team does the work; the facilitating team coaches
 
----
-
 ## Nine Principles
 
 1. **Focus on Flow, Not Structure** — Org structure should serve value delivery speed, not the other way around. Reorganizations that optimize for hierarchy over flow slow organizations down.
@@ -98,8 +92,6 @@ One team (typically an enabling team) helps another team overcome an obstacle, i
 
 9. **Eliminate Team Dependencies** — Handoff delays between teams are a primary source of delivery drag. Minimize required coordination paths.
 
----
-
 ## Six Patterns
 
 ### Pattern 1: Four Team Types
@@ -119,8 +111,6 @@ Team responsibilities should evolve as products and technologies change. Boundar
 
 ### Pattern 6: Continuous Adaptation
 Organizational design accumulates debt just like software. Build feedback loops into team design: regular team topology reviews, interaction mode retrospectives, cognitive load assessments.
-
----
 
 ## Related Concepts
 
