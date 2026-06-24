@@ -44,7 +44,8 @@ def glab_api(path, method="GET", body=None, dry_run=False):
             return []  # no pre-existing drafts to purge
         if method == "DELETE":
             return {}
-        return {"id": 0, "position": body.get("position") if body else None}  # POST
+        pos = body.get("position") if body else None
+        return {"id": 0, "position": pos, "line_code": "dry_run" if pos else None}  # POST
     proc = subprocess.run(
         cmd,
         input=json.dumps(body) if body is not None else None,
@@ -124,7 +125,9 @@ def main():
             },
         }
         resp = post_one(args.project, args.mr, body, args.dry_run) or {}
-        resolved = resp.get("position") is not None
+        # GitLab always echoes back the position you sent — check line_code instead,
+        # which GitLab only populates when the position actually anchored to the diff.
+        resolved = resp.get("line_code") is not None
         if resolved or args.dry_run:
             print(f"note {i}: id={resp.get('id')} resolved={resolved} ({new_path}:{item['new_line']})")
             continue

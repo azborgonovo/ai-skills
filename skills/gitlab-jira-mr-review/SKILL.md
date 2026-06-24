@@ -186,15 +186,18 @@ python3 <skill_dir>/scripts/post_review_notes.py \
 3. Read the per-note summary it prints. Each line reports `resolved=True/False` or `general=True`.
 
 **Why the script, and what it protects you from:**
-- GitLab **always returns HTTP 200** for `draft_notes`, even when it can't resolve the position. An
-  unresolvable draft silently never publishes as an inline comment. The script checks for a
-  resolved position and, on failure, deletes the draft and re-posts it positionless so the finding
-  is never lost — it just lands as a general discussion comment instead of inline.
+- GitLab **always returns HTTP 200** for `draft_notes`, even when it can't resolve the position.
+  The real indicator is the `line_code` field in the response — GitLab only populates it when the
+  position actually anchored to the diff. An unresolvable draft (`line_code` null) silently never
+  publishes as an inline comment. The script detects this, deletes the draft, and re-posts it
+  positionless so the finding is never lost — it just lands as a general discussion comment instead.
 - `old_path` is required for inline placement; omitting it silently downgrades to a plain note. The
   script always sends it.
 - **Prefer `+` lines as anchors**: pick a `new_line` that appears with a `+` prefix in the diff
-  (added in this MR) — GitLab resolves those reliably. Context lines inside large-deletion hunks
-  often fail to resolve. If no `+` line is near your finding, mark it `general` from the start.
+  (added in this MR) — GitLab resolves those reliably. **Context lines (unchanged lines) are
+  unreliable anchors even when they appear inside the hunk** — GitLab often fails to set
+  `line_code` for them. If your finding is on an unchanged line (e.g. a function signature the MR
+  didn't touch), anchor to the nearest `+` line nearby, or mark it `general` from the start.
 
 **Comment format** (what goes in each `note` — the script adds the `Co-reviewed with :robot:`
 footer for you, so don't write it yourself):
