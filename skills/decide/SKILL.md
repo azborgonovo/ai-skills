@@ -6,7 +6,7 @@ description: >
   evaluated their options, or wants help thinking through a problem. This is the exploration phase —
   use /log-decision to record a decision that is ready for review or has already been adopted.
 argument-hint: "[decision topic]"
-allowed-tools: [Read, Glob, Grep]
+allowed-tools: [Read, Glob, Grep, AskUserQuestion]
 ---
 
 # Decide Skill
