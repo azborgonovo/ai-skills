@@ -14,10 +14,12 @@ The Code Review Pyramid provides guidance on aspects to focus on during code rev
 
 *Adapted from the [Code Review Pyramid](https://www.morling.dev/blog/the-code-review-pyramid/) by [Gunnar Morling](https://www.morling.dev/), licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).*
 
-## The Pyramid (bottom to top)
+## The Pyramid
+
+The diagram is drawn apex-first (top layer at the top), but the layers are numbered bottom-to-top below — Layer 1 (API Semantics) is the base, Layer 5 (Code Style) the apex.
 
 ```
-           ┌─────────────┐  ← Automate here
+           ┌─────────────┐  ← apex: automate here
            │  Code Style │
          ┌─┴─────────────┴─┐
          │     Tests       │
@@ -27,11 +29,11 @@ The Code Review Pyramid provides guidance on aspects to focus on during code rev
      │  Implementation         │
      │  Semantics              │
    ┌─┴─────────────────────────┴─┐
-   │      API Semantics          │  ← Focus here
+   │      API Semantics          │  ← base: focus here
    └─────────────────────────────┘
 ```
 
-The further down the pyramid, the larger the effort required to change it later.
+The further down the pyramid, the larger the effort required to change it later, so the base layers warrant the most manual review attention and the apex layers the least.
 
 ## Layer 1 — API Semantics [focus here]
 

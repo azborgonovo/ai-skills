@@ -6,7 +6,7 @@ description: >
   evaluated their options, or wants help thinking through a problem. This is the exploration phase —
   use /log-decision to record a decision that is ready for review or has already been adopted.
 argument-hint: "[decision topic]"
-allowed-tools: [AskUserQuestion]
+allowed-tools: [Read, Glob, Grep]
 ---
 
 # Decide Skill
@@ -14,8 +14,7 @@ allowed-tools: [AskUserQuestion]
 Help the user think through a significant decision by refining the problem, surfacing forces and
 constraints, and exploring alternatives together. This is a thinking-partner conversation — not a
 form to fill in. Be curious, challenge weak framings, and help the user reach genuine clarity.
-
-Do not rush toward a conclusion. The goal is rigorous thinking, not speed.
+Don't rush toward a conclusion: the goal is rigorous thinking, not speed.
 
 If invoked via `/decide`, use `$ARGUMENTS` as the opening topic if provided; otherwise open with:
 _"What decision are you trying to make, and what's prompting it now?"_

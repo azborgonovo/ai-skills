@@ -72,7 +72,9 @@ One team (typically an enabling team) helps another team overcome an obstacle, i
 - Success means the other team no longer needs facilitation
 - Distinct from collaboration: the receiving team does the work; the facilitating team coaches
 
-## Nine Principles
+## Guiding Principles
+
+These distil the mindset Team Topologies argues for. The book does not publish them as a fixed numbered canon — treat them as recurring principles, not a checklist.
 
 1. **Focus on Flow, Not Structure** — Org structure should serve value delivery speed, not the other way around. Reorganizations that optimize for hierarchy over flow slow organizations down.
 
@@ -92,29 +94,29 @@ One team (typically an enabling team) helps another team overcome an obstacle, i
 
 9. **Eliminate Team Dependencies** — Handoff delays between teams are a primary source of delivery drag. Minimize required coordination paths.
 
-## Six Patterns
+## Recurring Patterns
 
-### Pattern 1: Four Team Types
-Map every team to exactly one of the four types. Avoid hybrid or undefined team roles.
+The practices below recur across Team Topologies adoptions.
 
-### Pattern 2: Three Interaction Modes
-Explicitly agree on which interaction mode governs each team relationship. Review and update these agreements as the product and architecture evolve.
-
-### Pattern 3: Managing Team Cognitive Load
+### Managing Team Cognitive Load
 Actively monitor and reduce unnecessary complexity a team must hold. Signs of overload: slow decisions, missed SLAs, high error rates, team frustration. The platform team's primary value proposition is offloading cognitive load from stream-aligned teams.
 
-### Pattern 4: Thinnest Viable Platform (TVP)
+### Thinnest Viable Platform (TVP)
 Build platforms that provide *just enough* capability to meaningfully accelerate stream-aligned teams — not everything imaginable. Bloated internal platforms become slow, opinionated bottlenecks that impede rather than enable. Start with the minimum and grow based on actual consumer need.
 
-### Pattern 5: Flexible Team Boundaries
+### Flexible Team Boundaries
 Team responsibilities should evolve as products and technologies change. Boundaries set today may not be right in six months. Plan for intentional boundary reviews.
 
-### Pattern 6: Continuous Adaptation
+### Continuous Adaptation
 Organizational design accumulates debt just like software. Build feedback loops into team design: regular team topology reviews, interaction mode retrospectives, cognitive load assessments.
 
 ## Related Concepts
 
 **Conway's Law**: Organizations design systems that mirror their own communication structures. Team Topologies uses this deliberately — structure teams to produce the architecture you want, rather than fighting against the communication structures you have.
+
+**Inverse Conway Maneuver**: The deliberate application of Conway's Law — change team and organizational structure first so that it nudges the system toward the desired software architecture, instead of letting an existing org chart dictate (and ossify) the architecture by accident.
+
+**Fracture Planes**: Natural seams along which a software system can be split so each part can be owned by a single team with manageable cognitive load. Common planes include business-domain boundaries, regulatory/compliance, change cadence, team location, risk, performance isolation, and technology. The litmus test: a good fracture plane yields more autonomous teams with reduced cognitive load.
 
 **Team Cognitive Load**: The total amount of mental effort required from a team at any given time.
 Broken into: intrinsic (core task complexity), extraneous (unnecessary friction), and germane (learning and improvement). Team Topologies aims to minimize extraneous and manage intrinsic load.

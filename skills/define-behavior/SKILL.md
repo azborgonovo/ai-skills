@@ -9,6 +9,7 @@ description: >
   acceptance criteria into scenarios, or to clean up scenarios that leak UI/API/DB mechanics. Do not
   use for writing the automation code behind the steps — that is a separate concern.
 argument-hint: "[feature description, ticket, or path to a .feature file]"
+allowed-tools: [Read, Glob, Grep, Edit, Write, AskUserQuestion]
 ---
 
 # Define Behavior

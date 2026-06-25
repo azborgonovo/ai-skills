@@ -16,8 +16,8 @@ allowed-tools: [Read, Glob, WebSearch, WebFetch, Bash, Edit, Write]
 
 Audit an existing skill against how good skills actually behave, then tighten it — a close reading
 that surfaces what undermines the skill and fixes it on the user's say-so. When the user wants
-measured triggering accuracy or eval-graded iteration, hand off to skill-creator (its `run_loop.py`
-optimizes the description); don't rebuild that loop here.
+measured triggering accuracy or eval-graded iteration, hand off to skill-creator, which owns the
+empirical description-optimizing loop; don't rebuild that loop here.
 
 Work in two phases: **critique first, edit second.** Never rewrite the skill before the user has
 seen the findings and chosen what to apply.

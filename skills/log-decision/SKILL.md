@@ -50,7 +50,7 @@ detail.
 
 | Field | Guidance |
 |---|---|
-| **Status** | One of the following (default to `proposed`): `draft` — being written, not ready for review; `proposed` — complete and open for review/approval; `adopted` — accepted and in effect; `retired` — was adopted but is no longer active (without being replaced); `superseded` — replaced by a newer decision |
+| **Status** | One of the following (default to `proposed`): `draft` — being written, not ready for review; `proposed` — complete and open for review/approval; `rejected` — reviewed and not adopted; `adopted` — accepted and in effect; `retired` — was adopted but is no longer active (without being replaced); `superseded` — replaced by a newer decision |
 | **Date** | Date of the decision (default to today) |
 | **Decision-makers** | Who was involved in making the decision? |
 | **Consulted** | Who was consulted (two-way communication)? |
@@ -76,7 +76,7 @@ Never assume; ask if something is ambiguous.
 
 ### 4. Write the DR File
 
-Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the gathered information. For any optional section with no content, remove both the `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
+Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. If that path does not resolve, fall back to `$HOME/.claude/skills/log-decision/assets/dr-template.md`. Fill every section with the gathered information. For any optional section with no content, remove both the `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
 Do not leave placeholder text.
 
 When writing the DR, include markdown links wherever relevant: to PRs or issues that motivated the decision, to external docs (RFCs, benchmarks, vendor pages), and to related DRs. Use relative paths for links between DR files. Use full web URLs for any other links.
