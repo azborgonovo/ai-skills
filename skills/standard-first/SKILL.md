@@ -3,7 +3,7 @@ name: standard-first
 description: >
   Guides technical implementation to always prefer the standard, officially-documented solution over custom or AI-generated code. Use this skill whenever the agent is about to: write new code for a feature, suggest or add a library/package, scaffold a new project, configure a framework, or solve a problem that a built-in framework feature or package might already handle. TRIGGER for any .NET/C#, Node.js/npm, Python, Go, Java, or other language implementation task — especially when the problem sounds like something a built-in framework feature or package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Before writing any custom code, check for a technology-specific skill (e.g. dotnet-agent-skills), then fall back to official web docs and package registries. Do not skip this skill just because the answer feels obvious from training data.
 argument-hint: "[task description]"
-allowed-tools: [WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, Read, Glob, Write, Bash]
+allowed-tools: [WebSearch, WebFetch, Read, Glob, Write, Bash]
 ---
 
 # Standard-First Skill
@@ -69,7 +69,7 @@ Use `WebSearch` with a query like: `[problem description] nuget` or `serilog log
 
 A well-maintained package (actively updated, thousands of downloads, clear docs) is almost always preferable to custom code. It gets security patches, bug fixes, and compatibility updates automatically.
 
-**Examples of packages that replace custom code:**
+Examples of packages that replace custom code:
 
 - Masking sensitive values in Serilog logs → `Serilog.Enrichers.Sensitive` (not a custom
   `IDestructuringPolicy`)
@@ -81,17 +81,9 @@ A well-maintained package (actively updated, thousands of downloads, clear docs)
 
 Once a candidate package or framework feature is identified, fetch its current documentation. Do not rely on training data alone.
 
-**Preferred path — context7 (when available):**
+**Preferred path — the `find-docs` skill or `ctx7` CLI**: if a `find-docs` skill is available, invoke it; otherwise fetch current docs with the `ctx7` CLI (`npx ctx7@latest library "<name>"` to resolve the library, then `npx ctx7@latest docs <id> "<focused question matching the task>"`). These return curated, versioned docs directly.
 
-If `mcp__context7__resolve-library-id` and `mcp__context7__get-library-docs` appear in your available tools, use them:
-1. Call `mcp__context7__resolve-library-id` with the library name to get its context7 ID.
-2. Call `mcp__context7__get-library-docs` with that ID and a focused `topic` matching the task (e.g. `"configuration"`, `"retry middleware"`, `"health checks"`).
-
-context7 returns curated, versioned docs directly.
-
-**Fallback — WebFetch:**
-
-If context7 is not available, use `WebFetch` to retrieve the official documentation page directly.
+**Fallback — `WebFetch`**: if neither is available, use `WebFetch` to retrieve the official documentation page directly.
 
 Prioritise these sources by technology:
 
@@ -130,9 +122,7 @@ After searching, apply Occam's Razor: prefer the solution with the fewest moving
 
 ## Step 5 — Implement
 
-Implement the solution following the patterns and recommendations from the official docs — not general patterns from training data. If the official docs specify a configuration structure, registration order, method signature, or best-practice note, follow it.
-
-"Simplest" means fewest invented parts, not ignoring official guidance. A solution that follows official best practices is simpler in the long run: it avoids the need to rediscover common pitfalls that the docs already document.
+Implement following the official docs, not training-data patterns. "Simplest" means fewest invented parts, not ignoring official guidance — following official best practices is simpler in the long run because it avoids rediscovering pitfalls the docs already document.
 
 Every solution must include:
 1. **The installation command** — `dotnet add package`, `npm install`, `pip install`, etc.
@@ -143,6 +133,6 @@ Keep the implementation concise. Show the minimum necessary to solve the problem
 
 ## Principles
 
-- **Skills beat web searches.** A technology-specific skill has curated knowledge for that ecosystem. Check `available_skills` before searching the web.
-- **context7 beats WebFetch.** When context7 tools are available, prefer them over raw URL fetches.
-- **Search beats recall.** Official docs change and package APIs evolve. Fetching the current doc is more reliable than training data.
+- **Skills beat web searches**: a technology-specific skill has curated knowledge for that ecosystem. Check `available_skills` before searching the web.
+- **Curated docs beat raw fetches**: when `find-docs` or `ctx7` is available, prefer it over a raw URL fetch.
+- **Search beats recall**: official docs change and package APIs evolve. Fetching the current doc is more reliable than training data.

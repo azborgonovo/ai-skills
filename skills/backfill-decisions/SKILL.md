@@ -163,9 +163,12 @@ established by the mining. Apply these retroactive adaptations:
   include it too. Otherwise keep only the chosen option and add the note: *"Alternatives
   considered at the time were not documented."* Do not ask the user and do not invent
   alternatives.
-- **Decision:** a Y-statement inferred from the evidence, phrased honestly — e.g. *"In the context
-  of [observed situation], we decided to **adopt X** (inferred from history), to achieve
-  [observable outcome]."*
+- **Decision:** the full Y-statement form log-decision uses, inferred from the evidence and phrased
+  honestly — *"In the context of [observed situation], facing [concern visible in the history], we
+  decided for **X** (inferred from history) and against [the alternative the evidence shows was
+  removed or replaced], to achieve [observable outcome], accepting [downside the evidence reveals]."*
+  Keep the `and against` clause only when history reveals a rejected alternative (the same one listed
+  in Considered Options); drop it otherwise rather than inventing one.
 - **More Information** (mandatory here, unlike log-decision where it is optional):
   - list the evidence commits as `` `abc1234` (YYYY-MM-DD) — subject ``
   - if subjects contain `#NNN` and `git remote get-url origin` resolves to GitHub or GitLab,
