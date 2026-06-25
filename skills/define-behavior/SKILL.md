@@ -13,25 +13,38 @@ argument-hint: "[feature description, ticket, or path to a .feature file]"
 
 # Define Behavior
 
-Gherkin describes **what** a system does for a user, in the language of the business — not how it is
-built or tested. A good feature file is a specification anyone on the team could read and agree on,
-where each scenario is a concrete, believable example of one behavior. Write for the human reader
-first; the automation that runs these scenarios is a later, separate concern.
+BDD runs on three practices: **discovery** (what the system *could* do — a conversation about
+concrete examples), **formulation** (what it *should* do — capturing those examples as Gherkin), and
+**automation** (what it *actually* does — wiring scenarios to code). This skill lives in formulation
+and leans on discovery — as Liz Keogh puts it, "having conversations is more important than capturing
+conversations is more important than automating conversations."
 
-## Gather context before writing
+Gherkin describes what a system does for a user in problem-domain terminology — not how the
+system is built or tested. Writing it collaboratively establishes a shared language for talking
+about the system, one the whole team uses all the way down into the code. A good feature file is an
+executable specification anyone on the team could read and agree on, and it survives as living
+documentation. Each scenario is a concrete, believable example of one behavior.
 
-Work from whatever the user already gave you — a ticket, a user story, prose, existing `.feature`
-files, or related code. Read it, infer the behavior, and draft.
+## Discover before you formulate
 
-Wrong assumptions produce confident-looking but useless scenarios, so when something load-bearing is
-unclear, **ask rather than guess**. The things worth asking about:
+Good scenarios come out of a conversation, not a lone author. Real BDD discovery is a workshop where
+three perspectives meet — the Product Owner (scope: what's in and out), the Tester (edge
+cases and ways it breaks), and the Developer (the details each rule implies). You will often be
+working solo from a ticket, so deliberately play all three roles, and map what the user gave you —
+a ticket, user story, prose, existing `.feature` files, or related code — the way Example
+Mapping does:
 
-- The **behavior or capability** being specified, and the **actor** (role) who uses it.
-- The **business rules and edge cases** — what should happen on the unhappy paths, not just the
-  happy one. Missing edge cases are the most common gap.
-- Any **shared preconditions** across scenarios (candidates for a `Background`).
-- Whether the user wants tightly **single-behavior** scenarios (the default) or a **journey** that
-  walks several steps — only do the latter when they ask for it.
+- **Rules** — the business rules and acceptance criteria the behavior must satisfy. Each rule
+  anchors one or more scenarios (and can group them under a Gherkin `Rule:` where the tool supports
+  it).
+- **Examples** — one concrete, believable case illustrating each rule; each becomes a scenario.
+  Cover the unhappy paths, not just the happy one — missing edge cases are the most common gap.
+- **Questions** — anything load-bearing that's unclear or assumed. Wrong assumptions produce
+  confident-looking but useless scenarios, so surface these and **ask rather than guess**.
+
+Also settle the actor (role) who uses the capability, any preconditions shared across
+scenarios (a `Background` candidate), and whether the user wants tightly single-behavior
+scenarios (the default) or a journey spanning several steps (only when they ask).
 
 Over-asking beats inventing requirements. A short clarifying exchange is cheaper than a feature file
 that specifies the wrong thing.
@@ -54,21 +67,28 @@ independently of the others. Give it a one-line, behavior-focused title (what is
 X"). Keep it short — if it runs past ~10 steps or needs a second `When`, it is probably two
 scenarios. Map the keywords to Arrange / Act / Assert and keep them in order:
 
-- `Given` sets up context — prefer a meaningful **state** ("Given Ada is signed in as an Editor")
+- `Given` sets up context — prefer a meaningful state ("Given Ada is signed in as an Editor")
   over an imperative UI tour of clicks. Include only the preconditions the reader needs.
-- `When` performs the **single action** under test. One `When` per scenario; extra data belongs in
+- `When` performs the single action under test. One `When` per scenario; extra data belongs in
   `Given`, not in more `When` steps.
-- `Then` asserts an **observable** outcome — what changed, what the user sees, what the system
+- `Then` asserts an observable outcome — what changed, what the user sees, what the system
   reports. Never "it works" or "the user is logged in" with no visible signal.
 
 Use `And`/`But` to extend a step type; never `Or` (branching means separate scenarios). Write steps
 in third person, present tense, with string values in double quotes.
 
-**Stay at the domain level.** Steps describe what the actor does and what the system does in product
-language. Selectors, XPaths, URLs, "wait 2 seconds", HTTP verbs, SQL, and internal schema do not
-belong in step text — unless the behavior under test is genuinely about that layer (e.g. a scenario
-specifically about an API contract). Leaking mechanics couples the spec to one implementation and
-makes it unreadable to non-engineers.
+**Stay at the domain level.** Steps describe what the actor does and what the system does in
+problem-domain terminology. Selectors, XPaths, URLs, "wait 2 seconds", HTTP verbs, SQL, and internal schema
+do not belong in step text — unless the behavior under test is genuinely about that layer (e.g. a
+scenario specifically about an API contract). Leaking mechanics couples the spec to one
+implementation and makes it unreadable to non-engineers. Two tests keep steps at the right altitude:
+
+- **Implementation-change test**: "Would this wording need to change if the implementation did — a
+  UI redesign, REST→GraphQL, a new login method?" If yes, the step is too low-level; rewrite it in
+  terms of intent.
+- **1922 test**: could you describe this step to someone working before computers existed? Most
+  software automates something a person could once do by hand; phrasing it that way strips out the
+  technical assumptions and leaves the real business behavior.
 
 **Use concrete, realistic data.** Believable example values (€80, "SPRING10", "Editor") make the
 scenario read as a real specification. Avoid `foo`/`bar`/`test` placeholders unless the scenario is
@@ -76,16 +96,17 @@ deliberately about garbage or invalid input.
 
 **Background, Outline, and tables — only when they earn it.**
 
-- `Background`: one per feature, only for state shared by **multiple** scenarios. If a single
+- `Background`: one per feature, only for state shared by multiple scenarios. If a single
   scenario needs it, put it in that scenario's `Given`.
-- `Scenario Outline` + `Examples`: only when the **same** behavior is exercised with several input
+- `Scenario Outline` + `Examples`: only when the same behavior is exercised with several input
   variations. If the inputs don't change the behavior, a plain `Scenario` is clearer.
-- Step **data tables** and `Examples` tables: use them instead of long `And` chains, with concise
+- Step data tables and `Examples` tables: use them instead of long `And` chains, with concise
   headers, and keep them to roughly one screen. A table growing without bound is a sign the scenario
   is drifting into pure data-driven testing.
 
-Keep one consistent vocabulary for roles, objects, and states across the file — don't swap
-"order"/"purchase"/"cart" for the same thing unless the product truly distinguishes them.
+Hold to one shared language across the file — the same term for the same role, object, or state
+every time, reusing the words the business already uses. Don't swap "order"/"purchase"/"cart" for one
+thing unless the product truly distinguishes them.
 
 ## Examples
 
@@ -149,14 +170,12 @@ Scenario Outline: Password strength is enforced at sign-up
 
 ## Before you finish
 
-Read the draft once more as a skeptical teammate and check:
+Re-read the draft as a skeptical teammate — not re-checking every rule above, but hunting the
+failures that survive a first pass:
 
-- Each scenario specifies **one** behavior, runs independently, and has a single `When`.
-- Every `Then` is **observable** — a reader can tell exactly what to look for.
-- Steps are domain-level: no selectors, URLs, waits, SQL, or schema unless the behavior is about
-  that layer.
-- `Given` context is minimal but sufficient; data is concrete and realistic.
-- Strict `Given → When → Then` order; vocabulary is consistent; no `Or`.
-- `Background`/`Scenario Outline`/tables are used only where they earn their place.
-- The feature has a title and user story, lives in a kebab-case `.feature` file, and is indented 2
-  spaces.
+- A business rule from discovery with no scenario, or an assumption you guessed instead of asking.
+- A scenario that smuggles in a second behavior or a second `When`, or a `Then` with no observable
+  signal ("it works", "the user is logged in").
+- A step that would break if the implementation changed — a selector, URL, wait, or SQL that fails
+  the implementation-change test.
+- Drifting vocabulary: the same role, object, or state called by two different names.
