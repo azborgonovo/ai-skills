@@ -11,6 +11,7 @@ A personal directory of agent skills to extend Claude Code's capabilities.
 | [/backfill-decisions](skills/backfill-decisions/SKILL.md) | Mines a repository's git history for past architecturally significant decisions and retroactively writes Decision Records, following the log-decision conventions. |
 | [/decide](skills/decide/SKILL.md) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. |
 | [/log-decision](skills/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. |
+| [/review-skill](skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy — severity-ranked findings applied on approval. Complements skill-creator's empirical loop. |
 | [/standard-first](skills/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solution — searches built-in framework features, official docs and package registries before writing custom code. |
 
 ### External
