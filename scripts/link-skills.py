@@ -27,12 +27,17 @@ def derive_local_name(url: str) -> str:
     return f"{parts[0]}-{parts[-1]}"
 
 
+def is_junction(path: Path) -> bool:
+    # os.path.isjunction lands in 3.12; Windows junctions aren't reported by is_symlink().
+    return getattr(os.path, "isjunction", lambda _p: False)(path)
+
+
 def make_symlink(src: Path, target: Path) -> None:
-    if target.is_symlink():
+    if target.is_symlink() or is_junction(target):
         try:
             target.unlink()
         except OSError:
-            os.rmdir(target)  # junctions on Python < 3.12
+            os.rmdir(target)  # directory symlinks/junctions unlink as dirs
     elif target.exists():
         shutil.rmtree(target)
 
