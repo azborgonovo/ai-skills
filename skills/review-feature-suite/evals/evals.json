@@ -1,0 +1,60 @@
+{
+  "skill_name": "review-feature-suite",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our team's gherkin keeps using different words for the same thing across files and I think a couple of scenarios actually disagree with each other. Can you go through the .feature files in evals/fixtures/ and reconcile them?",
+      "expected_output": "Skill enumerates all .feature files, builds a cross-file inventory (steps, tags, titles, roles, data), then reports severity-ranked findings: the SPRING10 contradiction (€72 vs 68 euros for the same €80 cart) as Blocking, vocabulary drift (shopper/customer, cart/purchase, Editor/Content Editor), near-duplicate auth steps, the orphaned 'premium subscription' precondition, the @regression/@regresion tag typo, and the €80/'80 euros' format drift. Before editing, it asks the user via AskUserQuestion to pick canonical terms, confirm whether near-name distinctions are intentional, and decide which side of the SPRING10 contradiction is correct. It does not auto-resolve the contradiction.",
+      "files": [
+        "evals/fixtures/checkout.feature",
+        "evals/fixtures/promotions.feature",
+        "evals/fixtures/sign-in.feature",
+        "evals/fixtures/editor-content.feature"
+      ],
+      "expectations": [
+        "Enumerates every .feature file and reasons across them rather than file-by-file",
+        "Flags the SPRING10 contradiction (€72 vs 68 euros for the same €80 basket) as a Blocking finding",
+        "Surfaces the contradiction as a question for the user instead of silently picking a discount",
+        "Identifies vocabulary drift: shopper vs customer and cart vs purchase name the same concepts",
+        "Identifies the @regression vs @regresion tag typo",
+        "Asks the user to choose canonical terms before applying any suite-wide rename",
+        "Ranks findings by severity (Blocking / Should-fix / Nit) rather than grouping by file",
+        "Does not edit files before presenting findings and getting approval"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Check the feature files under evals/fixtures/ for duplicate or near-duplicate steps — we keep writing new step definitions because the wording drifts.",
+      "expected_output": "Skill extracts all Given/When/Then steps across the suite and clusters them by behavior, not string similarity. It groups the sign-in phrasings spread across files ('Ada signs in with valid credentials', 'a Content Editor is signed in', and similar) as one underlying step and proposes a single canonical phrasing so the automation reuses one step definition. It recognizes that the malformed 'the user is logged in is not yet true for Ada' expresses the opposite state (Ada is not signed in) and flags it for rewording rather than folding it into the canonical 'signed in' step. It does not treat the deliberately different cart-quantity steps as duplicates.",
+      "files": [
+        "evals/fixtures/checkout.feature",
+        "evals/fixtures/promotions.feature",
+        "evals/fixtures/sign-in.feature",
+        "evals/fixtures/editor-content.feature"
+      ],
+      "expectations": [
+        "Clusters steps by behavior rather than raw string similarity",
+        "Groups the sign-in / signed-in phrasings as one canonical step with a single proposed phrasing",
+        "Recognizes the malformed 'is logged in is not yet true' step expresses the opposite (not-signed-in) state and flags it for rewording rather than merging it into the canonical step",
+        "Does not flag intentionally distinct steps (e.g. differing cart quantities) as duplicates"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm about to wire up automation for evals/fixtures/. Before I do, do these scenarios contradict each other anywhere, and is anything referenced but never actually specified?",
+      "expected_output": "Skill identifies the SPRING10 contradiction across checkout.feature and promotions.feature and the orphaned 'a customer has a premium subscription' precondition whose own behavior is specified nowhere. It presents these as questions/findings for the user and does not invent a resolution.",
+      "files": [
+        "evals/fixtures/checkout.feature",
+        "evals/fixtures/promotions.feature",
+        "evals/fixtures/sign-in.feature",
+        "evals/fixtures/editor-content.feature"
+      ],
+      "expectations": [
+        "Detects the SPRING10 outcome contradiction between the two checkout/promotions features",
+        "Detects the orphaned 'premium subscription' precondition that is never specified",
+        "Presents the contradiction as a decision for the user rather than resolving it",
+        "Does not fabricate a discount value or a premium-subscription feature"
+      ]
+    }
+  ]
+}
