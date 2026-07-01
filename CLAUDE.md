@@ -30,6 +30,10 @@ In the YAML frontmatter, a folded `description: >` block may still wrap across i
 
 Use American English spelling (`behavior`, `normalize`, `canceled`) so terminology stays consistent across skills. The exception is text quoted verbatim from another source — an example string copied from a sibling skill, a real product's wording — where you keep the original rather than "correcting" the quote.
 
+## Counter-examples and negative instructions
+
+Prefer stating what to do over what to avoid. A bare "don't do X" leaves X sitting in context with no positive target to replace it. A clear positive rule with its reasoning is usually enough on its own.
+
 ## General principle
 
 Prefer instructions that explain the *why* over rigid `MUST`/`NEVER` walls of formatting, and keep the always-loaded SKILL.md body lean.
