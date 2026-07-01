@@ -17,6 +17,7 @@ A personal directory of agent skills to extend Claude Code's capabilities.
 | [/review-skill](skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy — severity-ranked findings applied on approval. |
 | [/standard-first](skills/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solution — checks built-in framework features, official docs, and package registries before writing custom code. |
 | [team-topologies](skills/team-topologies/SKILL.md) | Knowledge base for Team Topologies — team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. |
+| [/work-item](skills/work-item/SKILL.md) | Drafts well-formed work items with the right framing section and testable acceptance criteria, and creates them in whatever tracker is connected. |
 
 ### External
 
