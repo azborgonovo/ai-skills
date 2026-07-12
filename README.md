@@ -33,6 +33,36 @@ Configured in [`scripts/external-skills.conf`](scripts/external-skills.conf) and
 
 ## Installation
 
+### As a Claude Code plugin (recommended for repositories)
+
+This repo is a Claude Code [plugin marketplace](https://code.claude.com/docs/en/plugins) exposing all local skills as a single `agent-skills` plugin.
+
+Interactively:
+
+```
+/plugin marketplace add azborgonovo/agent-skills
+/plugin install agent-skills@agent-skills
+```
+
+Or pin it in a repository's `.claude/settings.json` so every human and agent session gets the skills automatically:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "agent-skills": {
+      "source": { "source": "github", "repo": "azborgonovo/agent-skills" }
+    }
+  },
+  "enabledPlugins": {
+    "agent-skills@agent-skills": true
+  }
+}
+```
+
+External skills (below) are not part of the plugin — they come from their own repositories via the link script.
+
+### Via the link script (personal, symlink-based)
+
 Clone the repo, then run the link script:
 
 ```bash
