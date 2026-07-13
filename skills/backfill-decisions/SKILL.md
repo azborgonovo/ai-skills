@@ -84,6 +84,7 @@ Run these sweeps (per era when working era-by-era; all read-only):
 
   > **Adopt SQS for asynchronous messaging** — 2023-03-02..2023-04-11 · commits `a1b2c3d`, `e4f5a6b`, `c7d8e9f` · authors: J. Doe, M. Silva · evidence: `aws-sdk-sqs` added to package.json, `rabbitmq` removed three weeks later, CI gained an SQS integration test job · confidence: **high**
 - **Reversal detection:** if the same subject was adopted and later removed or replaced (e.g. a dependency added in 2022, deleted in 2024), pair them as **two linked candidates**: the original (will become `superseded by DR-NNNN`, or `retired` if nothing replaced it) and the reversal (`adopted`, referencing the first). Present them as a linked pair in triage.
+- **Trade-off check:** a DR is interesting for the trade-off it weighs. If the evidence shows neither a rejected alternative (nothing was removed or replaced) nor an accepted downside, downgrade the candidate's confidence one level and carry *"no observable trade-off"* into its triage note — the user can still confirm it, but it must not ride in with the high-confidence batch by default.
 
 ### Phase 4 — Triage with the User
 
