@@ -54,7 +54,7 @@ From the response extract:
 
 ### Step 3 — Fetch JIRA context (if a ticket was found)
 
-If a JIRA key was found, try to load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch.
+If a JIRA key was found, load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch — and if the cloudId cache file below is missing, add `mcp__claude_ai_Atlassian__getAccessibleAtlassianResources` to the same ToolSearch call.
 
 **If ToolSearch returns only `mcp__claude_ai_Atlassian__authenticate`** (not `getJiraIssue`), the Atlassian MCP server needs OAuth. Handle it before continuing:
 
@@ -65,7 +65,13 @@ If a JIRA key was found, try to load `mcp__claude_ai_Atlassian__getJiraIssue` vi
 3. **Pause** — do not proceed until the user confirms.
 4. Once confirmed, retry ToolSearch for `mcp__claude_ai_Atlassian__getJiraIssue`. If it's now available, call it. If it still isn't, skip JIRA context and note it in the summary.
 
-Once authenticated, call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and `cloudId: "<org>.atlassian.net"` (e.g. `goodhabitz.atlassian.net`). Extract:
+**Resolve the cloudId.** The cloudId is machine- and org-specific, so it lives in a local cache file — never in this skill:
+
+1. Read `$HOME/.claude/atlassian-cloud-id` (use the expanded absolute path — `~` is not expanded by file tools). If it exists, its single line is the cloudId; skip discovery.
+2. Otherwise call `getAccessibleAtlassianResources` and take the returned resource's `id` (the site-URL form like `acme.atlassian.net` also works as a cloudId). If it returns several sites, ask the user which one their JIRA lives on.
+3. Write the resolved value to `$HOME/.claude/atlassian-cloud-id` and tell the user you cached it — every future run then takes the one-file-read fast path.
+
+Once authenticated, call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and the resolved `cloudId`. Extract:
 - Summary (the "what")
 - Description / acceptance criteria (the "done conditions")
 - Issue type (Story / Task / Bug)
