@@ -20,6 +20,16 @@ def warn(msg):  print(f"    [warn] {msg}", file=sys.stderr)
 def abort(msg): print(f"\n[error] {msg}", file=sys.stderr); sys.exit(1)
 
 
+def points_to(target: Path, src: Path) -> bool:
+    """True if target is a symlink already resolving to src (ignoring path-casing noise)."""
+    if not target.is_symlink():
+        return False
+    try:
+        return os.path.samefile(target, src)
+    except OSError:
+        return False  # dangling link, or src missing
+
+
 def derive_local_name(url: str) -> str:
     """Return <owner>-<repo> from a repo URL."""
     path  = re.sub(r"^[^:]+://[^/]+/", "", url).rstrip("/")
@@ -32,7 +42,11 @@ def is_junction(path: Path) -> bool:
     return getattr(os.path, "isjunction", lambda _p: False)(path)
 
 
-def make_symlink(src: Path, target: Path) -> None:
+def make_symlink(src: Path, target: Path) -> str:
+    """Link target -> src, returning 'up-to-date' if it already pointed there, else 'linked'."""
+    if points_to(target, src):
+        return "up-to-date"
+
     if target.is_symlink() or is_junction(target):
         try:
             target.unlink()
@@ -49,6 +63,7 @@ def make_symlink(src: Path, target: Path) -> None:
         )
     else:
         target.symlink_to(src, target_is_directory=src.is_dir())
+    return "linked"
 
 
 # --- Parse external-skills.conf ---
@@ -83,11 +98,11 @@ if clone_dir and skill_entries:
                 capture_output=True, text=True,
             )
             output = result.stdout + result.stderr
-            suffix = "(already up to date)" if "Already up to date" in output else "(updated)"
-            item(f"{local_name}  {suffix}")
+            status = "up-to-date" if "Already up to date" in output else "updated"
+            item(f"[{status:<10}] {local_name}")
         else:
-            item(f"{local_name}  (cloning...)")
             subprocess.run(["git", "clone", url, str(clone_dest)], check=True)
+            item(f"[{'cloned':<10}] {local_name}")
 
 # --- Guard: DEST must not be a symlink into this repo ---
 
@@ -103,12 +118,27 @@ DEST.mkdir(parents=True, exist_ok=True)
 
 step(f"Linking skills to {DEST}")
 
+managed: set[str] = set()
+linked_count = up_to_date_count = 0
+
+
+def report(name: str, status: str, note: str = "") -> None:
+    """Print a per-skill line and tally the run-wide counts."""
+    global linked_count, up_to_date_count
+    if status == "linked":
+        linked_count += 1
+    else:
+        up_to_date_count += 1
+    tail = f"  ({note})" if note else ""
+    item(f"[{status:<10}] {name}{tail}")
+
+
 # Personal skills
 for skill_dir in sorted((REPO / "skills").iterdir()):
     if not skill_dir.is_dir():
         continue
-    make_symlink(skill_dir, DEST / skill_dir.name)
-    item(skill_dir.name)
+    managed.add(skill_dir.name)
+    report(skill_dir.name, make_symlink(skill_dir, DEST / skill_dir.name))
 
 # External skills
 if clone_dir:
@@ -125,7 +155,41 @@ if clone_dir:
             warn(f"external skill '{skill_path}' not found at {src}")
             continue
 
-        make_symlink(src, target)
-        item(f"{skill_name}  (external: {local_name})")
+        managed.add(skill_name)
+        report(skill_name, make_symlink(src, target), f"external: {local_name}")
 
+# --- Report skills present in DEST that this run did not manage ---
+
+def describe_other(path: Path) -> str:
+    """Classify an unmanaged DEST entry for the listing."""
+    if path.is_symlink():
+        dest = os.readlink(path)
+        kind = "external symlink" if path.exists() else "broken symlink"
+        return f"{kind} -> {dest}"
+    return "directory"
+
+
+others = sorted(
+    p for p in DEST.iterdir()
+    if p.name not in managed and (p.is_dir() or p.is_symlink()) and not p.name.startswith(".")
+)
+broken_count = 0
+if others:
+    step("Other skills present (not managed by this script)")
+    for path in others:
+        desc = describe_other(path)
+        if desc.startswith("broken"):
+            broken_count += 1
+        item(f"{path.name}  ({desc})")
+
+# --- Summary ---
+
+parts = [f"{linked_count} linked", f"{up_to_date_count} up-to-date"]
+if others:
+    other_note = f"{len(others)} other"
+    if broken_count:
+        other_note += f", {broken_count} broken"
+    parts.append(other_note)
+step("Summary")
+item(" · ".join(parts))
 print()
