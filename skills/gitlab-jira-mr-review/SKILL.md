@@ -17,7 +17,7 @@ Structured code review for GitLab MRs. Fetches JIRA requirements when available,
 
 ## Workflow
 
-Work through steps in order. Prioritise reading the diff over full files — fetch full file content only when the diff lacks enough context to make a confident judgment.
+Work through steps in order. Prioritize reading the diff over full files — fetch full file content only when the diff lacks enough context to make a confident judgment.
 
 ### Step 1 — Parse the URL
 
@@ -72,7 +72,7 @@ Once authenticated, call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and `cloudI
 
 If no ticket is found, or the fetch fails for any other reason, continue without requirements context — note it in the summary at the end.
 
-**Parallelise Steps 3 and 4** — JIRA fetch and diff fetch are independent; issue both in the same tool call batch.
+**Parallelize Steps 3 and 4** — JIRA fetch and diff fetch are independent; issue both in the same tool call batch.
 
 ### Step 4 — Fetch diffs
 
@@ -87,7 +87,7 @@ The response is the full MR object with an additional `changes` array. Each elem
 - `diff` — unified diff string (the hunks)
 - `new_file`, `deleted_file`, `renamed_file` booleans
 
-**Truncation check**: compare `response.changes.length` with `mr.changes_count` from Step 2. If they differ, the diff is truncated — note "diff truncated — only N of M files reviewed" in the summary and prioritise the highest-risk files (auth, data access, public API surface).
+**Truncation check**: compare `response.changes.length` with `mr.changes_count` from Step 2. If they differ, the diff is truncated — note "diff truncated — only N of M files reviewed" in the summary and prioritize the highest-risk files (auth, data access, public API surface).
 
 **Line numbers**: Don't count lines from the diff manually — it's error-prone. After checking out the branch in Step 5, use a targeted `grep -n '<snippet>' <file>` on the actual file to find exact line numbers (prefer `grep -n` over `cat -n` of the whole file — it's far cheaper). Use the diff only to confirm the line was changed in this MR. Anchor-line selection (`+` lines vs context lines) is covered in Step 7.
 
@@ -116,14 +116,13 @@ if [ "$LOCAL_HEAD" != "<diff_refs.head_sha>" ]; then
 fi
 ```
 
-If the repo isn't found locally, proceed with diff-only review and note the limitation.
-If the pull fails, note that local files may not match the MR's head and read with caution.
+If the repo isn't found locally, proceed with diff-only review and note the limitation. If the pull fails, note that local files may not match the MR's head and read with caution.
 
 ### Step 6 — Review
 
 If the `code-review-pyramid` skill is listed in the available skills, invoke it (via the Skill tool with `skill: "code-review-pyramid"`) to load the full layer definitions, priority order, and review principles, then apply all five layers to the MR changes.
 
-If the skill is not available, perform a thorough code review using your own judgment — cover correctness, edge cases, error handling, security, test coverage, and readability, prioritising the most impactful findings.
+If the skill is not available, perform a thorough code review using your own judgment — cover correctness, edge cases, error handling, security, test coverage, and readability, prioritizing the most impactful findings.
 
 If a JIRA ticket was fetched, use its acceptance criteria as the ground truth for correctness — map each criterion to the code explicitly and flag any that aren't met.
 
@@ -145,7 +144,7 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 
 - `new_line` is the **new-file** line number (integer). `old_path` defaults to `new_path` — set it explicitly only for renamed files (use the pre-rename path).
 - Use `"general": true` (or simply omit `new_line`) for a positionless note that publishes as a general discussion comment.
-- Don't add the `Co-reviewed with :robot:` line yourself — the script appends it if missing.
+- Don't add the `Co-reviewed with :robot:` line yourself — the script appends it to every note if missing (the conversation summary in Step 8 is exempt).
 
 2. Run the script (it reads `diff_refs` from Step 2 and purges this skill's own prior drafts so reruns don't duplicate):
 
@@ -163,7 +162,7 @@ python3 <skill_dir>/scripts/post_review_notes.py \
 - `old_path` is required for inline placement; omitting it silently downgrades to a plain note. The script always sends it.
 - **Prefer `+` lines as anchors**: pick a `new_line` that appears with a `+` prefix in the diff (added in this MR) — GitLab resolves those reliably. **Context lines (unchanged lines) are unreliable anchors even when they appear inside the hunk** — GitLab often fails to set `line_code` for them. If your finding is on an unchanged line (e.g. a function signature the MR didn't touch), anchor to the nearest `+` line nearby, or mark it `general` from the start.
 
-**Comment format** (what goes in each `note` — the script adds the `Co-reviewed with :robot:` footer for you, so don't write it yourself):
+**Comment format** (what goes in each `note`):
 ```
 `fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime.
 
@@ -209,5 +208,5 @@ After posting all inline comments, output the summary directly in the conversati
 
 - **Never** approve, reject, mark as reviewed, or submit the review — only post comments and notes
 - **Never** checkout a branch if the local repo has uncommitted changes without warning the user first
-- **Always** post comments through `scripts/post_review_notes.py`, which ends every comment with `Co-reviewed with :robot:`. Don't post draft notes by hand. The conversation summary is exempt from the footer.
+- **Always** post comments through `scripts/post_review_notes.py` — don't post draft notes by hand
 - **Large diffs (>500 changed lines)**: note the scope in the summary, focus on highest-risk files (those touching APIs, auth, data access), and explicitly state not all changes were reviewed

@@ -1,12 +1,12 @@
 ---
 name: standard-first
 description: >
-  Guides technical implementation to always prefer the standard, officially-documented solution over custom or AI-generated code. Use this skill whenever the agent is about to: write new code for a feature, suggest or add a library/package, scaffold a new project, configure a framework, or solve a problem that a built-in framework feature or package might already handle. TRIGGER for any .NET/C#, Node.js/npm, Python, Go, Java, or other language implementation task — especially when the problem sounds like something a built-in framework feature or package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Before writing any custom code, check for a technology-specific skill (e.g. dotnet-agent-skills), then fall back to official web docs and package registries. Do not skip this skill just because the answer feels obvious from training data.
+  Guides technical implementation to always prefer the standard, officially-documented solution over custom or AI-generated code. Use this skill whenever the agent is about to: write new code for a feature, suggest or add a library/package, scaffold a new project, or configure a framework. TRIGGER for any .NET/C#, Node.js/npm, Python, Go, Java, or other language implementation task — especially when the problem sounds like something a built-in framework feature or package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Do not skip this skill just because the answer feels obvious from training data.
 argument-hint: "[task description]"
 allowed-tools: [WebSearch, WebFetch, Read, Glob, Write, Bash]
 ---
 
-# Standard-First Skill
+# Standard-First
 
 Before implementing anything, find what already exists — a built-in framework feature, a well-maintained package, or an official pattern. The simplest solution that fully solves the stated problem is the right one; do not add custom implementations for problems that an existing package already covers.
 
@@ -71,21 +71,20 @@ A well-maintained package (actively updated, thousands of downloads, clear docs)
 
 Examples of packages that replace custom code:
 
-- Masking sensitive values in Serilog logs → `Serilog.Enrichers.Sensitive` (not a custom
-  `IDestructuringPolicy`)
+- Masking sensitive values in Serilog logs → `Serilog.Enrichers.Sensitive` (not a custom `IDestructuringPolicy`)
 - Retry logic in HTTP calls → `Polly` (not a hand-rolled retry loop)
 - Strongly-typed configuration in ASP.NET Core → built-in `IOptions<T>` (not manual config reads)
 - Health checks → built-in `Microsoft.AspNetCore.Diagnostics.HealthChecks` (not a custom endpoint)
 
 ### 3b. Fetch and read the official documentation
 
-Once a candidate package or framework feature is identified, fetch its current documentation. Do not rely on training data alone.
+Once a candidate package or framework feature is identified, fetch its current documentation. Do not rely on training data alone — official docs change and package APIs evolve.
 
 **Preferred path — the `find-docs` skill or `ctx7` CLI**: if a `find-docs` skill is available, invoke it; otherwise fetch current docs with the `ctx7` CLI (`npx ctx7@latest library "<name>"` to resolve the library, then `npx ctx7@latest docs <id> "<focused question matching the task>"`). These return curated, versioned docs directly.
 
 **Fallback — `WebFetch`**: if neither is available, use `WebFetch` to retrieve the official documentation page directly.
 
-Prioritise these sources by technology:
+Prioritize these sources by technology:
 
 | Technology | Primary official source |
 |---|---|
@@ -130,9 +129,3 @@ Every solution must include:
 3. **A note on any best-practice deviations** — if the project's existing code diverges from an official recommendation, call it out rather than silently matching the deviation
 
 Keep the implementation concise. Show the minimum necessary to solve the problem correctly, not a comprehensive tutorial.
-
-## Principles
-
-- **Skills beat web searches**: a technology-specific skill has curated knowledge for that ecosystem. Check `available_skills` before searching the web.
-- **Curated docs beat raw fetches**: when `find-docs` or `ctx7` is available, prefer it over a raw URL fetch.
-- **Search beats recall**: official docs change and package APIs evolve. Fetching the current doc is more reliable than training data.

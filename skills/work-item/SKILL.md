@@ -5,7 +5,7 @@ description: >
 argument-hint: "[one-line description of the work]"
 ---
 
-# Work Item Skill
+# Work Item
 
 Draft a work item using the shape that already dominates well-formed real tickets: bold-text section headers (not markdown `##`), a framing section chosen by the ticket's nature, and acceptance criteria written as testable, observable outcomes rather than vague statements like "works correctly." The same standard applies whether you're drafting a new ticket from scratch or fixing up an existing one that's missing a piece (most often acceptance criteria) — treat both as the same content problem.
 

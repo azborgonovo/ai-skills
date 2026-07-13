@@ -9,23 +9,19 @@ argument-hint: "[decision title]"
 allowed-tools: [Read, Glob, Edit, Write, AskUserQuestion]
 ---
 
-# Log Decision Skill
+# Log Decision
 
 Help the user capture a Decision Record for a significant, costly-to-change decision.
 
-If invoked via `/log-decision`, use `$ARGUMENTS` as the title if provided; otherwise ask for one.
-If triggered by a conversation, say something like: _"This looks like a significant decision — would you draft a Decision Record (DR)?"_ Wait for confirmation before proceeding.
+If invoked via `/log-decision`, use `$ARGUMENTS` as the title if provided; otherwise ask for one. If triggered by a conversation, say something like: _"This looks like a significant decision — would you like me to draft a Decision Record (DR)?"_ Wait for confirmation before proceeding.
 
-> **Not sure yet?** If the user is still exploring options or hasn't settled on a direction,
-> suggest `/decide` instead — it's a thinking-partner skill for working through the problem
-> before documenting it.
+> **Not sure yet?** If the user is still exploring options or hasn't settled on a direction, suggest `/decide` instead — it's a thinking-partner skill for working through the problem before documenting it.
 
 ## Execution Steps
 
 ### 1. Gather Information
 
-Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the
-detail.
+Use `AskUserQuestion` for each question — ask one topic area at a time. Do not present all fields at once. Start with the essentials; ask about optional fields only if the user is engaged in the detail.
 
 **If the user has just come from a `/decide` session**, the Context and Problem Statement, Forces and Constraints, and Considered Options will already be established in the conversation. Confirm the key points rather than re-asking them, and move straight to the Decision field and any gaps.
 
@@ -76,8 +72,7 @@ Never assume; ask if something is ambiguous.
 
 ### 4. Write the DR File
 
-Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. If that path does not resolve, fall back to `$HOME/.claude/skills/log-decision/assets/dr-template.md`. Fill every section with the gathered information. For any optional section with no content, remove both the `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself.
-Do not leave placeholder text.
+Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. If that path does not resolve, fall back to `$HOME/.claude/skills/log-decision/assets/dr-template.md`. Fill every section with the gathered information. For any optional section with no content, remove both the `<!-- This is an optional element. Feel free to remove. -->` comment and the section itself. Do not leave placeholder text.
 
 When writing the DR, include markdown links wherever relevant: to PRs or issues that motivated the decision, to external docs (RFCs, benchmarks, vendor pages), and to related DRs. Use relative paths for links between DR files. Use full web URLs for any other links.
 

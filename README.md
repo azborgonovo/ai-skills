@@ -13,7 +13,9 @@ A personal directory of agent skills to extend Claude Code's capabilities.
 | [/decide](skills/decide/SKILL.md) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. |
 | [/define-behavior](skills/define-behavior/SKILL.md) | Writes behavior-driven Gherkin features and scenarios as specification by example — domain-level, one behavior per scenario, observable outcomes. |
 | [/gitlab-jira-mr-review](skills/gitlab-jira-mr-review/SKILL.md) | Reviews a GitLab merge request against its linked JIRA ticket and posts inline comments on the diff for you to submit. |
+| [/implement-scenarios](skills/implement-scenarios/SKILL.md) | Implements automated tests for existing Gherkin scenarios outside-in — classify each scenario to the cheapest verifying test level, bind a traceable test, watch it fail, then drive the code to green. |
 | [/log-decision](skills/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. |
+| [/review-feature-suite](skills/review-feature-suite/SKILL.md) | Cross-file consistency audit for a Gherkin suite — shared language, step reuse, contradictions, and convention lint, reconciled with the user. |
 | [/review-skill](skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy — severity-ranked findings applied on approval. |
 | [/standard-first](skills/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solution — checks built-in framework features, official docs, and package registries before writing custom code. |
 | [team-topologies](skills/team-topologies/SKILL.md) | Knowledge base for Team Topologies — team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. |
