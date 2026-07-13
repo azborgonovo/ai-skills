@@ -69,7 +69,7 @@ Clone the repo, then run the link script:
 
 ```bash
 git clone https://github.com/azborgonovo/agent-skills
-./scripts/link-skills.sh
+python scripts/link-skills.py
 ```
 
 The script will:
@@ -97,5 +97,5 @@ Each skill entry is `<repo-url> <path-to-skill>`. The local clone folder name is
 Re-run the link script — it automatically pulls the latest changes for already-cloned repos:
 
 ```bash
-./scripts/link-skills.sh
+python scripts/link-skills.py
 ```

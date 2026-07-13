@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-platform replacement for link-skills.sh."""
+"""Link personal and external skills into ~/.claude/skills (cross-platform)."""
 
 import os
 import re
