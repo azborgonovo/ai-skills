@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "decision-records",
+  "name": "decisions",
   "displayName": "Decision Records",
   "version": "1.0.0",
   "description": "Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.",
@@ -8,7 +8,7 @@
     "name": "André Borgonovo",
     "url": "https://github.com/azborgonovo"
   },
-  "homepage": "https://github.com/azborgonovo/ai-skills#decision-records",
+  "homepage": "https://github.com/azborgonovo/ai-skills#decisions",
   "repository": "https://github.com/azborgonovo/ai-skills",
   "license": "MIT",
   "keywords": [

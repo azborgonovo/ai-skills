@@ -10,8 +10,8 @@
   },
   "plugins": [
     {
-      "name": "decision-records",
-      "source": "./skills/decision-records",
+      "name": "decisions",
+      "source": "./skills/decisions",
       "description": "Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.",
       "category": "architecture",
       "keywords": [
@@ -53,8 +53,8 @@
       "license": "MIT"
     },
     {
-      "name": "engineering-principles",
-      "source": "./skills/engineering-principles",
+      "name": "engineering-practices",
+      "source": "./skills/engineering-practices",
       "description": "Guidelines that keep execution aligned with proven engineering practices.",
       "category": "engineering",
       "keywords": [

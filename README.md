@@ -8,15 +8,15 @@ Finished skills are grouped into focused **plugins** you can install independent
 
 Each plugin below is installable on its own from the `ai-skills` marketplace (see [Installation](#installation)).
 
-### `decision-records`
+### `decisions`
 
 Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.
 
 | Skill | Description |
 |---|---|
-| [/decide](skills/decision-records/decide/SKILL.md) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. |
-| [/log-decision](skills/decision-records/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. |
-| [/backfill-decisions](skills/decision-records/backfill-decisions/SKILL.md) | Mines a repository's git history for past significant decisions and retroactively writes Decision Records, following the log-decision conventions. |
+| [/decide](skills/decisions/decide/SKILL.md) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. |
+| [/log-decision](skills/decisions/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. |
+| [/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md) | Mines a repository's git history for past significant decisions and retroactively writes Decision Records, following the log-decision conventions. |
 
 ### `bdd`
 
@@ -37,13 +37,13 @@ Structure and carry out code reviews with a consistent, cost-of-change-driven fr
 | [/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md) | Knowledge base for Gunnar Morling's Code Review Pyramid. |
 | [/gitlab-jira-mr-review](skills/code-review/gitlab-jira-mr-review/SKILL.md) | Reviews a GitLab merge request against its linked JIRA work item and posts inline comments on the diff for you to submit. |
 
-### `engineering-principles`
+### `engineering-practices`
 
 Guidelines that keep execution aligned with proven engineering practices.
 
 | Skill | Description |
 |---|---|
-| [/standard-first](skills/engineering-principles/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solutions. |
+| [/standard-first](skills/engineering-practices/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solutions. |
 
 ### `planning`
 
@@ -80,10 +80,10 @@ Add the marketplace once, then install any subset of plugins:
 ```
 /plugin marketplace add azborgonovo/ai-skills
 
-/plugin install decision-records@ai-skills
+/plugin install decisions@ai-skills
 /plugin install bdd@ai-skills
 /plugin install code-review@ai-skills
-/plugin install engineering-principles@ai-skills
+/plugin install engineering-practices@ai-skills
 /plugin install planning@ai-skills
 /plugin install authoring-skills@ai-skills
 ```
@@ -98,7 +98,7 @@ Or pin your chosen plugins in a repository's `.claude/settings.json` so every hu
     }
   },
   "enabledPlugins": {
-    "decision-records@ai-skills": true,
+    "decisions@ai-skills": true,
     "bdd@ai-skills": true
   }
 }
