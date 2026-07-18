@@ -1,20 +1,99 @@
 {
   "name": "ai-skills",
   "owner": {
-    "name": "Andre Borgonovo"
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
   },
   "metadata": {
-    "description": "Personal marketplace exposing the ai-skills repository as a Claude Code plugin.",
-    "version": "1.0.0"
+    "description": "Marketplace of software-delivery skills for Claude Code, grouped into focused plugins you can install independently.",
+    "version": "2.0.0"
   },
   "plugins": [
     {
-      "name": "ai-skills",
-      "source": "./",
-      "description": "Software-delivery skills: BDD authoring and automation (define-behavior, implement-scenarios, review-feature-suite), decision records (decide, log-decision, backfill-decisions), standard-first implementation guidance, code review, and work-item drafting.",
-      "author": {
-        "name": "Andre Borgonovo"
-      }
+      "name": "decision-records",
+      "source": "./skills/decision-records",
+      "description": "Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.",
+      "category": "architecture",
+      "keywords": [
+        "decision-records",
+        "adr",
+        "dr",
+        "architecture-decisions",
+        "documentation"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "bdd",
+      "source": "./skills/bdd",
+      "description": "Author, automate, and reconcile behavior specifications in Gherkin, turning system behavior into executable specs.",
+      "category": "testing",
+      "keywords": [
+        "bdd",
+        "gherkin",
+        "cucumber",
+        "specflow",
+        "acceptance-criteria",
+        "testing"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "code-review",
+      "source": "./skills/code-review",
+      "description": "Structure and carry out code reviews with a consistent, cost-of-change-driven framework and reviewer workflows.",
+      "category": "code-review",
+      "keywords": [
+        "code-review",
+        "gitlab",
+        "merge-request",
+        "jira",
+        "review-pyramid"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "engineering-principles",
+      "source": "./skills/engineering-principles",
+      "description": "Guidelines that keep execution aligned with proven engineering practices.",
+      "category": "engineering",
+      "keywords": [
+        "engineering",
+        "best-practices",
+        "standard-library",
+        "dependencies",
+        "implementation"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "planning",
+      "source": "./skills/planning",
+      "description": "Shape units of work that are well-defined, verifiable, and ready to be executed.",
+      "category": "project-management",
+      "keywords": [
+        "planning",
+        "work-items",
+        "tickets",
+        "user-stories",
+        "backlog",
+        "acceptance-criteria"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "authoring-skills",
+      "source": "./skills/authoring-skills",
+      "description": "Craft and sharpen Claude Code skills so they behave reliably.",
+      "category": "developer-tools",
+      "keywords": [
+        "skills",
+        "skill-authoring",
+        "audit",
+        "claude-code",
+        "meta"
+      ],
+      "license": "MIT"
     }
   ]
 }

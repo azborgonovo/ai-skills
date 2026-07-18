@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "bdd",
+  "displayName": "Behavior-Driven Development",
+  "version": "1.0.0",
+  "description": "Author, automate, and reconcile behavior specifications in Gherkin, turning system behavior into executable specs.",
+  "author": {
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
+  },
+  "homepage": "https://github.com/azborgonovo/ai-skills#bdd",
+  "repository": "https://github.com/azborgonovo/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "bdd",
+    "gherkin",
+    "cucumber",
+    "specflow",
+    "acceptance-criteria",
+    "testing"
+  ],
+  "skills": [
+    "./define-behavior",
+    "./implement-scenarios",
+    "./review-feature-suite"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "code-review",
+  "displayName": "Code Review",
+  "version": "1.0.0",
+  "description": "Structure and carry out code reviews with a consistent, cost-of-change-driven framework and reviewer workflows.",
+  "author": {
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
+  },
+  "homepage": "https://github.com/azborgonovo/ai-skills#code-review",
+  "repository": "https://github.com/azborgonovo/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "gitlab",
+    "merge-request",
+    "jira",
+    "review-pyramid"
+  ],
+  "skills": [
+    "./code-review-pyramid",
+    "./gitlab-jira-mr-review"
+  ]
+}

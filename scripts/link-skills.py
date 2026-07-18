@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Link personal and external skills into ~/.claude/skills (cross-platform)."""
+"""Link this repo's skills into ~/.claude/skills (cross-platform).
+
+By default only local skills (this repo's own, under skills/) are linked. Pass
+--include-external (--ie) to also clone/update and link the third-party skills
+listed in personal/external-skills.conf.
+"""
 
 import os
 import re
@@ -11,7 +16,9 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO       = SCRIPT_DIR.parent
 DEST       = Path.home() / ".claude" / "skills"
-CONF_FILE  = SCRIPT_DIR / "external-skills.conf"
+CONF_FILE  = SCRIPT_DIR / "personal" / "external-skills.conf"
+
+INCLUDE_EXTERNAL = any(arg in ("--include-external", "--ie") for arg in sys.argv[1:])
 
 
 def step(msg):  print(f"\n==> {msg}")
@@ -82,9 +89,9 @@ if CONF_FILE.exists():
         elif re.match(r"^https?://", line):
             skill_entries.append(line)
 
-# --- Clone or pull each unique external repository ---
+# --- Clone or pull each unique external repository (only with --include-external) ---
 
-if clone_dir and skill_entries:
+if INCLUDE_EXTERNAL and clone_dir and skill_entries:
     step("Updating external skill repos")
     clone_dir.mkdir(parents=True, exist_ok=True)
 
@@ -133,15 +140,24 @@ def report(name: str, status: str, note: str = "") -> None:
     item(f"[{status:<10}] {name}{tail}")
 
 
-# Personal skills
-for skill_dir in sorted((REPO / "skills").iterdir()):
-    if not skill_dir.is_dir():
-        continue
+# Local skills all live under skills/: published ones nested inside a plugin
+# folder (skills/<plugin>/<skill>), draft ones under skills/drafts/<skill>. Every
+# skill is the directory holding a SKILL.md; -workspace scratch dirs are skipped.
+def local_skill_dirs() -> list[Path]:
+    dirs = (
+        d.parent
+        for d in (REPO / "skills").rglob("SKILL.md")
+        if not any(part.endswith("-workspace") for part in d.parts)
+    )
+    return sorted(set(dirs), key=lambda d: d.name)
+
+
+for skill_dir in local_skill_dirs():
     managed.add(skill_dir.name)
     report(skill_dir.name, make_symlink(skill_dir, DEST / skill_dir.name))
 
-# External skills
-if clone_dir:
+# External skills (only with --include-external)
+if INCLUDE_EXTERNAL and clone_dir:
     for entry in skill_entries:
         parts      = entry.split(maxsplit=1)
         url        = parts[0]
@@ -157,6 +173,8 @@ if clone_dir:
 
         managed.add(skill_name)
         report(skill_name, make_symlink(src, target), f"external: {local_name}")
+elif skill_entries:
+    item(f"[{'skipped':<10}] {len(skill_entries)} external skill(s)  (re-run with --include-external to include)")
 
 # --- Report skills present in DEST that this run did not manage ---
 

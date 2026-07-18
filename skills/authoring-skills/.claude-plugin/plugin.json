@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "authoring-skills",
+  "displayName": "Authoring Skills",
+  "version": "1.0.0",
+  "description": "Craft and sharpen Claude Code skills so they behave reliably.",
+  "author": {
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
+  },
+  "homepage": "https://github.com/azborgonovo/ai-skills#authoring-skills",
+  "repository": "https://github.com/azborgonovo/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "skill-authoring",
+    "audit",
+    "claude-code",
+    "meta"
+  ],
+  "skills": [
+    "./review-skill"
+  ]
+}

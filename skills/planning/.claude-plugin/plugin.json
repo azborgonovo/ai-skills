@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "planning",
+  "displayName": "Planning",
+  "version": "1.0.0",
+  "description": "Shape units of work that are well-defined, verifiable, and ready to be executed.",
+  "author": {
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
+  },
+  "homepage": "https://github.com/azborgonovo/ai-skills#planning",
+  "repository": "https://github.com/azborgonovo/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "work-items",
+    "tickets",
+    "user-stories",
+    "backlog",
+    "acceptance-criteria"
+  ],
+  "skills": [
+    "./work-item"
+  ]
+}
