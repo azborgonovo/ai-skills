@@ -1,4 +1,4 @@
-# agent-skills
+# ai-skills
 
 A personal directory of agent skills to extend Claude Code's capabilities.
 
@@ -37,13 +37,13 @@ Configured in [`scripts/external-skills.conf`](scripts/external-skills.conf) and
 
 ### As a Claude Code plugin (recommended for repositories)
 
-This repo is a Claude Code [plugin marketplace](https://code.claude.com/docs/en/plugins) exposing all local skills as a single `agent-skills` plugin.
+This repo is a Claude Code [plugin marketplace](https://code.claude.com/docs/en/plugins) exposing all local skills as a single `ai-skills` plugin.
 
 Interactively:
 
 ```
-/plugin marketplace add azborgonovo/agent-skills
-/plugin install agent-skills@agent-skills
+/plugin marketplace add azborgonovo/ai-skills
+/plugin install ai-skills@ai-skills
 ```
 
 Or pin it in a repository's `.claude/settings.json` so every human and agent session gets the skills automatically:
@@ -51,12 +51,12 @@ Or pin it in a repository's `.claude/settings.json` so every human and agent ses
 ```json
 {
   "extraKnownMarketplaces": {
-    "agent-skills": {
-      "source": { "source": "github", "repo": "azborgonovo/agent-skills" }
+    "ai-skills": {
+      "source": { "source": "github", "repo": "azborgonovo/ai-skills" }
     }
   },
   "enabledPlugins": {
-    "agent-skills@agent-skills": true
+    "ai-skills@ai-skills": true
   }
 }
 ```
@@ -68,7 +68,7 @@ External skills (below) are not part of the plugin — they come from their own 
 Clone the repo, then run the link script:
 
 ```bash
-git clone https://github.com/azborgonovo/agent-skills
+git clone https://github.com/azborgonovo/ai-skills
 python scripts/link-skills.py
 ```
 

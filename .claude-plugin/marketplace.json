@@ -1,15 +1,15 @@
 {
-  "name": "agent-skills",
+  "name": "ai-skills",
   "owner": {
     "name": "Andre Borgonovo"
   },
   "metadata": {
-    "description": "Personal marketplace exposing the agent-skills repository as a Claude Code plugin.",
+    "description": "Personal marketplace exposing the ai-skills repository as a Claude Code plugin.",
     "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "agent-skills",
+      "name": "ai-skills",
       "source": "./",
       "description": "Software-delivery skills: BDD authoring and automation (define-behavior, implement-scenarios, review-feature-suite), decision records (decide, log-decision, backfill-decisions), standard-first implementation guidance, code review, and work-item drafting.",
       "author": {
