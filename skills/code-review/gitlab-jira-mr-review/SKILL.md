@@ -55,27 +55,12 @@ From the response extract:
 
 ### Step 3 — Fetch JIRA context (if a ticket was found)
 
-If a JIRA key was found, load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch — and if the cloudId cache file below is missing, add `mcp__claude_ai_Atlassian__getAccessibleAtlassianResources` to the same ToolSearch call.
-
-**If ToolSearch returns only `mcp__claude_ai_Atlassian__authenticate`** (not `getJiraIssue`), the Atlassian MCP server needs OAuth. Handle it before continuing:
-
-1. Call `mcp__claude_ai_Atlassian__authenticate` (no parameters needed).
-2. Share the returned authorization URL with the user:
-   > Atlassian needs authorization. Please open this URL and complete the login: `<url>`
-   > Let me know when done.
-3. **Pause** — do not proceed until the user confirms.
-4. Once confirmed, retry ToolSearch for `mcp__claude_ai_Atlassian__getJiraIssue`. If it's now available, call it. If it still isn't, skip JIRA context and note it in the summary.
-
-**Resolve the cloudId.** The cloudId is machine- and org-specific, so it lives in a local cache file — never in this skill:
-
-1. Read `$HOME/.claude/atlassian-cloud-id` (use the expanded absolute path — `~` is not expanded by file tools). If it exists, its single line is the cloudId; skip discovery.
-2. Otherwise call `getAccessibleAtlassianResources` and take the returned resource's `id` (the site-URL form like `acme.atlassian.net` also works as a cloudId). If it returns several sites, ask the user which one their JIRA lives on.
-3. Write the resolved value to `$HOME/.claude/atlassian-cloud-id` and tell the user you cached it — every future run then takes the one-file-read fast path.
-
-Once authenticated, call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and the resolved `cloudId`. Extract:
+If a JIRA key was found, fetch the ticket with `mcp__claude_ai_Atlassian__getJiraIssue` (a deferred tool — load it via ToolSearch first). Read the cloudId from `$HOME/.claude/atlassian-cloud-id` (use the expanded absolute path — `~` isn't expanded by file tools), then call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and that `cloudId`. Extract:
 - Summary (the "what")
 - Description / acceptance criteria (the "done conditions")
 - Issue type (Story / Task / Bug)
+
+**First run, or auth not yet established?** If ToolSearch returns only `mcp__claude_ai_Atlassian__authenticate` (not `getJiraIssue`), or the cloudId cache file is missing, complete the one-time Atlassian OAuth and cloudId setup in [reference/jira-setup.md](reference/jira-setup.md) before calling `getJiraIssue`. Once done, both are cached and this step stays on the fast path above.
 
 If no ticket is found, or the fetch fails for any other reason, continue without requirements context — note it in the summary at the end.
 
