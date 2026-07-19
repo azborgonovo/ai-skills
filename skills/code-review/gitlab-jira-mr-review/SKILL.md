@@ -1,14 +1,15 @@
 ---
 name: gitlab-jira-mr-review
 description: >
-  Reviews a GitLab merge request against its linked JIRA ticket, then posts inline comments on
-  the diff — you submit. TRIGGER when the user
-  invokes /gitlab-jira-mr-review <MR URL>, or asks to review a GitLab MR, code-review a merge
-  request, check a GitLab PR, or evaluate MR changes against JIRA requirements. Always use this
-  skill instead of attempting a manual MR review — it fetches context, structures the review, and
-  posts comments directly to the MR.
+  Reviews a GitLab merge request against its linked JIRA ticket, then posts inline comments on the
+  diff for you to submit — it fetches the MR and ticket context, structures the review, and writes
+  the comments directly to the MR. User-only: runs only when explicitly invoked with
+  /gitlab-jira-mr-review <MR URL>. When the user wants to review a GitLab MR, code-review a merge
+  request, check a GitLab PR, or evaluate MR changes against JIRA requirements, suggest running this
+  command rather than doing a manual review.
 argument-hint: "<GitLab MR URL>"
 allowed-tools: [Read, Bash, Skill, Write, ToolSearch]
+disable-model-invocation: true
 ---
 
 # GitLab + JIRA MR Review

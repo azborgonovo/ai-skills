@@ -2,14 +2,14 @@
 name: backfill-decisions
 description: >
   Mine a repository's git history for architecturally significant decisions made in the past and
-  retroactively write Decision Records for them, following the log-decision conventions. TRIGGER when:
-  the user invokes /backfill-decisions; OR the user wants to document historical or undocumented
-  decisions, reconstruct ADRs/DRs from git history, generate ADRs for a legacy or existing codebase,
-  document the architecture history, or says things like "we never wrote down why we chose X",
-  "why did we choose X?", "backfill our decision log", or "this repo has no ADRs". Do NOT use for a
-  decision being made right now — that is /log-decision.
+  retroactively write Decision Records for them, following the log-decision conventions. User-only:
+  runs only when explicitly invoked with /backfill-decisions [time range, path, or topic]. When the
+  user wants to document historical or undocumented decisions, reconstruct ADRs/DRs from git history,
+  generate ADRs for a legacy or existing codebase, or document the architecture history, suggest
+  running this command. For a decision being made right now, use /log-decision instead.
 argument-hint: "[time range, path, or topic — e.g. 2023..2024, src/api, \"database\"]"
 allowed-tools: [Bash(git:*), Read, Glob, Grep, Write, Edit, AskUserQuestion]
+disable-model-invocation: true
 ---
 
 # Backfill Decisions
