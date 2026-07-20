@@ -1,0 +1,102 @@
+{
+  "skill_name": "pareto",
+  "notes": "Assertions are tagged by class. 'judgment' assertions test reasoning both a skilled baseline and the skill could satisfy — these are the honest discriminators. 'contract' assertions test the skill's own reporting format, which a baseline is never asked to produce; a baseline failing those is an instruction gap, not a capability gap. Evals 1, 5 and 7 state a budget in the prompt so both arms face the same constraint; evals 2 and 6 deliberately omit one to test whether the skill imposes a bound the user did not give.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/pareto our checkout service has no tests at all. 14 modules, the big ones are cart.py, payment.py, tax.py and the rest are small helpers. i can give this about 3 days before the next release. increase test coverage",
+      "expected_output": "Organizes by risk category cutting across files, ranks by expected defect cost, fits the stated 3 days, leaves an area explicitly untested, and separates coverage percentage from risk retired.",
+      "assertions": [
+        {"text": "Organizes the work by failure mode or risk category that cuts across files (money arithmetic, payment idempotency, state mutation), rather than by module name or file size", "class": "judgment"},
+        {"text": "Ranks by expected cost of an escaped defect rather than by module size, line count, or coverage percentage gained", "class": "judgment"},
+        {"text": "Fits the proposed work inside the stated 3-day budget rather than laying out a plan that covers all 14 modules", "class": "judgment"},
+        {"text": "Explicitly leaves at least one identified area untested and says so, rather than covering everything to some degree", "class": "judgment"},
+        {"text": "Distinguishes coverage percentage from risk retired, rather than treating the coverage number as the goal", "class": "judgment"},
+        {"text": "States what share of the risk the 3 days buys, given as a reasoned estimate rather than a bare assertion of ~80%", "class": "contract"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/pareto write me a plan for migrating our monolith to services over the next year",
+      "expected_output": "Ranks causes with a depth gradient, names data entanglement as dominant with its cost, admits what it did not investigate, and bounds itself to a fraction of the year.",
+      "assertions": [
+        {"text": "Ranks the underlying causes of the migration pain and gives the top-ranked causes materially more depth than the rest", "class": "judgment"},
+        {"text": "Identifies data entanglement / the shared database schema as a dominant cause and states its cost rather than omitting or minimizing it", "class": "judgment"},
+        {"text": "Names at least one specific investigation it did not perform, and whose absence limits its conclusions", "class": "judgment"},
+        {"text": "Any outcome estimate is labeled as an estimate and tied to stated reasoning, rather than given as a bare confident percentage", "class": "judgment"},
+        {"text": "Bounds its own scope to a stated fraction of the year rather than planning all twelve months", "class": "contract"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "/pareto fix the auth bypass in our session validation, users can forge a token and log in as anyone",
+      "expected_output": "Declines the Pareto framing because the work is completeness-critical, presents the vulnerability causes as an exhaustive checklist rather than a stoppable shortlist, and proceeds to full remediation.",
+      "assertions": [
+        {"text": "Declines to apply a partial or prioritized cut because the work is completeness-critical, not merely because it lacks repository access", "class": "judgment"},
+        {"text": "States that a fraction of a security fix provides no corresponding fraction of the protection", "class": "judgment"},
+        {"text": "States that every candidate cause must be checked, rather than presenting an order the reader may stop partway down (a frequency ordering is acceptable only if finishing the list is stated as the requirement)", "class": "judgment"},
+        {"text": "Identifies bypass vectors beyond the most common few — including at minimum unprotected or opt-in routes, fail-open error handling, or client-supplied identity headers", "class": "judgment"}
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "/pareto here are 5 unrelated bug reports from last sprint, all roughly the same size and severity. work through them",
+      "expected_output": "Detects the flat distribution, grounds its refusal to prioritize in that flatness specifically, and offers full funding versus an acknowledged-arbitrary slice.",
+      "assertions": [
+        {"text": "States explicitly that the causes are evenly distributed, or that there is no vital few to find here", "class": "judgment"},
+        {"text": "Grounds its refusal to prioritize in that flatness specifically, rather than in missing information or pending inputs", "class": "judgment"},
+        {"text": "Reaches that conclusion before committing to any slice of the work", "class": "judgment"},
+        {"text": "Offers a choice between funding the whole job and taking a slice it acknowledges would be arbitrary", "class": "judgment"},
+        {"text": "Proposes at least one sequencing axis not recorded in the tickets — blast radius, who is blocked, decay risk, or fix confidence — rather than either manufacturing a ranking from facts stated to be equal or offering no tiebreaker at all", "class": "judgment"},
+        {"text": "Proposes checking whether the five reports share an underlying cause, on the grounds that 'unrelated' is a claim about symptoms rather than causes", "class": "judgment"}
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "/pareto we get ~200 support tickets a week. 60% are password resets, 25% are billing questions about a confusing invoice line, the rest is a long tail. the password reset flow is genuinely broken and would take about a week to rebuild properly. we've got about a day and a half of engineering time before the next sprint. reduce our ticket volume",
+      "expected_output": "Keeps the reset flow ranked top despite its cost, states it cannot fit the budget and prices it, spends the budget on the invoice fix, and separates minor from unaffordable.",
+      "assertions": [
+        {"text": "Names password resets as the dominant cause of ticket volume", "class": "judgment"},
+        {"text": "Keeps password resets ranked as the top cause even though its fix cost exceeds the stated day-and-a-half budget", "class": "judgment"},
+        {"text": "States that the reset rebuild cannot fit the stated budget and names its price", "class": "judgment"},
+        {"text": "Spends the stated budget on the invoice fix and/or diagnostics rather than beginning the rebuild it cannot finish", "class": "judgment"},
+        {"text": "Distinguishes what was left because it is minor (the long tail) from what was left because it is too expensive (the reset rebuild)", "class": "judgment"},
+        {"text": "If it recommends exceeding the stated budget, it flags that it is doing so rather than silently ignoring the constraint", "class": "judgment"}
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "/pareto our python backend has 30-odd flaky tests in CI and the suite takes 40 minutes. clean it up",
+      "expected_output": "Groups flakes by shared cause, commits to a ranking while labeling it a prior when not evidence-derived, bounds the work, and names what it skipped.",
+      "assertions": [
+        {"text": "Groups the flaky tests by shared underlying cause rather than treating them as 30 independent items", "class": "judgment"},
+        {"text": "Commits to a ranking of those causes rather than deferring the ranking entirely to data it does not have", "class": "judgment"},
+        {"text": "Labels the ranking as a prior or assumption where it is not derived from the repository's actual failure data", "class": "judgment"},
+        {"text": "Names at least one thing it deliberately chose not to do", "class": "judgment"},
+        {"text": "Bounds the work to a subset rather than expanding scope across all causes plus additional phases", "class": "contract"},
+        {"text": "States what share of the effort was spent and what that bought", "class": "contract"}
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "/pareto our api p99 latency is 2.3s and users are complaining. i can spare about two days on this. make it faster",
+      "expected_output": "Ranks by share of the p99, separates tail causes from median-path ones, uses cheap signals, prices a fix that exceeds two days, and states what the budget does not buy.",
+      "assertions": [
+        {"text": "Ranks latency contributors by their share of the p99 rather than by how tractable or interesting they are to fix", "class": "judgment"},
+        {"text": "Distinguishes tail causes (queueing, fan-out, retries) from median-path causes, rather than optimizing the average", "class": "judgment"},
+        {"text": "Bases the approach on cheaply visible signals rather than proposing exhaustive profiling or a tracing rollout first", "class": "judgment"},
+        {"text": "Names at least one high-impact fix that exceeds the stated two-day budget and states its cost", "class": "judgment"},
+        {"text": "States explicitly what the two days buys and what it does not buy", "class": "judgment"},
+        {"text": "Spends part of the budget on changes that actually reduce latency, or — if it recommends measurement only — frames that plainly as a tradeoff rather than presenting an investigation as the delivered work", "class": "judgment"},
+        {"text": "Reaches a ranking without proposing an exhaustive measurement phase first, using rough estimates where precise ones would cost more than they are worth", "class": "judgment"}
+      ],
+      "files": []
+    }
+  ]
+}
