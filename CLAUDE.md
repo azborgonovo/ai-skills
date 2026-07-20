@@ -1,6 +1,14 @@
 # Repository guidelines
 
-Working guidelines for this repository: how to write commits, author skills, and version plugins.
+Working guidelines for this repository: how work lands, how to write commits, author skills, and version plugins.
+
+## Trunk-based development
+
+Work lands directly on `main`. Commit to `main` rather than opening a feature branch, and push when the work is ready — no pull request, no review gate.
+
+This overrides the usual reflex to branch before committing: here a branch adds a merge step and delays publishing without buying review, since this is a single-maintainer repository. Create a branch only when explicitly asked, or when the work genuinely cannot land in a releasable state in one go.
+
+**What that asks of each commit**: `main` is the published state, so every commit on it should stand on its own — one logical change, tests or scripts exercised, and any plugin version already bumped in the same commit (see [Claude plugins versioning](#claude-plugins-versioning)). Split unrelated work into separate commits rather than a branch.
 
 ## Conventional commits
 
