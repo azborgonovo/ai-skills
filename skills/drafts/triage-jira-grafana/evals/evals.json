@@ -1,0 +1,27 @@
+{
+  "skill_name": "triage-jira-grafana",
+  "notes": "This skill's value depends on live Jira access and a real, investigable codebase, so these prompts use bracketed placeholders instead of real tickets/repos/companies. Before running an eval pass, substitute a real ticket URL, reference comment URL, and codebase path(s) that the runner actually has access to — pick something non-sensitive (e.g. a sandbox project, or a real bug you're comfortable an AI-assisted comment landing on). Do not commit the substituted, filled-in prompts back into this file if the ticket/company details are sensitive; keep the placeholders here and substitute only in the ephemeral eval run.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Can you triage <JIRA_TICKET_URL>? Look into why this is happening and post your analysis as a comment on the ticket. The codebase(s) that implement this feature are at <CODEBASE_ROOT_1> and <CODEBASE_ROOT_2>.",
+      "expected_output": "The skill fetches the full ticket (description + all comments), scopes the investigation to the given repos, delegates code investigation to a subagent, verifies the subagent's key claims directly before writing anything, drafts a root-cause analysis using the default template (no reference style was given), and posts it to the ticket automatically (no dry-run requested).",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "prompt": "Please triage <JIRA_TICKET_URL> and post an analysis comment similar in style to what I did here: <REFERENCE_COMMENT_URL>. The relevant code is in <CODEBASE_ROOT>.",
+      "expected_output": "The skill fetches both the target ticket and the reference comment, extracts the reference's structural pattern (opening marker, section headers, tone), and produces a posted comment whose shape mirrors the reference rather than the generic default template — while the actual root-cause content is still independently investigated and verified against the given codebase.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "prompt": "Investigate <JIRA_TICKET_URL> and tell me what you think is going on — don't post anything yet, I want to review it first. Codebase is at <CODEBASE_ROOT>.",
+      "expected_output": "The skill treats this as a dry-run: it performs the full investigation and verification, then shows the complete drafted comment (and/or saves it to a file) without ever calling addCommentToJiraIssue.",
+      "files": [],
+      "expectations": []
+    }
+  ]
+}

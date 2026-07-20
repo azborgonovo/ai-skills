@@ -1,0 +1,2 @@
+Estimate the expected token usage given the current session model, effort and user prompt.
+Compare the estimation with the available session quota from the `/usage` command. If the estimated token usage is higher than the available quota, inform the user and ask if he wants to continue.
