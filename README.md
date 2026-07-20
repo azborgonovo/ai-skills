@@ -8,9 +8,7 @@ Mostly software-delivery practice — decisions, BDD, code review, planning — 
 
 Each plugin below is installable on its own from the `ai-skills` marketplace (see [Installation](#installation)).
 
-The **Invocation** column shows how each skill is triggered. *Model or user* skills auto-trigger when Claude judges them relevant and can also be run with their `/slash-command`. *User-only* skills set `disable-model-invocation: true` — Claude never triggers them on its own, so they run only when you invoke the `/slash-command` explicitly (used for skills with external side effects or heavy operations that shouldn't start unbidden).
-
-A plugin may also ship **hooks**, which are listed in a separate table under that plugin. Hooks are the one component that runs without being invoked at all: once the plugin is installed they fire on the matching event in every session, whether or not you use the plugin's skills. Plugins that ship hooks stay separate from skill-only plugins for exactly that reason, so installing for a skill never silently enables ambient behavior.
+Some plugins also ship **hooks**, listed in a separate table under that plugin. Unlike a skill, a hook is never invoked: once the plugin is installed it fires on the matching event in every session, whether or not you use the plugin's skills. Plugins that ship hooks stay separate from skill-only plugins for exactly that reason, so installing for a skill never silently enables ambient behavior.
 
 ### `decisions`
 
