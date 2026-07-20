@@ -1,14 +1,16 @@
 # ai-skills
 
-A marketplace of software-delivery skills for Claude Code.
+Skills and tools crafted by André Borgonovo to enhance Claude Code for software delivery.
 
-Finished skills are grouped into focused **plugins** you can install independently — pick only the ones relevant to you. Draft skills are not published to the marketplace yet; consume them via the link script or by copying them locally.
+Mostly software-delivery practice — decisions, BDD, code review, planning — plus tooling for working with Claude Code itself. Finished skills are grouped into focused **plugins** you can install independently, so you pick only what's relevant. Draft skills are not published to the marketplace yet; consume them via the link script or by copying them locally.
 
 ## Plugins
 
 Each plugin below is installable on its own from the `ai-skills` marketplace (see [Installation](#installation)).
 
 The **Invocation** column shows how each skill is triggered. *Model or user* skills auto-trigger when Claude judges them relevant and can also be run with their `/slash-command`. *User-only* skills set `disable-model-invocation: true` — Claude never triggers them on its own, so they run only when you invoke the `/slash-command` explicitly (used for skills with external side effects or heavy operations that shouldn't start unbidden).
+
+A plugin may also ship **hooks**, which are listed in a separate table under that plugin. Hooks are the one component that runs without being invoked at all: once the plugin is installed they fire on the matching event in every session, whether or not you use the plugin's skills. Plugins that ship hooks stay separate from skill-only plugins for exactly that reason, so installing for a skill never silently enables ambient behavior.
 
 ### `decisions`
 
@@ -63,6 +65,19 @@ Craft and sharpen Claude Code skills so they behave reliably.
 |---|---|---|
 | [/review-skill](skills/authoring-skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Model or user |
 
+### `usage-budget`
+
+Record what each turn actually costs in tokens, and report measured consumption instead of guessing at it. Reports consumption only — Claude Code exposes no remaining-quota figure to hooks or skills, so nothing here can tell you how much budget is left; run `/usage` for real limits.
+
+| Skill | Description | Invocation |
+|---|---|---|
+| [/usage-report](skills/usage-budget/usage-report/SKILL.md) | Reports measured token spend by project and turn, and tests whether cost is predictable from the prompt. | Model or user |
+
+| Hook | Event | Behavior |
+|---|---|---|
+| [collect_usage](skills/usage-budget/scripts/collect_usage.py) | `Stop` | Records the finished turn's measured cost from the session transcript into `~/.claude/usage-budget/`. Always on. |
+| [collect_usage](skills/usage-budget/scripts/collect_usage.py) | `UserPromptSubmit` | Adds a one-line burn-rate notice once the rolling window passes a threshold. Silent below it; set `warn_at_weighted` to `0` in `~/.claude/usage-budget/config.json` to disable entirely. |
+
 ## Draft skills
 
 Not yet published to the Claude marketplace. These are **not** installable as plugins; consume them via the [link script](#via-the-link-script-symlink-based) or by copying the skill folder into your own project.
@@ -88,6 +103,7 @@ Add the marketplace once, then install any subset of plugins:
 /plugin install engineering-practices@ai-skills
 /plugin install planning@ai-skills
 /plugin install authoring-skills@ai-skills
+/plugin install usage-budget@ai-skills
 ```
 
 Or pin your chosen plugins in a repository's `.claude/settings.json` so every human and agent session gets them automatically (enable only the ones you want):

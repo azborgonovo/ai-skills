@@ -5,8 +5,8 @@
     "url": "https://github.com/azborgonovo"
   },
   "metadata": {
-    "description": "Marketplace of software-delivery skills for Claude Code, grouped into focused plugins you can install independently.",
-    "version": "2.0.0"
+    "description": "Skills and tools to enhance Claude Code — for software delivery, and for working with Claude Code itself. Grouped into focused plugins you can install independently.",
+    "version": "2.1.0"
   },
   "plugins": [
     {
@@ -92,6 +92,20 @@
         "audit",
         "claude-code",
         "meta"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "usage-budget",
+      "source": "./skills/usage-budget",
+      "description": "Record what each turn actually costs in tokens, and report measured consumption instead of guessing at it.",
+      "category": "developer-tools",
+      "keywords": [
+        "tokens",
+        "usage",
+        "cost",
+        "hooks",
+        "telemetry"
       ],
       "license": "MIT"
     }

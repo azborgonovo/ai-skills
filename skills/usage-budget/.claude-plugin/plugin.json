@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "usage-budget",
+  "displayName": "Usage Budget",
+  "version": "0.1.0",
+  "description": "Record what each turn actually costs in tokens, and report measured consumption instead of guessing at it.",
+  "author": {
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
+  },
+  "homepage": "https://github.com/azborgonovo/ai-skills#usage-budget",
+  "repository": "https://github.com/azborgonovo/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "tokens",
+    "usage",
+    "cost",
+    "hooks",
+    "telemetry"
+  ],
+  "skills": [
+    "./usage-report"
+  ]
+}
