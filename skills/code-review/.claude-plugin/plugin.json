@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "code-review",
   "displayName": "Code Review",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Structure and carry out code reviews with a consistent, cost-of-change-driven framework and reviewer workflows.",
   "author": {
     "name": "André Borgonovo",

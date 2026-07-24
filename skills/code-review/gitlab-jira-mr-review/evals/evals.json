@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Review this MR for me: https://gitlab.com/acme/my-service/-/merge_requests/42",
-      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate and checkout the source branch locally, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts inline comments via scripts/post_review_notes.py (each ending with 'Co-reviewed with :robot:'), and outputs the review summary in the conversation (does NOT post it to the MR). Does NOT approve or submit the review.",
+      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate the local clone and create an isolated review worktree pinned to the MR's head_sha, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts inline comments via scripts/post_review_notes.py (each ending with 'Co-reviewed with :robot:'), removes the worktree, and outputs the review summary in the conversation (does NOT post it to the MR). Does NOT approve or submit the review.",
       "files": [],
       "expectations": [
         "Inline comments are posted via scripts/post_review_notes.py rather than hand-written glab api calls",
@@ -13,7 +13,7 @@
         "The conversation summary starts with '## Code Review Summary' and includes a Pyramid coverage table",
         "The review covers Implementation Semantics and API Semantics (bottom layers)",
         "The skill attempts to invoke the code-review-pyramid skill, or falls back to its own judgment if unavailable",
-        "The skill attempts to locate a local clone and checkout the source branch, or notes the limitation if not found",
+        "The skill attempts to locate a local clone and create an isolated review worktree (never checking out the branch in the user's main clone), or notes the limitation if not found",
         "The skill does not call any approve, submit, or review-completion API endpoint",
         "If a JIRA ticket is found in the MR, the summary references it"
       ]
@@ -21,7 +21,7 @@
     {
       "id": 2,
       "prompt": "Can you do a code review on https://gitlab.com/acme/platform/-/merge_requests/7? There's no JIRA ticket for this one, it's a quick hotfix.",
-      "expected_output": "Skill reviews the MR without JIRA context. The conversation summary explicitly states no JIRA ticket was found. Review still covers all pyramid layers. Inline comments are posted where issues exist. Skill attempts to checkout the source branch locally.",
+      "expected_output": "Skill reviews the MR without JIRA context. The conversation summary explicitly states no JIRA ticket was found. Review still covers all pyramid layers. Inline comments are posted where issues exist. Skill attempts to create an isolated review worktree locally rather than checking out the branch in place.",
       "files": [],
       "expectations": [
         "Conversation summary states no JIRA ticket was found",
@@ -29,7 +29,7 @@
         "Each inline comment ends with the 'Co-reviewed with :robot:' footer",
         "The review summary is output in the conversation, not posted to the MR",
         "The skill does not halt or ask for a ticket — it continues without one",
-        "The skill attempts to locate a local clone and checkout the source branch, or notes the limitation if not found"
+        "The skill attempts to locate a local clone and create an isolated review worktree, or notes the limitation if not found"
       ]
     },
     {

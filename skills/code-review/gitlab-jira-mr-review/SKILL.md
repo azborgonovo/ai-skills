@@ -81,9 +81,11 @@ The response is the full MR object with an additional `changes` array. Each elem
 
 **Truncation check**: compare `response.changes.length` with `mr.changes_count` from Step 2. If they differ, the diff is truncated — note "diff truncated — only N of M files reviewed" in the summary and prioritize the highest-risk files (auth, data access, public API surface).
 
-**Line numbers**: Don't count lines from the diff manually — it's error-prone. After checking out the branch in Step 5, use a targeted `grep -n '<snippet>' <file>` on the actual file to find exact line numbers (prefer `grep -n` over `cat -n` of the whole file — it's far cheaper). Use the diff only to confirm the line was changed in this MR. Anchor-line selection (`+` lines vs context lines) is covered in Step 7.
+**Line numbers**: Don't count lines from the diff manually — it's error-prone. After creating the worktree in Step 5, use a targeted `grep -n '<snippet>' <file>` on the actual file to find exact line numbers (prefer `grep -n` over `cat -n` of the whole file — it's far cheaper). Use the diff only to confirm the line was changed in this MR. Anchor-line selection (`+` lines vs context lines) is covered in Step 7.
 
-### Step 5 — Check out the source branch locally
+### Step 5 — Create a review worktree
+
+Checking out the branch in the user's main clone would switch what's checked out from under them — disrupting whatever branch or uncommitted work they have there. A disposable worktree gives the review its own directory instead, so the main checkout is never touched.
 
 Repos are cloned under `~/projects/<org-id>/<group/subgroups>/<project>`, mirroring the GitLab namespace. For example, `https://gitlab.com/acme/platform/my-service` would be at `~/projects/acme/platform/my-service`.
 
@@ -95,20 +97,34 @@ ls ~/projects/<project_path> 2>/dev/null
 find ~/projects -maxdepth 5 -name ".git" -exec sh -c \
   'git -C "$1/.." remote get-url origin 2>/dev/null' _ {} \; | grep "<project_path>"
 
-# 3. Once found, fetch and checkout
-git -C <repo_path> fetch origin
-git -C <repo_path> checkout <source_branch> 2>/dev/null || \
-  git -C <repo_path> checkout -b <source_branch> origin/<source_branch>
+# 3. Once found, fetch the source branch
+WORKTREE_PATH="<repo_path>.mr<mr_iid>-review"
+git -C <repo_path> fetch origin <source_branch>
+git -C <repo_path> worktree prune
 
-# 4. Verify local HEAD matches the MR's head_sha — the branch may have new commits
-#    that aren't reflected in the local tracking branch yet.
-LOCAL_HEAD=$(git -C <repo_path> log -1 --format=%H)
-if [ "$LOCAL_HEAD" != "<diff_refs.head_sha>" ]; then
-  git -C <repo_path> pull origin <source_branch>
+# 4. A worktree may already sit at this path — e.g. left behind by a prior run of
+#    this skill that crashed before Step 8 cleanup. It's only safe to replace if it's
+#    clean; it may otherwise hold uncommitted or unpushed work someone did there directly.
+if [ -d "$WORKTREE_PATH" ]; then
+  DIRTY=$(git -C "$WORKTREE_PATH" status --porcelain 2>&1)
+  ON_REMOTE=$(git -C "$WORKTREE_PATH" branch -r --contains HEAD 2>/dev/null)
+  if [ -n "$DIRTY" ] || [ -z "$ON_REMOTE" ]; then
+    echo "STOP: $WORKTREE_PATH exists and is not verifiably clean (uncommitted changes, or HEAD isn't on any remote branch — possible unpushed commit). Do not delete it. Report this to the user and ask how to proceed."
+    exit 1
+  else
+    git -C <repo_path> worktree remove "$WORKTREE_PATH"
+  fi
 fi
+
+# 5. Add a detached worktree pinned to head_sha
+git -C <repo_path> worktree add --detach "$WORKTREE_PATH" <diff_refs.head_sha>
 ```
 
-If the repo isn't found locally, proceed with diff-only review and note the limitation. If the pull fails, note that local files may not match the MR's head and read with caution.
+Pin to the exact `head_sha` rather than the branch name — it guarantees the worktree matches what the MR actually contains, and it never collides with a worktree add if the user happens to already have that same branch checked out elsewhere (git refuses to check out a branch that's already checked out in another worktree; a commit SHA has no such restriction).
+
+If the repo isn't found locally, proceed with diff-only review and note the limitation. If the fetch or worktree creation fails — including the STOP case above — note that local files aren't available and read with caution. Never force past the STOP check, and never fall back to checking out the branch in the user's main clone.
+
+Use `$WORKTREE_PATH` (not the repo's main path) for every file read and `grep` in Step 6 onward.
 
 ### Step 6 — Review
 
@@ -168,7 +184,17 @@ Add a nil check or return an early error.
 - Avoid style nits unless they cross into real readability problems
 - Don't repeat the same finding across multiple files — pick the clearest occurrence
 
-### Step 8 — Output the review summary
+### Step 8 — Remove the worktree
+
+If a worktree was created in Step 5, remove it now — do this even if earlier steps failed partway (e.g. posting comments errored out) or the review was diff-only and no worktree exists. If Step 5 hit its STOP check and left a pre-existing worktree in place untouched, this run never created one — don't remove it here either:
+
+```bash
+git -C <repo_path> worktree remove "$WORKTREE_PATH"
+```
+
+If removal is refused, leave the worktree in place and tell the user exactly what git reported, so they can decide what to do with it.
+
+### Step 9 — Output the review summary
 
 After posting all inline comments, output the summary directly in the conversation (do **not** post it to the MR):
 
@@ -199,6 +225,8 @@ After posting all inline comments, output the summary directly in the conversati
 ## Hard constraints
 
 - **Never** approve, reject, mark as reviewed, or submit the review — only post comments and notes
-- **Never** checkout a branch if the local repo has uncommitted changes without warning the user first
+- **Never** check out the MR branch in the user's main clone — always review from the isolated worktree created in Step 5
+- **Never** force-delete or force-remove the review worktree (Step 5's replacement check, Step 8's cleanup) — if it isn't verifiably clean, stop and tell the user instead of overriding
+- **Always** remove the worktree before finishing (Step 8), even if the review is aborted or fails partway
 - **Always** post comments through `scripts/post_review_notes.py` — don't post draft notes by hand
 - **Large diffs (>500 changed lines)**: note the scope in the summary, focus on highest-risk files (those touching APIs, auth, data access), and explicitly state not all changes were reviewed
