@@ -1,75 +1,84 @@
 # ai-skills
 
-Skills and tools crafted by André Borgonovo to enhance Claude Code for software delivery.
+Skills and tools carefully crafted to enhance **software delivery** capabilities of AI harnesses.
 
-Mostly software-delivery practice — decisions, BDD, code review, planning — plus tooling for working with Claude Code itself. Finished skills are grouped into focused **plugins** you can install independently, so you pick only what's relevant. Draft skills are not published to the marketplace yet; consume them via the link script or by copying them locally.
+Use them as Claude Plugins or simply clone this repository and symlink skills into your own folders. 
+
+Status reflects the maturity of each skill based on my usage and results I achieved with them:
+- **Adopt**: proven on real work, use with confidence
+- **Trial**: usable and worth trying, still being validated
+- **Draft**: recently authored, not used seriously yet
+
+Invocation reflects [who can trigger a skill](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill):
+- **Auto**: Claude invokes it automatically when relevant, and you can still call it directly
+- **Manual**: only you invoke it, with `/skill-name`
 
 ## Plugins
 
 Each plugin below is installable on its own from the `ai-skills` marketplace (see [Installation](#installation)).
 
-Some plugins also ship **hooks**, listed in a separate table under that plugin. Unlike a skill, a hook is never invoked: once the plugin is installed it fires on the matching event in every session, whether or not you use the plugin's skills. Plugins that ship hooks stay separate from skill-only plugins for exactly that reason, so installing for a skill never silently enables ambient behavior.
-
-### `decisions`
-
-Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.
-
-| Skill | Description | Invocation |
-|---|---|---|
-| [/decide](skills/decisions/decide/SKILL.md) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. | Model or user |
-| [/log-decision](skills/decisions/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. | Model or user |
-| [/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md) | Mines a repository's git history for past significant decisions and retroactively writes Decision Records, following the log-decision conventions. | User-only |
+> Note:  Plugins with *hooks* fire on the matching event in every session, wheter or not you use the plugin's skill. That's why hooks are listed in a separate table and shipped as standalone plugins.
 
 ### `bdd`
 
 Author, automate, and reconcile behavior specifications in Gherkin, turning system behavior into executable specs.
 
-| Skill | Description | Invocation |
-|---|---|---|
-| [/define-behavior](skills/bdd/define-behavior/SKILL.md) | Writes behavior-driven Gherkin features and scenarios as specification by example. | Model or user |
-| [/review-feature-suite](skills/bdd/review-feature-suite/SKILL.md) | Cross-file consistency audit for a Gherkin suite to ensure a well-defined shared language and resolve contradictions. | Model or user |
-| [/implement-scenarios](skills/bdd/implement-scenarios/SKILL.md) | Implements behavior for existing Gherkin scenarios outside-in: classify each scenario to the lowest verifying test level, bind a traceable test, watch it fail, then drive the code to green. | Model or user |
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/define-behavior](skills/bdd/define-behavior/SKILL.md) | Writes behavior-driven Gherkin features and scenarios as specification by example. | Auto | Adopt |
+| [/review-feature-suite](skills/bdd/review-feature-suite/SKILL.md) | Cross-file consistency audit for a Gherkin suite to ensure a well-defined shared language and resolve contradictions. | Auto | Adopt |
+| [/implement-scenarios](skills/bdd/implement-scenarios/SKILL.md) | Implements behavior for existing Gherkin scenarios outside-in: classify each scenario to the lowest verifying test level, bind a traceable test, watch it fail, then drive the code to green. | Auto | Trial |
 
 ### `code-review`
 
 Structure and carry out code reviews with a consistent, cost-of-change-driven framework and reviewer workflows.
 
-| Skill | Description | Invocation |
-|---|---|---|
-| [/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md) | Knowledge base for Gunnar Morling's Code Review Pyramid. | Model or user |
-| [/gitlab-jira-mr-review](skills/code-review/gitlab-jira-mr-review/SKILL.md) | Reviews a GitLab merge request against its linked JIRA work item and posts inline comments on the diff for you to submit. | User-only |
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md) | Knowledge base for Gunnar Morling's Code Review Pyramid. | Auto | Adopt |
+| [/gitlab-jira-mr-review](skills/code-review/gitlab-jira-mr-review/SKILL.md) | Reviews a GitLab merge request against its linked JIRA work item and posts inline comments on the diff for you to submit. | Manual | Adopt |
 
-### `engineering-practices`
+### `decisions`
 
-Guidelines that keep execution aligned with proven engineering practices.
+Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.
 
-| Skill | Description | Invocation |
-|---|---|---|
-| [/standard-first](skills/engineering-practices/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solutions. | Model or user |
-
-### `planning`
-
-Shape units of work that are well-defined, verifiable, and ready to be executed.
-
-| Skill | Description | Invocation |
-|---|---|---|
-| [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Model or user |
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/decide](skills/decisions/decide/SKILL.md) | Collaborative thinking-partner for exploring a problem and its options before arriving at a decision. | Auto | Adopt |
+| [/log-decision](skills/decisions/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. | Auto | Adopt |
+| [/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md) | Mines a repository's git history for past significant decisions and retroactively writes Decision Records, following the log-decision conventions. | Manual | Trial |
 
 ### `authoring-skills`
 
 Craft and sharpen Claude Code skills so they behave reliably.
 
-| Skill | Description | Invocation |
-|---|---|---|
-| [/review-skill](skills/authoring-skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Model or user |
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/review-skill](skills/authoring-skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Auto | Adopt |
+
+### `engineering-practices`
+
+Guidelines that keep execution aligned with proven engineering practices.
+
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/standard-first](skills/engineering-practices/standard-first/SKILL.md) | Guides technical implementation to prefer the standard, officially-documented solutions. | Auto | Adopt |
+
+### `planning`
+
+Shape units of work that are well-defined, verifiable, and ready to be executed.
+
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Auto | Adopt |
 
 ### `usage-budget`
 
 Record what each turn actually costs in tokens, and report measured consumption instead of guessing at it. Reports consumption only — Claude Code exposes no remaining-quota figure to hooks or skills, so nothing here can tell you how much budget is left; run `/usage` for real limits.
 
-| Skill | Description | Invocation |
-|---|---|---|
-| [/usage-report](skills/usage-budget/usage-report/SKILL.md) | Reports measured token spend by project and turn, and tests whether cost is predictable from the prompt. | Model or user |
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [/usage-report](skills/usage-budget/usage-report/SKILL.md) | Reports measured token spend by project and turn, and tests whether cost is predictable from the prompt. | Auto | Trial |
 
 | Hook | Event | Behavior |
 |---|---|---|
@@ -82,9 +91,9 @@ Not yet published to the Claude marketplace. These are **not** installable as pl
 
 | Skill | Description | Invocation |
 |---|---|---|
-| [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | User-only |
-| [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Model or user |
-| [/triage-jira-grafana](skills/drafts/triage-jira-grafana/SKILL.md) | Triages a Jira ticket end-to-end — ticket thread, related issues, the implementing codebase, optionally Grafana — then posts a verified root-cause analysis back to the ticket. | Model or user |
+| [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual |
+| [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto |
+| [/triage-jira-grafana](skills/drafts/triage-jira-grafana/SKILL.md) | Triages a Jira ticket end-to-end — ticket thread, related issues, the implementing codebase, optionally Grafana — then posts a verified root-cause analysis back to the ticket. | Auto |
 
 ## Installation
 
