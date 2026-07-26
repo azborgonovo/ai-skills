@@ -1,0 +1,41 @@
+{
+  "skill_name": "triage-issue",
+  "notes": "This skill's value depends on live tracker access and a real, investigable codebase, so these prompts use bracketed placeholders instead of real issues/repos/companies. Before running an eval pass, substitute a real issue URL, reference comment URL, and codebase path(s) that the runner actually has access to — pick something non-sensitive (e.g. a sandbox project, or a real bug you're comfortable an AI-assisted comment landing on). Do not commit the substituted, filled-in prompts back into this file if the issue/company details are sensitive; keep the placeholders here and substitute only in the ephemeral eval run. Supported trackers are Jira and GitHub Issues; supported observability platforms are Grafana and AWS CloudWatch. Evals 1-3 exercise the core workflow on any tracker; eval 4 checks that the right tracker adapter is selected from the URL shape; eval 5 checks that the CloudWatch observability adapter is used for corroboration.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Can you triage <ISSUE_URL>? Look into why this is happening and post your analysis as a comment on the issue. The codebase(s) that implement this feature are at <CODEBASE_ROOT_1> and <CODEBASE_ROOT_2>.",
+      "expected_output": "The skill identifies the tracker from the URL and loads its adapter, fetches the full issue (description + all comments), scopes the investigation to the given repos, delegates code investigation to a subagent, verifies the subagent's key claims directly before writing anything, drafts a root-cause analysis using the default template (no reference style was given), and posts it to the issue automatically (no dry-run requested).",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "prompt": "Please triage <ISSUE_URL> and post an analysis comment similar in style to what I did here: <REFERENCE_COMMENT_URL>. The relevant code is in <CODEBASE_ROOT>.",
+      "expected_output": "The skill fetches both the target issue and the reference comment, extracts the reference's structural pattern (opening marker, section headers, tone), and produces a posted comment whose shape mirrors the reference rather than the generic default template — while the actual root-cause content is still independently investigated and verified against the given codebase.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "prompt": "Investigate <ISSUE_URL> and tell me what you think is going on — don't post anything yet, I want to review it first. Codebase is at <CODEBASE_ROOT>.",
+      "expected_output": "The skill treats this as a dry-run: it performs the full investigation and verification, then shows the complete drafted comment (and/or saves it to a file) without ever posting a comment to the tracker.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "prompt": "Triage <GITHUB_ISSUE_URL> and post what you find. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "The skill recognizes the github.com/<owner>/<repo>/issues/<n> URL shape as GitHub, reads references/trackers/github.md, and uses the gh CLI (not Jira/Atlassian tools) for the fetch, search, and comment operations — otherwise following the same investigate-then-verify-then-post workflow.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 5,
+      "prompt": "Triage <ISSUE_URL> — it's about an ongoing elevated error rate on <ENDPOINT>, so check our CloudWatch logs to confirm before posting. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "The skill forms a code-level hypothesis first, then at Step 8 reads references/observability/cloudwatch.md and uses the CloudWatch Logs Insights start-query/get-query-results flow (correct region) to corroborate the still-current error before drafting — treating the log data as confirmation of the code hypothesis, not the starting point, and skipping only if the incident predates the log group's retention.",
+      "files": [],
+      "expectations": []
+    }
+  ]
+}
