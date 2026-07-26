@@ -2,7 +2,7 @@
 
 Mechanics for triaging a GitHub issue. Read this when Step 1 identifies the tracker as GitHub.
 
-**Status**: every command and flag below is verified against the official `gh` CLI reference (July 2026) — the flags, `--state all`, URL arguments, and the `--json` field names all exist as written. Not yet run end-to-end from this skill against a live repo, so confirm `gh auth status` and do one real fetch/comment before trusting output on an issue that matters.
+**Status**: verified end-to-end against the live `gh` CLI (v2.96.0, authenticated). `gh issue view <url> --comments --json title,body,comments,labels,milestone,url` and `gh issue list --search … --state all --json number,title,state` were run live and returned the expected fields; the `gh issue comment --body-file` flag is confirmed (a real post was intentionally not fired). Trust the read/search commands as written; before posting, just confirm `gh auth status` shows the right account and you're commenting on the intended issue.
 
 ## Tooling
 

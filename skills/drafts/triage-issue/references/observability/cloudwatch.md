@@ -2,7 +2,7 @@
 
 Mechanics for corroborating a hypothesis against AWS CloudWatch. Read this at Step 8 when CloudWatch is the available platform. Reach for it only once you already have a specific code-level hypothesis and something concrete to look for — this is corroboration, not exploration.
 
-**Status**: every command and parameter below is verified against the official `aws` CLI reference (July 2026), including the per-command time-unit difference — `logs start-query` and `xray get-trace-summaries` take epoch seconds, while `cloudwatch get-metric-data` takes ISO 8601 timestamps. Not yet run end-to-end from this skill, so confirm credentials/region (`aws sts get-caller-identity`) and do one real query before trusting output.
+**Status**: verified against the installed `aws` CLI (v2.36.8) — all four commands and their required parameters (`--query-id`; `--metric-data-queries/--start-time/--end-time`; etc.) are confirmed by the CLI's own client-side validation and match the official reference, including the per-command time-unit difference: `logs start-query` and `xray get-trace-summaries` take epoch seconds, while `cloudwatch get-metric-data` takes ISO 8601 timestamps. The live API round-trip is still untested — no AWS credentials are configured on this machine — so run `aws sts get-caller-identity` first, then one real query, before trusting output.
 
 ## Tooling
 
