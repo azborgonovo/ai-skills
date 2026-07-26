@@ -2,7 +2,7 @@
 
 Mechanics for triaging a GitHub issue. Read this when Step 1 identifies the tracker as GitHub.
 
-**Status**: written against the `gh` CLI, which is stable and widely available, but not yet exercised end-to-end from this skill. Confirm each command works in your environment before trusting its output, and refine this file after the first real run.
+**Status**: every command and flag below is verified against the official `gh` CLI reference (July 2026) — the flags, `--state all`, URL arguments, and the `--json` field names all exist as written. Not yet run end-to-end from this skill against a live repo, so confirm `gh auth status` and do one real fetch/comment before trusting output on an issue that matters.
 
 ## Tooling
 
