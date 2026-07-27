@@ -57,6 +57,7 @@ Drawn from [Anthropic's Skill authoring best practices](https://platform.claude.
 - No hard limit, but adherence degrades in practice beyond roughly 300 lines; keeping a rules file under about 150 lines is the recommended ceiling for reliable behavior.
 - Source: [thepromptshelf.dev — Cline rules guide](https://thepromptshelf.dev/blog/cline-rules-complete-guide-2026/)
 
-## GitHub Copilot — `.github/copilot-instructions.md`
+## GitHub Copilot — `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`
 
-- A single repo-wide instructions file with no inclusion-mode frontmatter and no scoping mechanism — every instruction applies everywhere, all the time. Splitting by domain isn't available as a native fix for bloat here the way it is for Kiro or Cursor, so flag size and mixed concerns as leanness findings rather than structural-split findings.
+- `copilot-instructions.md` is a single repo-wide file with no inclusion-mode frontmatter — every instruction in it applies everywhere, all the time.
+- `.github/instructions/*.instructions.md` files are separate documents with their own frontmatter, scoped to matching files. Review them as their own corpus members rather than folding them into the repo-wide file's findings — the repo-wide file and a scoped companion covering the same ground is a duplication site like any other pairing in this corpus.
