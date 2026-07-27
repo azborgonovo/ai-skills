@@ -94,6 +94,7 @@ Not yet published to the Claude marketplace. These are **not** installable as pl
 | [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual |
 | [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto |
 | [/triage-jira-grafana](skills/drafts/triage-jira-grafana/SKILL.md) | Triages a Jira ticket end-to-end — ticket thread, related issues, the implementing codebase, optionally Grafana — then posts a verified root-cause analysis back to the ticket. | Auto |
+| [/tune-agent-docs](skills/drafts/tune-agent-docs/SKILL.md) | Reviews every AI-steering markdown file in a repo (CLAUDE.md, AGENTS.md, Cursor/Cline/Windsurf/Kiro rules, Copilot instructions) together as one corpus and tightens them. | Auto |
 
 ## Installation
 
