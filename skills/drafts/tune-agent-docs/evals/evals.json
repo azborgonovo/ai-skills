@@ -1,0 +1,47 @@
+{
+  "skill_name": "tune-agent-docs",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "bloated-claude-md",
+      "prompt": "our CLAUDE.md feels really bloated and Claude keeps ignoring half of what's in it. can you clean it up? repo root has CLAUDE.md and CLAUDE.local.md",
+      "expected_output": "Findings-first review that flags: the doc is well over the ~200-line CLAUDE.md target (now genuinely ~208 lines after padding the fixture); large chunks (directory layout, dependency list, generic architecture overview, onboarding checklist, FAQ, glossary) are derivable or belong elsewhere and should be trimmed or relocated; the multi-step deploy playbook is a workflow, not a standing fact, and belongs in a skill or on-demand doc, not an always-loaded CLAUDE.md; CLAUDE.local.md duplicates several lines verbatim from CLAUDE.md (build/test commands) that should live in one place only. The 4 pitfalls (Stripe webhook signature ordering, enum migration transaction, Redis TTL dedup, fixture customer UUID) and the coding conventions are kept since the agent couldn't derive them from the codebase alone. Applies fixes after presenting findings.",
+      "files": [],
+      "expectations": [
+        "Flags CLAUDE.md as exceeding the ~200-line CLAUDE.md size guidance",
+        "Identifies derivable content (directory layout, dependency list, or architecture overview) as a leanness/trim candidate",
+        "Flags the multi-step deploy playbook as a workflow that belongs in a skill or on-demand doc rather than an always-loaded CLAUDE.md",
+        "Flags verbatim duplication of the build/test commands between CLAUDE.md and CLAUDE.local.md",
+        "Preserves the 4 project-specific pitfalls (Stripe webhook signature ordering, enum migration transaction flag, Redis TTL dedup, fixture customer UUID) rather than deleting them",
+        "Presents findings before applying edits"
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "cross-doc-contradiction",
+      "prompt": "our AI coding tools keep behaving differently depending on which one runs on this repo -- can you check our CLAUDE.md, AGENTS.md, and cursor rules and make them consistent? repo root has CLAUDE.md, AGENTS.md, and .cursor/rules/testing.mdc",
+      "expected_output": "Findings-first review that surfaces the direct contradiction between CLAUDE.md ('mock all external services in every test, including integration tests, with no exceptions') and .cursor/rules/testing.mdc ('never mock the database in integration tests under src/payments/'), resolves it by scope (the narrower, path-scoped cursor rule for src/payments/ wins over the repo-wide CLAUDE.md guidance for that area, rather than picking one arbitrarily or just asking the user), and flags terminology drift referring to the AI itself as 'the agent' (CLAUDE.md), 'the assistant' (AGENTS.md), and 'Claude' (AGENTS.md commit-style section, cursor rule) inconsistently across the corpus. Should present findings ranked by severity before editing.",
+      "files": [],
+      "expectations": [
+        "Identifies the direct contradiction between CLAUDE.md's 'mock all external services, no exceptions' and .cursor/rules/testing.mdc's 'never mock the database ... under src/payments/'",
+        "Resolves the contradiction by scope (the narrower, path-scoped cursor rule wins for src/payments/) rather than treating it as a tie needing a user decision",
+        "Flags terminology drift referring to the AI itself as 'the agent' / 'the assistant' / 'Claude' inconsistently across CLAUDE.md, AGENTS.md, and the cursor rule",
+        "References content from all three files (CLAUDE.md, AGENTS.md, .cursor/rules/testing.mdc) in the findings, not just one",
+        "Presents findings ranked by severity (blocking/should-fix/nit or equivalent tiers) rather than as a flat list"
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "single-file-request-expands-scope",
+      "prompt": "can you tidy up my CLAUDE.md, it's a bit of a mess",
+      "expected_output": "Even though the user named only CLAUDE.md, the skill notices and reads the neighboring .clinerules and .windsurfrules files in the same repo root, and flags that 3 of CLAUDE.md's 5 conventions are duplicated verbatim in .clinerules (black formatting, pytest-before-PR, Conventional Commits) and 1 in .windsurfrules (reversible migrations) as a duplication finding across the corpus -- rather than only reviewing CLAUDE.md in isolation.",
+      "files": [],
+      "expectations": [
+        "Discovers and reads the neighboring .clinerules and .windsurfrules files even though the user named only CLAUDE.md",
+        "Flags verbatim duplication of at least 3 rules between CLAUDE.md and .clinerules (black formatting, pytest-before-PR, Conventional Commits)",
+        "Flags verbatim duplication of the reversible-migrations rule between CLAUDE.md and .windsurfrules",
+        "Findings discuss the content of the other files, not just their existence"
+      ]
+    }
+  ]
+}
