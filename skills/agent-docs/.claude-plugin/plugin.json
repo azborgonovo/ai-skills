@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "agent-docs",
   "displayName": "Agent Docs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Author and tighten the docs that steer AI coding agents — a single SKILL.md or a repo's full CLAUDE.md/AGENTS.md/editor-rules corpus.",
   "author": {
     "name": "André Borgonovo",
