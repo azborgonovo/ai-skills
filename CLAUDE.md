@@ -52,6 +52,12 @@ Use American English spelling (`behavior`, `normalize`, `canceled`) so terminolo
 
 Prefer stating what to do over what to avoid. A bare "don't do X" leaves X sitting in context with no positive target to replace it. A clear positive rule with its reasoning is usually enough on its own.
 
+### Discard a skill that shows no measured lift
+
+A skill earns its place only when its gains outweigh its cost. If an eval against the plain model shows no pass-rate gain while the skill adds token or latency cost, discard it — don't ship it or keep it "just in case."
+
+**Precedent — `consistency-first`**: a drafted skill for keeping generated code aligned with a codebase's existing patterns and vocabulary. Across four eval iterations — easy and hard fixtures, on Opus and Haiku, plus a drift scenario built as its best case — it produced essentially the same code as the plain model while spending ~10% more tokens, because current models already match neighboring code, read steering docs and ADRs unprompted, and re-anchor after local drift on their own. It was discarded on that evidence.
+
 ### General principle
 
 Prefer instructions that explain the *why* over rigid `MUST`/`NEVER` walls of formatting, and keep the always-loaded SKILL.md body lean.
