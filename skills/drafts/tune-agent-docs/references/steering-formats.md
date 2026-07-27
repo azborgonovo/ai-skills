@@ -21,7 +21,8 @@ Drawn from [Anthropic's Skill authoring best practices](https://platform.claude.
 - A file can `@path/to/file` import others, up to 4 hops deep; imported content still loads fully into context at launch, so importing organizes a doc without reducing its token cost.
 - `.claude/rules/*.md` splits instructions by topic; add YAML frontmatter with a `paths` glob array to scope a rule to matching files only, so it loads on demand instead of every session.
 - Target under 200 lines per `CLAUDE.md` — longer files consume more context and measurably reduce instruction adherence.
-- Source: [code.claude.com/docs/en/memory](https://code.claude.com/docs/en/memory)
+- Claude Code's own `/doctor` checkup (alias `/checkup`) applies this same review to a checked-in `CLAUDE.md`: it trims content the agent could derive from the codebase itself (directory layouts, dependency lists, architecture overviews), keeps what it can't derive (pitfalls, rationale, conventions that differ from tool defaults), migrates remaining always-loaded content into skills and on-demand nested files, and separately deduplicates a local `CLAUDE.local.md` against its checked-in counterpart. It reports findings and asks before changing anything — the same critique-first discipline this skill follows.
+- Source: [code.claude.com/docs/en/memory](https://code.claude.com/docs/en/memory), [code.claude.com/docs/en/commands](https://code.claude.com/docs/en/commands)
 
 ## Claude Skills — `SKILL.md`
 
