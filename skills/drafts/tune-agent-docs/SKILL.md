@@ -6,8 +6,10 @@ description: >
   `.github/copilot-instructions.md`, Kiro's `.kiro/steering/*.md`, and similar — together as one
   corpus, then tightens them. Use whenever the user wants to audit, tune, reconcile, or clean up the
   instructions a repo gives its AI agents, or asks why an agent keeps missing or contradicting its
-  own steering docs — even when they only name one file, since the value is in reading it alongside
-  its neighbors. Checks vocabulary consistency and leading-word front-loading across every doc,
+  own steering docs, or burning tokens on them — even when they only name one file, since the value
+  is in reading it alongside its neighbors. Checks vocabulary consistency, leading-word front-loading,
+  and each doc's token budget — size against its own format's stated limits, content loaded
+  unconditionally that the harness could scope instead, guidance duplicated across multiple docs —
   applies the repo's own doc-authoring conventions where they hold generally, and calibrates each
   instruction's degrees of freedom to the fragility of what it governs. Do not use for a single
   `SKILL.md` in isolation — that is review-skill's job.
@@ -36,11 +38,12 @@ Read every file in the corpus in full. The findings live in how these docs relat
 
 ## What to check
 
+- **Token budget** — the biggest lever a steering doc has over what an agent pays before it does any real work, and the one worth checking first. Check each doc's length against its own format's stated ceiling in `references/steering-formats.md` (200 lines for `CLAUDE.md`, 500 for `SKILL.md`, per-character caps for Windsurf, and so on). Check whether content is loaded unconditionally — `alwaysApply: true`, `inclusion: always`, an unscoped `.claude/rules/*.md` — when it only matters for one file type or directory, instead of using the harness's own conditional-loading mechanism. Check for guidance stated verbatim in two or more docs in the corpus, which pays its token cost twice; prefer one canonical doc plus a pointer or import. A doc split into Claude Code `@import`s is easier to navigate but no smaller, since imports still load in full — don't credit that as a token-budget fix.
+- **Structural fit per harness** — once a token-budget or leanness finding calls for splitting or scoping a doc, judge the fix only against what its own format actually supports, per `references/steering-formats.md`: a nested `CLAUDE.md`, a glob-scoped `.mdc` rule, a Kiro `fileMatch` steering file. Where the harness has no such mechanism, don't recommend one it can't use — flag the bloat as a leanness finding instead.
 - **Vocabulary consistency** — across the whole corpus, the same role, tool, or convention must carry the same name. Hunt synonym drift (`the agent`/`Claude`/`the assistant`, `skill`/`capability`/`workflow`, `worktree`/`workspace`) the way review-feature-suite hunts it across `.feature` files. A term used two ways inside a single doc is the same defect at smaller scale.
 - **Leading words** — does each instruction front-load its actionable verb or keyword instead of burying it after throat-clearing? This is review-skill's triggering check, generalized past `description` fields: a bullet, a header, or a frontmatter `description` that leads with context before the directive makes a skimming agent, or the harness's own retrieval match, miss the point.
 - **Degrees of freedom** — match each instruction's specificity to how fragile the thing it governs actually is. A judgment call dressed up as an exact, low-freedom script constrains an agent that should be reasoning; an exact, must-follow-in-order operation left as loose, high-freedom prose invites improvisation where none belongs.
 - **Leanness and staleness** — flag restatements of what any capable agent already knows, and flag time-boxed conditionals ("until the migration finishes, do X") that will silently go stale; a dated fold or an old-patterns section ages better than a live-sounding conditional.
-- **Structural fit per harness** — judge a doc's organization only against what its own format actually supports, per `references/steering-formats.md`. A bloated, multi-concern file is a real finding wherever its harness can split or scope it (a nested `CLAUDE.md`, a glob-scoped `.mdc` rule, a Kiro `fileMatch` steering file); where the harness has no such mechanism, don't recommend one it can't use.
 - **Frontmatter validity** — each doc's own frontmatter, checked against its format's actual schema: a Kiro `inclusion` value outside `always`/`fileMatch`/`manual`, a Cursor `.mdc` missing the field its activation mode depends on, a `SKILL.md` `name` that violates the character or charset limit.
 
 ## Resolve conflicts by scope, not by asking
@@ -51,12 +54,12 @@ When two docs give contradictory guidance for the same thing, resolve it the way
 
 Open with a one-line verdict, then list findings ranked by severity, not grouped by check:
 
-- **Blocking** — active contradictions between docs, or an instruction that will make the agent do the wrong thing.
-- **Should-fix** — vocabulary drift, buried leading words, miscalibrated degrees of freedom, convention violations.
+- **Blocking** — active contradictions between docs, an instruction that will make the agent do the wrong thing, or a doc past a hard format limit (Windsurf's character caps, for instance) where the tail is silently truncated and never loads at all.
+- **Should-fix** — vocabulary drift, buried leading words, an oversized or unconditionally-loaded doc that its harness could scope, guidance duplicated across docs, miscalibrated degrees of freedom, convention violations.
 - **Nit** — cosmetic polish.
 
 Tag each finding with its dimension and the exact file and line. Then offer to apply — all blocking and should-fix, everything, or a subset the user picks — and edit directly. A vocabulary or leading-word fix must land in every occurrence across every file in the corpus; a partial rename leaves the corpus more inconsistent than before.
 
 ## Before you finish
 
-Re-read the diff as a skeptical teammate: a rename that missed a nested `CLAUDE.md` or nested rule file; a degrees-of-freedom fix that overcorrected into the opposite miscalibration; a "contradiction" that was really two docs correctly scoped to different areas, now wrongly collapsed into one.
+Re-read the diff as a skeptical teammate: a rename that missed a nested `CLAUDE.md` or nested rule file; a degrees-of-freedom fix that overcorrected into the opposite miscalibration; a "contradiction" that was really two docs correctly scoped to different areas, now wrongly collapsed into one; a scoping fix that narrowed a rule's `paths`/`globs`/`fileMatchPattern` past the areas that genuinely needed it, so the agent stops seeing guidance it still relies on.
