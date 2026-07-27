@@ -48,13 +48,14 @@ Explore, capture, and reconstruct the reasoning behind significant decisions as 
 | [/log-decision](skills/decisions/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. | Auto | Adopt |
 | [/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md) | Mines a repository's git history for past significant decisions and retroactively writes Decision Records, following the log-decision conventions. | Manual | Trial |
 
-### `authoring-skills`
+### `agent-docs`
 
-Craft and sharpen Claude Code skills so they behave reliably.
+Author and tighten the docs that steer AI coding agents — a single SKILL.md or a repo's full CLAUDE.md/AGENTS.md/editor-rules corpus.
 
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
-| [/review-skill](skills/authoring-skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Auto | Adopt |
+| [/review-skill](skills/agent-docs/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Auto | Adopt |
+| [/tune-agent-docs](skills/agent-docs/tune-agent-docs/SKILL.md) | Reviews every AI-steering markdown file in a repo (CLAUDE.md, AGENTS.md, Cursor/Cline/Windsurf/Kiro rules, Copilot instructions) together as one corpus and tightens them. | Auto | Trial |
 
 ### `engineering-practices`
 
@@ -94,7 +95,6 @@ Not yet published to the Claude marketplace. These are **not** installable as pl
 | [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual |
 | [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto |
 | [/triage-jira-grafana](skills/drafts/triage-jira-grafana/SKILL.md) | Triages a Jira ticket end-to-end — ticket thread, related issues, the implementing codebase, optionally Grafana — then posts a verified root-cause analysis back to the ticket. | Auto |
-| [/tune-agent-docs](skills/drafts/tune-agent-docs/SKILL.md) | Reviews every AI-steering markdown file in a repo (CLAUDE.md, AGENTS.md, Cursor/Cline/Windsurf/Kiro rules, Copilot instructions) together as one corpus and tightens them. | Auto |
 
 ## Installation
 
@@ -112,7 +112,7 @@ Add the marketplace once, then install any subset of plugins:
 /plugin install code-review@ai-skills
 /plugin install engineering-practices@ai-skills
 /plugin install planning@ai-skills
-/plugin install authoring-skills@ai-skills
+/plugin install agent-docs@ai-skills
 /plugin install usage-budget@ai-skills
 ```
 
