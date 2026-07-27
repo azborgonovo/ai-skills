@@ -14,7 +14,7 @@ description: >
   instruction's degrees of freedom to the fragility of what it governs. Do not use for a single
   `SKILL.md` in isolation — that is review-skill's job.
 argument-hint: "[path or glob, optional — defaults to the whole repo]"
-allowed-tools: [Read, Glob, Grep, Edit, AskUserQuestion]
+allowed-tools: [Read, Glob, Grep, Edit, Write, AskUserQuestion]
 ---
 
 # Tune Agent Docs
