@@ -1,27 +1,30 @@
 ---
-name: triage-issue
+name: triage-work-item
 description: >
-  Triages a tracker issue end-to-end against the codebase: reads the issue (description, full
-  comment/discussion thread, linked issues, parent epic), cross-references related issues,
-  investigates the actual codebase(s) that implement the affected feature, optionally corroborates
-  with an observability platform (logs/traces/metrics), then posts a verified root-cause analysis
-  comment back to the issue. Works against Jira or GitHub Issues as the tracker and Grafana or AWS
-  CloudWatch for observability through per-tool adapter files. TRIGGER when the user gives an issue
-  URL or key — Jira (`…atlassian.net/browse/KEY`) or GitHub (`github.com/<o>/<r>/issues/<n>`) — and
-  asks to triage, investigate, diagnose, or "figure out what's going on
-  with" it, especially when they also want an analysis comment posted back — even if they don't say
-  "triage" explicitly (e.g. "can you look into ISSUE and post what you find", "why is this happening,
-  check the code"). Do not use this for simply reading or summarizing an issue with no code
-  investigation intended, and do not use it for writing new issues.
-argument-hint: "<issue URL or key> [reference comment URL to match style] [--dry-run]"
+  Triages a tracker work item — a bug, task, or story — end-to-end against the codebase: reads the
+  item (description, full comment/discussion thread, linked items, parent epic), cross-references
+  related items, investigates the actual codebase(s) that implement the affected feature, optionally
+  corroborates with an observability platform (logs/traces/metrics), then posts a verified
+  root-cause analysis comment back to the item. Works against Jira or GitHub Issues as the tracker
+  and Grafana or AWS CloudWatch for observability through per-tool adapter files. TRIGGER when the
+  user gives a work-item URL or key — Jira (`…atlassian.net/browse/KEY`) or GitHub
+  (`github.com/<o>/<r>/issues/<n>`) — and asks to triage, investigate, diagnose, root-cause, or
+  "figure out what's going on with" it, especially when they also want an analysis comment posted
+  back — even if they don't say "triage" explicitly (e.g. "can you look into TICKET-123 and post what
+  you find", "why is this happening, check the code"). Do not use this for simply reading or
+  summarizing a work item with no code investigation intended, and do not use it for writing new
+  work items.
+argument-hint: "<work-item URL or key> [reference comment URL to match style] [--dry-run]"
 allowed-tools: [Read, Bash, Agent, ToolSearch, AskUserQuestion, Write]
 ---
 
-# Triage a tracker issue against the codebase and observability data
+# Triage a tracker work item against the codebase and observability data
 
-This is an investigation workflow, not a lookup. The value it adds over just reading the issue is verified root cause: a specific code path, config value, or data condition that a future engineer can act on immediately, backed by evidence you actually checked rather than plausible-sounding guesses. Every step below exists to either gather that evidence or to guard against reporting something that sounds right but isn't.
+Throughout this skill "work item" is the generic term for whatever the tracker holds — a bug, task, or story (Jira and GitHub both call the object an "issue," and the steps below keep that word when naming the concrete object or an API/CLI call).
 
-The workflow is tool-agnostic; the tracker-specific and observability-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them. This keeps the always-loaded body focused on judgment — the part that's the same whether the issue lives in Jira or GitHub and whether the telemetry is in Grafana or CloudWatch.
+This is an investigation workflow, not a lookup. The value it adds over just reading the work item is verified root cause: a specific code path, config value, or data condition that a future engineer can act on immediately, backed by evidence you actually checked rather than plausible-sounding guesses. Every step below exists to either gather that evidence or to guard against reporting something that sounds right but isn't.
+
+The workflow is tool-agnostic; the tracker-specific and observability-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them. This keeps the always-loaded body focused on judgment — the part that's the same whether the work item lives in Jira or GitHub and whether the telemetry is in Grafana or CloudWatch.
 
 By default, once you've verified your findings, post the comment — don't pause for a separate approval step. The verification step (Step 8) is the safety gate, not a human checkpoint. The one exception is `--dry-run`: if the user passes it (or clearly wants to see the analysis before anything goes out), write the finished comment to a file and show it instead of posting.
 
