@@ -1,0 +1,147 @@
+{
+  "skill_name": "triage-work-item",
+  "notes": "This skill's value depends on live tracker access and a real, investigable codebase, so most prompts use bracketed placeholders instead of real issues/repos/companies. Before running a behavior-eval pass, substitute a real issue URL and codebase path(s) the runner actually has access to — pick something non-sensitive (a sandbox project, or a real bug you're comfortable an AI-assisted comment landing on). Do not commit the substituted, filled-in prompts back into this file if the details are sensitive; keep the placeholders here and substitute only in the ephemeral run. Supported trackers are Jira and GitHub Issues; supported observability platforms are Grafana and AWS CloudWatch. Assertions are tagged by class: 'behavior' = a workflow step happened as designed; 'verification' = the honesty gate held (cite only re-checked claims, never treat a stale/empty query as evidence); 'contract' = the skill respected an output rule such as dry-run not posting; 'triggering' = the skill fired (or correctly declined) for this prompt. Evals 1-5 and 8 are behavior/verification runs needing live substitution; evals 6-7 are triggering-boundary checks that need no substitution and no live access. Eval 8 additionally needs its codebase fixture deliberately left stale (see its own notes). Two boundaries are deliberately left for a future fixture rather than faked here: a bare Jira key with no visible site hostname (skill should ask rather than guess the cloudId), and a subagent report containing a plausible-but-wrong file:line to prove the verification gate catches it — that one needs a crafted repo to be deterministic. Lesson from the first live-substitution pass (2026-07-30, against a real GitHub sandbox repo): when evals 9-12 all reused a single real target issue's URL but supplied a different synthetic narrative per eval, the skill handled the mismatch gracefully every time (used the supplied content, flagged the discrepancy, grounded investigation in the real fetched issue) rather than silently fabricating agreement — but it's friction the skill has to notice and work around on every run rather than a clean test of classification logic alone. For the next live pass, prefer substituting a distinct real issue per classification scenario (or a repo with several genuinely bug-shaped and feature-shaped open issues to draw from) over reusing one fixture issue across multiple mismatched narratives.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Can you triage <JIRA_ISSUE_URL>? Look into why this is happening and post your analysis as a comment on the issue. The codebase(s) that implement this feature are at <CODEBASE_ROOT_1> and <CODEBASE_ROOT_2>.",
+      "expected_output": "Recognizes the URL as Jira, fetches the full issue and comment thread via the Atlassian tools, confirms each repo checkout is current with its remote (pulling if behind) before dispatching investigation, investigates the given repos via a subagent, independently re-verifies the key claims, drafts with the default template opening with a 'Triaged with 🤖 using <model>' attribution line, and posts automatically since no dry-run was requested.",
+      "files": [],
+      "assertions": [
+        {"text": "Identifies the tracker as Jira from the atlassian.net/browse URL and uses the Atlassian tools (getJiraIssue / addCommentToJiraIssue), not the gh CLI", "class": "behavior"},
+        {"text": "Fetches the issue with its full comment thread and factors in later comments, not just the description", "class": "behavior"},
+        {"text": "Confirms each repo checkout is current with its remote before dispatching investigation, pulling (or using a worktree) if it's behind", "class": "behavior"},
+        {"text": "Delegates the codebase investigation to a subagent rather than grepping the repo inline", "class": "behavior"},
+        {"text": "Independently re-checks the subagent's key file:line and config claims against the actual files before citing them, and cites only what it personally confirmed", "class": "verification"},
+        {"text": "Structures the comment with the default template, opening with the 'Triaged with 🤖 using <model>' attribution line", "class": "behavior"},
+        {"text": "Posts the comment automatically without inserting a separate 'should I post this?' approval checkpoint", "class": "behavior"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Investigate <ISSUE_URL> and tell me what you think is going on — don't post anything yet, I want to review it first. Codebase is at <CODEBASE_ROOT>.",
+      "expected_output": "Treats the 'don't post yet' phrasing as a dry-run: does the full investigation and verification, then shows or saves the finished comment without posting anything to the tracker.",
+      "files": [],
+      "assertions": [
+        {"text": "Treats 'don't post anything yet' as a dry-run even though the --dry-run flag was not literally passed", "class": "triggering"},
+        {"text": "Performs the full investigation and verification rather than stopping at a shallow read", "class": "behavior"},
+        {"text": "Shows the finished comment and/or saves it to a file, reporting the path", "class": "contract"},
+        {"text": "Does not call any post-comment operation on the tracker", "class": "contract"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Triage <GITHUB_ISSUE_URL> and post what you find. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Recognizes the GitHub issue URL, reads the GitHub adapter, and uses the gh CLI for fetch/search/comment while following the same investigate-verify-post workflow.",
+      "files": [],
+      "assertions": [
+        {"text": "Recognizes the github.com/<owner>/<repo>/issues/<n> shape as GitHub and reads references/trackers/github.md", "class": "behavior"},
+        {"text": "Uses the gh CLI for the fetch, search, and comment operations, not the Atlassian/Jira tools", "class": "behavior"},
+        {"text": "Follows the same investigate-then-verify-then-post workflow as the Jira path", "class": "behavior"},
+        {"text": "Cites only file:line and snippets it re-checked directly, not unverified subagent output", "class": "verification"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Triage <ISSUE_URL> — it's about an ongoing elevated error rate on <ENDPOINT> that's still happening now, so check our CloudWatch logs to confirm before posting. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Forms a code-level hypothesis first, then reads the CloudWatch adapter and uses the Logs Insights start-query/get-query-results flow (explicit region) to corroborate the still-current error before drafting.",
+      "files": [],
+      "assertions": [
+        {"text": "Forms a code-level hypothesis first and queries CloudWatch to confirm it, rather than starting from the logs", "class": "behavior"},
+        {"text": "Reads references/observability/cloudwatch.md and uses the Logs Insights start-query then get-query-results flow with an explicit region", "class": "behavior"},
+        {"text": "Queries because the incident is current and within retention, and treats the log data as corroboration rather than the source of the conclusion", "class": "verification"},
+        {"text": "Cites only code claims it re-verified, even after the logs appear to agree", "class": "verification"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Triage <ISSUE_URL> — a customer reported this during an outage back in February. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Completes the code investigation, but recognizes the incident predates the observability retention window and skips the log/trace lookup instead of querying a dead time range and reporting the empty result as evidence.",
+      "files": [],
+      "assertions": [
+        {"text": "Completes the codebase investigation and verification as usual", "class": "behavior"},
+        {"text": "Recognizes the February incident predates the log/trace retention window (weeks, not months) and skips the observability lookup rather than querying a stale range", "class": "behavior"},
+        {"text": "Does not present an empty stale-window query result as if it were evidence of anything", "class": "verification"}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Give me a quick summary of what <ISSUE_URL> is about and where it stands — I just need to catch up before standup.",
+      "expected_output": "Reads and summarizes the issue without launching a codebase investigation or posting anything — this is a read-only catch-up, not a triage.",
+      "files": [],
+      "assertions": [
+        {"text": "Does not launch a codebase investigation or delegate to an Explore/general-purpose subagent", "class": "triggering"},
+        {"text": "Does not post any comment to the tracker", "class": "triggering"},
+        {"text": "Reads the issue and returns a status summary matching the read-only request", "class": "behavior"}
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "We found a bug where the export button does nothing on Safari — the click just silently fails. Can you write this up and create a ticket for it in our tracker?",
+      "expected_output": "Recognizes this as authoring a new work item, not triaging an existing one, and does not run the investigate-verify-post triage workflow against a codebase.",
+      "files": [],
+      "assertions": [
+        {"text": "Recognizes the request as creating a new work item rather than triaging an existing issue", "class": "triggering"},
+        {"text": "Does not run the triage investigate-verify-post workflow or investigate a codebase for root cause", "class": "triggering"},
+        {"text": "Drafts a new ticket (routing to the work-item concern), rather than posting a root-cause analysis to an existing issue", "class": "behavior"}
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Did you `git pull` <CODEBASE_ROOT> before investigating <ISSUE_URL>? If not please do, investigate it again, and post your findings again.",
+      "notes": "Set up this eval with <CODEBASE_ROOT> intentionally left several commits behind its remote's default branch before the run, where the missing commits contain the actual code relevant to <ISSUE_URL> — so a first investigation pass (without pulling) plausibly concludes 'no relevant code found' in that repo.",
+      "expected_output": "The skill checks the repo's git status, fetches, and finds it behind origin; pulls (or uses a worktree if the tree wasn't clean); re-investigates the now-current checkout and finds the previously-missing code; and posts a new comment that explicitly states it supersedes/corrects the earlier one, explaining what was stale and what the corrected root cause is — it does not edit or delete the original comment.",
+      "files": [],
+      "assertions": [
+        {"text": "Fetches the repo and checks it against its remote default branch, recognizing it's behind", "class": "behavior"},
+        {"text": "Pulls the fresh default branch (or uses a worktree if the tree wasn't clean) before re-investigating", "class": "behavior"},
+        {"text": "Re-investigates the now-current checkout and finds the code that was missing from the stale checkout", "class": "verification"},
+        {"text": "Posts a new comment that explicitly states it supersedes/corrects the earlier one, rather than editing or deleting the original", "class": "contract"}
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Bug) — the export button silently fails on Safari, the click does nothing and no error appears. Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Classifies the item as a bug (issue type and content agree), reads references/bug-template.md, and drafts a comment with the What's happening / Root cause / Proposed fixes shape, with no Rough effort section.",
+      "files": [],
+      "assertions": [
+        {"text": "Classifies the item as a bug in Step 3, since both the tracker issue type and the content (system fails to do what it's supposed to) agree", "class": "behavior"},
+        {"text": "Reads references/bug-template.md, not references/change-request-template.md", "class": "behavior"},
+        {"text": "Drafts with the bug template's headers (What's happening / Root cause / Proposed fixes), with no Rough effort section", "class": "contract"}
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Story) — 'As a user I want to export to CSV in addition to the existing PDF export, so I can open the data in a spreadsheet.' Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Classifies the item as a change request despite the non-Bug tracker type, since the content asks for new behavior rather than reporting broken behavior — reads references/change-request-template.md and drafts with its shape.",
+      "files": [],
+      "assertions": [
+        {"text": "Classifies the item as a change request even though it is not typed 'Bug', because the content describes new/changed behavior rather than a broken promise", "class": "triggering"},
+        {"text": "Reads references/change-request-template.md, not references/bug-template.md", "class": "behavior"},
+        {"text": "Drafts with the change-request template's headers (How it works today / What should change / Proposed approach / Rough effort), with no Root cause section", "class": "contract"}
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Story) — 'As a user I should be able to export my data, but nothing happens when I click the export button.' Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Recognizes the tracker's Story label disagrees with the content (which reports existing behavior failing, not a request for new behavior), follows the content, classifies as a bug, and uses references/bug-template.md despite the non-Bug label.",
+      "files": [],
+      "assertions": [
+        {"text": "Recognizes the disagreement between the tracker's Story label and content that actually reports broken existing behavior", "class": "behavior"},
+        {"text": "Follows the content over the tracker label and classifies the item as a bug", "class": "triggering"},
+        {"text": "Reads references/bug-template.md and drafts with its shape, not the change-request template", "class": "contract"}
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Task) — 'Refactor the nightly reconciliation job to process records incrementally instead of re-fetching the full table every run.' Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Recognizes this as non-behavioral work with no failing promise and no requested behavior change, defaults to the change-request template, and describes the current/target state in structural or performance terms rather than forcing a behavioral or root-cause framing.",
+      "files": [],
+      "assertions": [
+        {"text": "Classifies the non-behavioral chore as a change request rather than forcing a bug framing (no root cause is claimed)", "class": "behavior"},
+        {"text": "Reads references/change-request-template.md", "class": "behavior"},
+        {"text": "'How it works today' and 'What should change' describe structure/performance rather than a behavioral symptom, and the comment includes a Rough effort sizing", "class": "contract"}
+      ]
+    }
+  ]
+}
