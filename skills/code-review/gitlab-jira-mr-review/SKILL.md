@@ -162,6 +162,7 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 - `new_line` is the **new-file** line number (integer). `old_path` defaults to `new_path` — set it explicitly only for renamed files (use the pre-rename path).
 - Use `"general": true` (or simply omit `new_line`) for a positionless note that publishes as a general discussion comment.
 - Don't add the `Co-reviewed with :robot:` line yourself — the script appends it to every note if missing (the conversation summary in Step 8 is exempt).
+- Pass `--model "<name>"` (e.g. `"Sonnet 5"`) so the footer reads "Co-reviewed with :robot: using Sonnet 5" — you always know your own model name from your environment context, so always pass this. Add `--effort "<level>"` (e.g. `high`) only when you have a concrete, known effort/thinking-level setting for this session to report — never guess one just to fill the field; when omitted, the footer simply skips the parenthetical.
 
 2. Run the script (it reads `diff_refs` from Step 2 and purges this skill's own prior drafts so reruns don't duplicate):
 
@@ -169,7 +170,7 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 python3 <skill_dir>/scripts/post_review_notes.py \
   --project <project_path_encoded> --mr <mr_iid> \
   --base-sha <diff_refs.base_sha> --start-sha <diff_refs.start_sha> --head-sha <diff_refs.head_sha> \
-  --notes /tmp/mr<iid>_notes.json --purge
+  --notes /tmp/mr<iid>_notes.json --model "<your model name>" [--effort "<level>"] --purge
 ```
 
 3. Read the per-note summary it prints. Each line reports `resolved=True/False` or `general=True`.
