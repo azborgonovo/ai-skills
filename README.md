@@ -67,11 +67,12 @@ Guidelines that keep execution aligned with proven engineering practices.
 
 ### `planning`
 
-Shape units of work that are well-defined, verifiable, and ready to be executed.
+Shape units of work that are well-defined, verifiable, and ready to be executed, and triage existing ones against the codebase.
 
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
 | [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Auto | Adopt |
+| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Trial |
 
 ### `usage-budget`
 
@@ -94,7 +95,6 @@ Not yet published to the Claude marketplace. These are **not** installable as pl
 |---|---|---|
 | [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual |
 | [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto |
-| [/triage-jira-grafana](skills/drafts/triage-jira-grafana/SKILL.md) | Triages a Jira ticket end-to-end — ticket thread, related issues, the implementing codebase, optionally Grafana — then posts a verified root-cause analysis back to the ticket. | Auto |
 
 ## Installation
 
