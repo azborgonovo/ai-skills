@@ -55,3 +55,9 @@ hypothesis for why this reproduces the reported symptom. Keep it under 500 words
   instead of a targeted answer.
 - **Asking for a summary instead of evidence** — "explain how the export feature works" produces
   prose you then can't verify. Asking for file:line + snippets gives you something Step 8 can check.
+- **Dispatching against a checkout you haven't confirmed is current** — do the freshness check from
+  Step 4 (`git fetch` + compare to the remote default branch, pull or use a worktree as needed)
+  *before* launching the agent, not after it reports back. An agent has no way to know its search
+  space is missing recent commits, so it will report a plausible-sounding "no such code found"
+  instead of an error — the cost of skipping this check lands entirely on you, later, when you trust
+  a negative that was only true of a stale copy of the repo.
