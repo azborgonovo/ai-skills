@@ -33,4 +33,5 @@ Triaged with 🤖 using <model> (<effort> effort):
 
 - The attribution-line convention (filling in `<model>`/`<effort>`, and using the literal 🤖 rather than a shortcode) is explained in Step 3 — apply it here too.
 - Keep code snippets short and targeted — the specific lines that demonstrate the bug, not the whole method, unless the surrounding context is what makes the bug apparent.
+- See "Keep it tight" in SKILL.md Step 10 for the same drafting habits applied here — cite the strongest evidence once rather than every corroborating source you found, and if the same gap shows up in more than one file, quote one and cite the rest by file:line.
 - If you genuinely couldn't reach a confident root cause after investigation, say so plainly instead of forcing a template — e.g. "investigation so far narrows it to X or Y, but I couldn't confirm which without <missing piece of evidence>." An honest partial finding is more useful than a confident-sounding guess.

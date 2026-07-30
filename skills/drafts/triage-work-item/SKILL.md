@@ -152,6 +152,17 @@ Structure per the template chosen in Step 3 (`references/bug-template.md` or `re
 4. **Risks / open questions**, if relevant — data migration, backward compatibility, affected callers, decisions needing a stakeholder.
 5. **Rough effort** — small / medium / large, with a one-line reason tied to what the approach actually touches.
 
+### Keep it tight
+
+A thorough investigation and a long comment aren't the same thing — the lists above say what each section covers, not how much to write, and it's easy to let section length track how much you found rather than how much the reader needs. A few habits keep it proportional:
+
+- **Cite the strongest evidence for a point once.** When git history, a doc, and a code comment all confirm the same fact (e.g. "this gap is deliberate, not a regression"), pick whichever makes the point most directly and leave the rest out — three citations for one claim reads as padding, not rigor.
+- **Name each file/line once.** If Root cause or How it works today already named the files involved, a closing list of "files touched" is telling the reader something they already have.
+- **Match depth to merit, not to symmetry.** When one option is clearly the pick, give it the fuller explanation and dispatch a weaker alternative in one clause — don't mirror the winner's depth just because it's "Option B."
+- **Show one snippet for a repeated gap.** When the same issue shows up in more than one file (e.g. the same missing check duplicated across backend and frontend), verify and quote one, and cite the other by file:line — the reader can open it themselves.
+
+It's fine for a section to run long when the substance genuinely needs it — a root cause with several interacting factors, a proposed approach with a real architectural fork — but keep it one tight paragraph even then, not a bulleted sub-breakdown. Aim for a comment the reader can act on in the time it takes to read once, not a transcript of the investigation that produced it.
+
 ## Step 11 — Post (or hold, for dry-run)
 
 If `--dry-run` was requested: write the finished comment to a file (report the path) and show it in the conversation instead of posting. Do not call any post-comment operation.
