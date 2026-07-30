@@ -134,6 +134,15 @@ If the skill is not available, perform a thorough code review using your own jud
 
 If a JIRA ticket was fetched, use its acceptance criteria as the ground truth for correctness — map each criterion to the code explicitly and flag any that aren't met.
 
+**While you're at it, track each changed file's Pyramid layer** — this is a side effect of the review you're already doing, not extra work. You'll use it in Step 9 to tell the human where their own attention is best spent, independent of how many (if any) inline comments you posted there:
+
+- **Layer 1 (API Semantics)** and **Layer 2 (Implementation Semantics)** — flag a file here if it defines or changes a public contract other code depends on (an interface, an exported type, a method signature callers rely on), or if it implements business-rule logic: conditional branches encoding a business decision, state transitions, orchestration across multiple domain concerns. These are the files where getting it wrong is expensive to unwind later, so they deserve independent human judgment regardless of what the AI found.
+- **Layers 3-5 (lower priority for this list)** — thin controllers/handlers that just forward a call with no branching of their own, repositories/DAOs doing straightforward parameterized CRUD with no business logic, test files (already gated by CI pass/fail), docs-only changes, and pure formatting/rename diffs.
+
+This is architecture-agnostic — it's about the *role* a file plays (contract vs. business logic vs. plumbing), not its language or folder naming convention. In a C#/.NET codebase, Layer 1-2 candidates typically look like `I*.cs` interfaces and their `Domain`/`Application` implementations; Layers 3-5 typically look like `Controllers/`, `Repositories/`/`Persistence`, and test projects — but read the actual diff hunk, not just the path, since a controller with real branching logic of its own can still rank high, and a "domain" file that's pure boilerplate doesn't automatically rank high just because of where it lives.
+
+Be selective, not exhaustive — most MRs, even large ones, should surface a short list. Don't cap it at an arbitrary number; let the criteria above do the filtering.
+
 ### Step 7 — Post comments as draft notes
 
 Post each finding as a **draft note** — only you can see them until you submit the review in the GitLab UI, so you can edit or remove comments before they go live.
@@ -153,6 +162,7 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 - `new_line` is the **new-file** line number (integer). `old_path` defaults to `new_path` — set it explicitly only for renamed files (use the pre-rename path).
 - Use `"general": true` (or simply omit `new_line`) for a positionless note that publishes as a general discussion comment.
 - Don't add the `Co-reviewed with :robot:` line yourself — the script appends it to every note if missing (the conversation summary in Step 8 is exempt).
+- Pass `--model "<name>"` (e.g. `"Sonnet 5"`) so the footer reads "Co-reviewed with :robot: using Sonnet 5" — you always know your own model name from your environment context, so always pass this. Add `--effort "<level>"` (e.g. `high`) only when you have a concrete, known effort/thinking-level setting for this session to report — never guess one just to fill the field; when omitted, the footer simply skips the parenthetical.
 
 2. Run the script (it reads `diff_refs` from Step 2 and purges this skill's own prior drafts so reruns don't duplicate):
 
@@ -160,7 +170,7 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 python3 <skill_dir>/scripts/post_review_notes.py \
   --project <project_path_encoded> --mr <mr_iid> \
   --base-sha <diff_refs.base_sha> --start-sha <diff_refs.start_sha> --head-sha <diff_refs.head_sha> \
-  --notes /tmp/mr<iid>_notes.json --purge
+  --notes /tmp/mr<iid>_notes.json --model "<your model name>" [--effort "<level>"] --purge
 ```
 
 3. Read the per-note summary it prints. Each line reports `resolved=True/False` or `general=True`.
@@ -170,17 +180,22 @@ python3 <skill_dir>/scripts/post_review_notes.py \
 - `old_path` is required for inline placement; omitting it silently downgrades to a plain note. The script always sends it.
 - **Prefer `+` lines as anchors**: pick a `new_line` that appears with a `+` prefix in the diff (added in this MR) — GitLab resolves those reliably. **Context lines (unchanged lines) are unreliable anchors even when they appear inside the hunk** — GitLab often fails to set `line_code` for them. If your finding is on an unchanged line (e.g. a function signature the MR didn't touch), anchor to the nearest `+` line nearby, or mark it `general` from the start.
 
-**Comment format** (what goes in each `note`):
+**Comment format** (what goes in each `note`): default to 2-4 sentences of continuous prose — name the symbol/line, state the concrete problem, then the fix:
 ```
-`fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime.
+`fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime. Add a nil check or return an early error.
+```
 
-Add a nil check or return an early error.
+Don't restate context already visible in the diff — fold the impact into the same flow of sentences. It's fine to run longer than 4 sentences when the failure mechanism itself genuinely needs the room (concurrency races, security, a scope change spanning multiple callers) — but even then keep it one tight paragraph.
+
+When the finding is a clear-cut bug, assert it and prescribe the fix, as above. When the intent behind the code might be deliberate — a scope decision, a naming choice, a spec deviation that could be intentional — end with a direct question instead of a directive:
+```
+`PersonMatchOutcome.MatchedAndAdvanced`/`MatchedNoChange` are referenced in this doc but don't exist on the enum (only `Created`, `Matched`, `RejectedActiveMatch` do) — leftover from an earlier draft? Worth fixing since this is the domain layer's public contract.
 ```
 
 **Posting guidelines:**
 - Only comment when there's a genuine issue — not every observation
-- Be specific: name the exact symbol/line, explain the problem, suggest a fix
-- If a JIRA acceptance criterion isn't met, quote it explicitly
+- Be specific and brief: name the exact symbol/line, state the concrete problem, then the fix or a direct question — skip a forensic walkthrough of exactly how it would trigger
+- If a JIRA acceptance criterion isn't met, quote it explicitly (the quote doesn't count against the sentence budget)
 - Avoid style nits unless they cross into real readability problems
 - Don't repeat the same finding across multiple files — pick the clearest occurrence
 
@@ -209,6 +224,12 @@ After posting all inline comments, output the summary directly in the conversati
 - <finding 1>
 - <finding 2>
 - <finding 3>
+
+**Focus your own review on** (highest cost-of-change — Pyramid layers 1-2; independent of whether the AI commented there):
+- `<file>`[, `<file>`, ...] — <one-clause reason, e.g. "core domain service matching/creating a person's identity">
+- `<file>`[, `<file>`, ...] — <one-clause reason; group files sharing the same reason into one line>
+
+*(<N> controllers, <N> repositories, and all test/doc changes are lower priority here — thinner wiring, mechanical CRUD, or already gated by CI.)*
 
 **Pyramid coverage:**
 | Layer | Comments posted |
