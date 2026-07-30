@@ -21,3 +21,5 @@ python scripts/upgrade-plugin-versions.py --plugin decisions --patch
 ```
 
 The marketplace-wide `version` in `.claude-plugin/marketplace.json` is separate: bump it by hand only for marketplace-structure changes (adding, removing, or renaming plugins).
+
+**Working across several commits on an unmerged branch**: the script bumps relative to HEAD, so calling it once per commit compounds — each new commit's HEAD already includes the previous bump, so a branch with three `feat`-sized commits ends up three versions higher than it needs to, since none of those intermediate versions were ever released (`main` never saw them; only the version present when the branch finally merges is real). Bump once for the whole branch instead, sized to the highest-order Conventional Commit type across all its commits — a single `feat` anywhere means MINOR for the branch as a whole, even if other commits on it are `fix`/`docs`/`chore`. If you already bumped per-commit before noticing, collapse it: reset `version` back to what it was before the branch started, then bump once at that level.
