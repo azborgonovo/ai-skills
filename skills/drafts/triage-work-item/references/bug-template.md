@@ -1,4 +1,6 @@
-# Default analysis comment template
+# Bug analysis comment template
+
+Use this template when Step 3 classifies the item as a bug — actual behavior deviates from what the system is intended or documented to do. For a change request (new/changed behavior, or non-behavioral work), use `references/change-request-template.md` instead.
 
 This is a reasonable generic shape, not a fixed format — if the investigation genuinely doesn't fit one of these sections (e.g. there's no meaningful "why this specific case" angle), drop it rather than padding. Write it in the tracker's markup dialect (Step 4).
 

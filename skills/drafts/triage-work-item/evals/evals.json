@@ -98,6 +98,50 @@
         {"text": "Re-investigates the now-current checkout and finds the code that was missing from the stale checkout", "class": "verification"},
         {"text": "Posts a new comment that explicitly states it supersedes/corrects the earlier one, rather than editing or deleting the original", "class": "contract"}
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Bug) — the export button silently fails on Safari, the click does nothing and no error appears. Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Classifies the item as a bug (issue type and content agree), reads references/bug-template.md, and drafts a comment with the What's happening / Root cause / Proposed fixes shape, with no Rough effort section.",
+      "files": [],
+      "assertions": [
+        {"text": "Classifies the item as a bug in Step 3, since both the tracker issue type and the content (system fails to do what it's supposed to) agree", "class": "behavior"},
+        {"text": "Reads references/bug-template.md, not references/change-request-template.md", "class": "behavior"},
+        {"text": "Drafts with the bug template's headers (What's happening / Root cause / Proposed fixes), with no Rough effort section", "class": "contract"}
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Story) — 'As a user I want to export to CSV in addition to the existing PDF export, so I can open the data in a spreadsheet.' Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Classifies the item as a change request despite the non-Bug tracker type, since the content asks for new behavior rather than reporting broken behavior — reads references/change-request-template.md and drafts with its shape.",
+      "files": [],
+      "assertions": [
+        {"text": "Classifies the item as a change request even though it is not typed 'Bug', because the content describes new/changed behavior rather than a broken promise", "class": "triggering"},
+        {"text": "Reads references/change-request-template.md, not references/bug-template.md", "class": "behavior"},
+        {"text": "Drafts with the change-request template's headers (How it works today / What should change / Proposed approach / Rough effort), with no Root cause section", "class": "contract"}
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Story) — 'As a user I should be able to export my data, but nothing happens when I click the export button.' Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Recognizes the tracker's Story label disagrees with the content (which reports existing behavior failing, not a request for new behavior), follows the content, classifies as a bug, and uses references/bug-template.md despite the non-Bug label.",
+      "files": [],
+      "assertions": [
+        {"text": "Recognizes the disagreement between the tracker's Story label and content that actually reports broken existing behavior", "class": "behavior"},
+        {"text": "Follows the content over the tracker label and classifies the item as a bug", "class": "triggering"},
+        {"text": "Reads references/bug-template.md and drafts with its shape, not the change-request template", "class": "contract"}
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Triage <JIRA_ISSUE_URL> (issue type: Task) — 'Refactor the nightly reconciliation job to process records incrementally instead of re-fetching the full table every run.' Post your findings. Code is at <CODEBASE_ROOT>.",
+      "expected_output": "Recognizes this as non-behavioral work with no failing promise and no requested behavior change, defaults to the change-request template, and describes the current/target state in structural or performance terms rather than forcing a behavioral or root-cause framing.",
+      "files": [],
+      "assertions": [
+        {"text": "Classifies the non-behavioral chore as a change request rather than forcing a bug framing (no root cause is claimed)", "class": "behavior"},
+        {"text": "Reads references/change-request-template.md", "class": "behavior"},
+        {"text": "'How it works today' and 'What should change' describe structure/performance rather than a behavioral symptom, and the comment includes a Rough effort sizing", "class": "contract"}
+      ]
     }
   ]
 }
