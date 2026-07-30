@@ -26,7 +26,7 @@ This is an investigation workflow, not a lookup. The value it adds over just rea
 
 The workflow is tool-agnostic; the tracker-specific and observability-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them. This keeps the always-loaded body focused on judgment — the part that's the same whether the work item lives in Jira or GitHub and whether the telemetry is in Grafana or CloudWatch.
 
-By default, once you've verified your findings, post the comment — don't pause for a separate approval step. The verification step (Step 8) is the safety gate, not a human checkpoint. The one exception is `--dry-run`: if the user passes it (or clearly wants to see the analysis before anything goes out), write the finished comment to a file and show it instead of posting.
+By default, once you've verified your findings, post the comment — don't pause for a separate approval step. The verification step (Step 9) is the safety gate, not a human checkpoint. The one exception is `--dry-run`: if the user passes it (or clearly wants to see the analysis before anything goes out), write the finished comment to a file and show it instead of posting.
 
 ## Inputs
 
@@ -58,6 +58,8 @@ If the user gave a reference issue/comment, fetch it the same way and study its 
 
 If no reference was given, fall back to the structure in `references/default-template.md`. Either way, the actual content (Step 9) still has to be earned through investigation — the template only governs shape, not substance.
 
+Regardless of which shape you use, open the comment with an attribution line — `Triaged with 🤖 using <model> (<effort> effort)` — even when mirroring a reference comment that didn't have one; see `references/default-template.md`'s notes for exactly how to fill in `<model>`/`<effort>`.
+
 ## Step 4 — Note the tracker's comment markup dialect
 
 Different trackers render comments differently: Jira via its own wiki/ADF markup (though its comment API accepts Markdown and converts it), GitHub via GitHub-flavored Markdown. The tracker adapter states which dialect to write in and how the post call expects it. Keep this in mind while drafting (Step 9) so code fences, headings, and links render rather than showing as literal characters.
@@ -70,6 +72,19 @@ If the user already named the repo(s), use them. Otherwise, figure out what's in
 - If the issue's product area suggests a codebase you can identify with reasonable confidence, say so and proceed — but if it's genuinely ambiguous (e.g. a multi-repo organization and no strong signal which service owns this behavior), ask the user rather than spending a long investigation on the wrong repo.
 
 This step investigates a **local checkout** with Read/Grep/git — it does not call the git host's API, so it's the same regardless of whether the repo is hosted on GitHub, GitLab, or Bitbucket.
+
+**Before investigating, make sure each repo is current.** These are locally cloned working copies
+that can silently drift behind their remote — and a stale checkout doesn't fail loudly, it produces
+a *confidently wrong negative*: a subagent searching a checkout that's missing the very commit that
+implements the feature will report "no such code exists anywhere," which reads identically to a
+genuine gap and can send the whole investigation toward the wrong repo entirely. For each repo in
+scope, before dispatching Step 7 agents against it:
+
+- `git fetch origin && git log HEAD..origin/<default-branch> --oneline` to check if you're behind.
+- If behind and `git status` shows a clean working tree, fast-forward: `git pull --ff-only`.
+- If there are local uncommitted changes you don't want to disturb, investigate against a worktree
+  of the fresh default branch instead of touching the existing checkout (`git worktree add` or the
+  `EnterWorktree` tool if available) rather than stashing someone's in-progress work.
 
 ## Step 6 — Cross-reference related issues
 
@@ -105,6 +120,7 @@ Treat this as corroborating evidence for a hypothesis you already have from the 
 This is the step that keeps the analysis honest. A subagent's report is a *claim*, not a fact — it can misstate a line number, paraphrase code loosely, or miss that a config value it found isn't actually the one wired up to this code path. Before drafting anything:
 
 - Take the 2-3 highest-confidence claims underpinning your root-cause conclusion (usually: the specific code that's missing/wrong, and any config value you're citing) and check them yourself with `Read` or `grep` on the actual file. Confirm the line number, confirm the surrounding logic actually says what was reported.
+- Give extra scrutiny to *negative* claims specifically ("this repo has no code related to X", "no caller of this endpoint exists"). A negative finding is much more often the product of a stale local checkout (see Step 5) than an accurate absence — if you didn't personally confirm that repo's checkout was up to date with its remote before the subagent searched it, do that check now before accepting the conclusion.
 - If a claim doesn't hold up on inspection, don't just drop it — figure out what's actually true and adjust the conclusion. A confidently-wrong root cause is worse than an admittedly-incomplete one.
 - Only quote code snippets or cite file:line references in the final comment that you've personally confirmed in this step — don't relay a subagent's snippet unverified.
 
@@ -123,6 +139,12 @@ If `--dry-run` was requested: write the finished comment to a file (report the p
 
 Otherwise, post it now via the comment call from the tracker adapter, in that tracker's expected markup. Don't add a separate "should I post this?" checkpoint — Step 9 is what earns the right to post automatically.
 
+**If you later discover a comment you already posted was wrong** (e.g. it was built on a stale
+checkout, or a claim didn't survive re-verification), post a new comment that explicitly says it
+supersedes the previous one and explains what changed and why. Don't silently edit or delete the
+earlier comment — readers who already saw it need the correction to be visible, and the trail of
+"here's what I thought, here's what was actually true" is itself useful signal.
+
 ## Hard constraints
 
 - Never cite a file path, line number, code snippet, or config value in the final comment that wasn't personally confirmed in Step 9 — subagent reports are leads, not citations.
@@ -131,3 +153,12 @@ Otherwise, post it now via the comment call from the tracker adapter, in that tr
 - Never let a large search-result payload land in your own context wholesale — extract what you need with `jq`, or delegate the search/scan to a subagent.
 - Skip observability lookups for incidents clearly outside your retention window — an empty query result from a stale time range isn't informative, it's just noise.
 - When running without an adapter for a tracker or platform, say so — don't present best-effort tool behavior as if it were verified.
+- Never accept a subagent's "no relevant code found" conclusion for a repo without first confirming
+  that repo's local checkout is current with its remote (Step 5) — a stale checkout produces exactly
+  this failure mode, and it looks identical to a genuine absence until you check.
+- Don't assume a tracker's markdown renderer expands emoji shortcodes the way Slack/GitHub-flavored
+  markdown does — the tracker adapter notes any rendering quirks (e.g. Jira does not expand
+  shortcodes, see `references/trackers/jira.md`); use the literal Unicode emoji if unsure.
+- Every posted comment opens with the `Triaged with 🤖 using <model> (<effort> effort)` attribution
+  line (model always filled in, effort only when concretely known) — don't drop it even when
+  mirroring a reference comment's style in Step 3.

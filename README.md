@@ -48,13 +48,14 @@ Explore, capture, and reconstruct the reasoning behind significant decisions as 
 | [/log-decision](skills/decisions/log-decision/SKILL.md) | Captures a structured Decision Record (DR) for significant decisions. | Auto | Adopt |
 | [/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md) | Mines a repository's git history for past significant decisions and retroactively writes Decision Records, following the log-decision conventions. | Manual | Trial |
 
-### `authoring-skills`
+### `agent-docs`
 
-Craft and sharpen Claude Code skills so they behave reliably.
+Author and tighten the docs that steer AI coding agents — a single SKILL.md or a repo's full CLAUDE.md/AGENTS.md/editor-rules corpus.
 
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
-| [/review-skill](skills/authoring-skills/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Auto | Adopt |
+| [/review-skill](skills/agent-docs/review-skill/SKILL.md) | Static audit of an existing skill's triggering, scope, structure, prose, and domain accuracy. | Auto | Adopt |
+| [/tune-agent-docs](skills/agent-docs/tune-agent-docs/SKILL.md) | Reviews every AI-steering markdown file in a repo (CLAUDE.md, AGENTS.md, Cursor/Cline/Windsurf/Kiro rules, Copilot instructions) together as one corpus and tightens them. | Auto | Trial |
 
 ### `engineering-practices`
 
@@ -111,7 +112,7 @@ Add the marketplace once, then install any subset of plugins:
 /plugin install code-review@ai-skills
 /plugin install engineering-practices@ai-skills
 /plugin install planning@ai-skills
-/plugin install authoring-skills@ai-skills
+/plugin install agent-docs@ai-skills
 /plugin install usage-budget@ai-skills
 ```
 

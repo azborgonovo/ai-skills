@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "agent-docs",
+  "displayName": "Agent Docs",
+  "version": "1.0.1",
+  "description": "Author and tighten the docs that steer AI coding agents — a single SKILL.md or a repo's full CLAUDE.md/AGENTS.md/editor-rules corpus.",
+  "author": {
+    "name": "André Borgonovo",
+    "url": "https://github.com/azborgonovo"
+  },
+  "homepage": "https://github.com/azborgonovo/ai-skills#agent-docs",
+  "repository": "https://github.com/azborgonovo/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "skill-authoring",
+    "audit",
+    "claude-code",
+    "meta",
+    "agent-steering",
+    "claude-md",
+    "documentation"
+  ],
+  "skills": [
+    "./review-skill",
+    "./tune-agent-docs"
+  ]
+}

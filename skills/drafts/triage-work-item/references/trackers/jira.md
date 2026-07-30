@@ -33,3 +33,5 @@ Call `addCommentToJiraIssue` with `contentFormat: "markdown"`. Jira accepts Mark
 ## Markup dialect (Step 4)
 
 Write the comment body in Markdown — the `contentFormat: "markdown"` post call handles conversion. Standard fenced code blocks, headings, and links render correctly.
+
+Jira's markdown-to-ADF conversion does not expand emoji shortcodes (`:robot:`) the way Slack or GitHub-flavored markdown do — posting `:robot:` renders as the literal text ":robot:", not an emoji. Use the literal Unicode character (🤖) instead, in the attribution line and anywhere else you'd otherwise reach for a shortcode.

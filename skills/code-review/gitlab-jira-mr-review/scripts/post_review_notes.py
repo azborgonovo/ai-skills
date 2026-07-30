@@ -15,11 +15,16 @@ Notes file format (JSON array):
   - "general": true posts a positionless draft note (a plain discussion comment).
 
 The signature line "Co-reviewed with :robot:" is what --purge keys on, so it only
-ever deletes drafts this skill created — never the human reviewer's own drafts.
+ever deletes drafts this skill created — never the human reviewer's own drafts. The
+posted footer extends that fixed prefix with the reviewing model (and effort, if
+known) via --model/--effort, e.g. "Co-reviewed with :robot: using Sonnet 5 (high
+effort)" — but the purge match stays on the bare prefix so it still finds prior
+drafts posted under a different model or effort.
 
 Examples:
   post_review_notes.py --project acme%2Fmy-service --mr 42 \
-    --base-sha B --start-sha S --head-sha H --notes notes.json --purge
+    --base-sha B --start-sha S --head-sha H --notes notes.json \
+    --model "Sonnet 5" --effort high --purge
   post_review_notes.py ... --notes notes.json --dry-run   # print actions, no network
 """
 
@@ -29,6 +34,15 @@ import subprocess
 import sys
 
 SIGNATURE = "Co-reviewed with :robot:"
+
+
+def build_signature(model, effort):
+    """Extend the fixed purge-key prefix with model/effort, when known."""
+    if not model:
+        return SIGNATURE
+    if effort:
+        return f"{SIGNATURE} using {model} ({effort} effort)"
+    return f"{SIGNATURE} using {model}"
 
 
 def glab_api(path, method="GET", body=None, dry_run=False):
@@ -88,6 +102,8 @@ def main():
     ap.add_argument("--start-sha", required=True)
     ap.add_argument("--head-sha", required=True)
     ap.add_argument("--notes", required=True, help="Path to notes JSON array")
+    ap.add_argument("--model", help="Reviewing model name, e.g. 'Sonnet 5' — appended to the footer if given")
+    ap.add_argument("--effort", help="Reviewing effort level, e.g. 'high' — appended to the footer only if --model is also given")
     ap.add_argument("--purge", action="store_true", help="Delete this skill's prior drafts first")
     ap.add_argument("--dry-run", action="store_true", help="Print actions without calling the network")
     args = ap.parse_args()
@@ -97,6 +113,8 @@ def main():
     if not isinstance(notes, list):
         sys.exit("notes file must be a JSON array")
 
+    signature = build_signature(args.model, args.effort)
+
     if args.purge:
         purge_own_drafts(args.project, args.mr, args.dry_run)
 
@@ -105,7 +123,7 @@ def main():
     for i, item in enumerate(notes, 1):
         text = item["note"]
         if SIGNATURE not in text:
-            text = f"{text}\n\n{SIGNATURE}"
+            text = f"{text}\n\n{signature}"
 
         if item.get("general") or "new_line" not in item:
             body = {"note": text}
