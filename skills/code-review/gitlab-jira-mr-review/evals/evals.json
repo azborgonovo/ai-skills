@@ -4,13 +4,15 @@
     {
       "id": 1,
       "prompt": "Review this MR for me: https://gitlab.com/acme/my-service/-/merge_requests/42",
-      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate the local clone and create an isolated review worktree pinned to the MR's head_sha, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts inline comments via scripts/post_review_notes.py (each ending with 'Co-reviewed with :robot:'), removes the worktree, and outputs the review summary in the conversation (does NOT post it to the MR). Does NOT approve or submit the review.",
+      "expected_output": "Skill fetches MR metadata, searches for a JIRA ticket in the title/description, fetches diffs, attempts to locate the local clone and create an isolated review worktree pinned to the MR's head_sha, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts concise inline comments via scripts/post_review_notes.py (each ending with 'Co-reviewed with :robot:'), removes the worktree, and outputs the review summary in the conversation (does NOT post it to the MR), including a 'Focus your own review on' section naming Layer 1-2 files. Does NOT approve or submit the review.",
       "files": [],
       "expectations": [
         "Inline comments are posted via scripts/post_review_notes.py rather than hand-written glab api calls",
         "Each inline comment ends with the 'Co-reviewed with :robot:' footer",
+        "Inline comments default to 2-4 sentences of continuous prose (longer only for findings whose mechanism genuinely needs it, e.g. concurrency or security) and do not contain a separately labeled 'Failure scenario:' sub-paragraph",
         "The review summary is output in the conversation, not posted to the MR",
         "The conversation summary starts with '## Code Review Summary' and includes a Pyramid coverage table",
+        "The conversation summary includes a 'Focus your own review on' section listing a short, selectively-chosen set of files (Layer 1 API Semantics and/or Layer 2 Implementation Semantics — new/changed public contracts or business-rule-bearing logic), with files sharing the same reason grouped into one line, plus a brief category+count note on what's lower priority (no individual lower-priority filenames listed)",
         "The review covers Implementation Semantics and API Semantics (bottom layers)",
         "The skill attempts to invoke the code-review-pyramid skill, or falls back to its own judgment if unavailable",
         "The skill attempts to locate a local clone and create an isolated review worktree (never checking out the branch in the user's main clone), or notes the limitation if not found",
