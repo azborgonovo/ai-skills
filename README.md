@@ -36,7 +36,7 @@ Structure and carry out code reviews with a consistent, cost-of-change-driven fr
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
 | [/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md) | Knowledge base for Gunnar Morling's Code Review Pyramid. | Auto | Adopt |
-| [/gitlab-jira-mr-review](skills/code-review/gitlab-jira-mr-review/SKILL.md) | Reviews a GitLab merge request against its linked JIRA work item and posts inline comments on the diff for you to submit. | Manual | Adopt |
+| [/pr-review](skills/code-review/pr-review/SKILL.md) | Reviews a GitLab MR or GitHub PR against its linked tracker ticket and posts inline comments on the diff for you to submit. | Manual | Adopt |
 
 ### `decisions`
 
