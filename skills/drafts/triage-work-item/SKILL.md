@@ -16,7 +16,7 @@ description: >
   summarizing a work item with no code investigation intended, and do not use it for writing new
   work items.
 argument-hint: "<work-item URL or key> [--dry-run]"
-allowed-tools: [Read, Bash, Agent, ToolSearch, AskUserQuestion, Write]
+allowed-tools: [Read, Grep, Bash, Agent, ToolSearch, AskUserQuestion, Write]
 ---
 
 # Triage a tracker work item against the codebase and observability data
@@ -87,18 +87,11 @@ If the user already named the repo(s), use them. Otherwise, figure out what's in
 
 This step investigates a **local checkout** with Read/Grep/git — it does not call the git host's API, so it's the same regardless of whether the repo is hosted on GitHub, GitLab, or Bitbucket.
 
-**Before investigating, make sure each repo is current.** These are locally cloned working copies
-that can silently drift behind their remote — and a stale checkout doesn't fail loudly, it produces
-a *confidently wrong negative*: a subagent searching a checkout that's missing the very commit that
-implements the feature will report "no such code exists anywhere," which reads identically to a
-genuine gap and can send the whole investigation toward the wrong repo entirely. For each repo in
-scope, before dispatching Step 7 agents against it:
+**Before investigating, make sure each repo is current.** These are locally cloned working copies that can silently drift behind their remote — and a stale checkout doesn't fail loudly, it produces a *confidently wrong negative*: a subagent searching a checkout that's missing the very commit that implements the feature will report "no such code exists anywhere," which reads identically to a genuine gap and can send the whole investigation toward the wrong repo entirely. For each repo in scope, before dispatching Step 7 agents against it:
 
 - `git fetch origin && git log HEAD..origin/<default-branch> --oneline` to check if you're behind.
 - If behind and `git status` shows a clean working tree, fast-forward: `git pull --ff-only`.
-- If there are local uncommitted changes you don't want to disturb, investigate against a worktree
-  of the fresh default branch instead of touching the existing checkout (`git worktree add` or the
-  `EnterWorktree` tool if available) rather than stashing someone's in-progress work.
+- If there are local uncommitted changes you don't want to disturb, investigate against a worktree of the fresh default branch instead of touching the existing checkout (`git worktree add` or the `EnterWorktree` tool if available) rather than stashing someone's in-progress work.
 
 ## Step 6 — Cross-reference related issues
 
@@ -135,7 +128,7 @@ Treat this as corroborating evidence for a hypothesis you already have from the 
 This is the step that keeps the analysis honest. A subagent's report is a *claim*, not a fact — it can misstate a line number, paraphrase code loosely, or miss that a config value it found isn't actually the one wired up to this code path. Before drafting anything:
 
 - Take the 2-3 highest-confidence claims underpinning your conclusion — for a bug, the root cause (the specific code that's missing/wrong, and any config value you're citing); for a change request, your description of how the current behavior works and any claim about what the proposed approach requires — and check them yourself with `Read` or `grep` on the actual file. Confirm the line number, confirm the surrounding logic actually says what was reported.
-- Give extra scrutiny to *negative* claims specifically ("this repo has no code related to X", "no caller of this endpoint exists"). A negative finding is much more often the product of a stale local checkout (see Step 5) than an accurate absence — if you didn't personally confirm that repo's checkout was up to date with its remote before the subagent searched it, do that check now before accepting the conclusion.
+- Give extra scrutiny to *negative* claims specifically ("this repo has no code related to X", "no caller of this endpoint exists") — the freshness check from Step 5 is exactly what guards against these; if you skipped it for this repo, do it now before accepting the conclusion.
 - If a claim doesn't hold up on inspection, don't just drop it — figure out what's actually true and adjust the conclusion. A confidently-wrong root cause is worse than an admittedly-incomplete one.
 - Only quote code snippets or cite file:line references in the final comment that you've personally confirmed in this step — don't relay a subagent's snippet unverified.
 
@@ -164,11 +157,7 @@ If `--dry-run` was requested: write the finished comment to a file (report the p
 
 Otherwise, post it now via the comment call from the tracker adapter, in that tracker's expected markup. Don't add a separate "should I post this?" checkpoint — Step 9 is what earns the right to post automatically.
 
-**If you later discover a comment you already posted was wrong** (e.g. it was built on a stale
-checkout, or a claim didn't survive re-verification), post a new comment that explicitly says it
-supersedes the previous one and explains what changed and why. Don't silently edit or delete the
-earlier comment — readers who already saw it need the correction to be visible, and the trail of
-"here's what I thought, here's what was actually true" is itself useful signal.
+**If you later discover a comment you already posted was wrong** (e.g. it was built on a stale checkout, or a claim didn't survive re-verification), post a new comment that explicitly says it supersedes the previous one and explains what changed and why. Don't silently edit or delete the earlier comment — readers who already saw it need the correction to be visible, and the trail of "here's what I thought, here's what was actually true" is itself useful signal.
 
 ## Hard constraints
 
@@ -178,17 +167,8 @@ earlier comment — readers who already saw it need the correction to be visible
 - Never let a large search-result payload land in your own context wholesale — extract what you need with `jq`, or delegate the search/scan to a subagent.
 - Skip observability lookups for incidents clearly outside your retention window — an empty query result from a stale time range isn't informative, it's just noise.
 - When running without an adapter for a tracker or platform, say so — don't present best-effort tool behavior as if it were verified.
-- Never accept a subagent's "no relevant code found" conclusion for a repo without first confirming
-  that repo's local checkout is current with its remote (Step 5) — a stale checkout produces exactly
-  this failure mode, and it looks identical to a genuine absence until you check.
-- Don't assume a tracker's markdown renderer expands emoji shortcodes the way Slack/GitHub-flavored
-  markdown does — the tracker adapter notes any rendering quirks (e.g. Jira does not expand
-  shortcodes, see `references/trackers/jira.md`); use the literal Unicode emoji if unsure.
-- Every posted comment opens with the `Triaged with 🤖 using <model> (<effort> effort)` attribution
-  line (model always filled in, effort only when concretely known) — don't drop it.
-- Never draft against the wrong template — a change request has no root cause to report, and
-  forcing the bug template's language onto it produces a hollow "root cause: N/A" section. Classify
-  first (Step 3) and use the matching template.
-- When the tracker's issue-type field and the content-level test disagree, follow the content: a
-  "Story" or "Task" reporting broken existing behavior is a bug, and a "Bug" whose content actually
-  asks for different behavior is a change request.
+- Never accept a subagent's "no relevant code found" conclusion for a repo without first confirming that repo's local checkout is current with its remote (Step 5).
+- Don't assume a tracker's markdown renderer expands emoji shortcodes the way Slack/GitHub-flavored markdown does — the tracker adapter notes any rendering quirks (e.g. Jira does not expand shortcodes, see `references/trackers/jira.md`); use the literal Unicode emoji if unsure.
+- Every posted comment opens with the `Triaged with 🤖 using <model> (<effort> effort)` attribution line (model always filled in, effort only when concretely known) — don't drop it.
+- Never draft against the wrong template — a change request has no root cause to report, and forcing the bug template's language onto it produces a hollow "root cause: N/A" section. Classify first (Step 3) and use the matching template.
+- When the tracker's issue-type field and the content-level test disagree, follow the content: a "Story" or "Task" reporting broken existing behavior is a bug, and a "Bug" whose content actually asks for different behavior is a change request.

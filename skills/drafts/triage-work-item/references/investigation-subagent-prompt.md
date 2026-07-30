@@ -15,65 +15,42 @@ The quality of Step 7's findings depends almost entirely on how well the delegat
 ### Bug investigation
 
 ```
-I'm triaging a bug report: [plain description of the user-visible symptom — what they did, what
-they expected, what happened instead, including any concrete inputs/values from the report, e.g.
-"filtering by date range from January 2025" or "company X with a large user base"].
+I'm triaging a bug report: [plain description of the user-visible symptom — what they did, what they expected, what happened instead, including any concrete inputs/values from the report, e.g. "filtering by date range from January 2025" or "company X with a large user base"].
 
 Investigate the following repo(s) for the root cause:
 1. `<path-to-backend-repo>` — [stack, e.g. ".NET backend service"]
 2. `<path-to-frontend-repo>` — [stack, e.g. "Vue/TS frontend"]
 
 Please find and report on:
-1. The endpoint/handler that implements this behavior — trace the full call path (controller →
-   service → data-access/query layer). If you're not sure which controller, search for [naming
-   patterns/keywords from the feature area].
-2. The actual query/logic doing the work — is it paginated or bounded? Any joins/loops that could be
-   expensive at scale? Any timeout configured (command timeout, HTTP timeout), and what's its value?
+1. The endpoint/handler that implements this behavior — trace the full call path (controller → service → data-access/query layer). If you're not sure which controller, search for [naming patterns/keywords from the feature area].
+2. The actual query/logic doing the work — is it paginated or bounded? Any joins/loops that could be expensive at scale? Any timeout configured (command timeout, HTTP timeout), and what's its value?
 3. The frontend code that calls this endpoint, and how it surfaces errors to the user.
-4. Anything in git history/blame suggesting this is a known or recently-introduced limitation
-   (commit messages referencing other issues, TODO comments, recently added filters/joins).
+4. Anything in git history/blame suggesting this is a known or recently-introduced limitation (commit messages referencing other issues, TODO comments, recently added filters/joins).
 
-Report back: exact file paths and line numbers, the specific code/config responsible, and your best
-hypothesis for why this reproduces the reported symptom. Keep it under 500 words plus snippets.
+Report back: exact file paths and line numbers, the specific code/config responsible, and your best hypothesis for why this reproduces the reported symptom. Keep it under 500 words plus snippets.
 ```
 
 ### Change-request investigation
 
 ```
-I'm investigating a change request: [plain description of the desired new/changed behavior — what
-should work differently and why, including any concrete constraints from the request, e.g. "add CSV
-export alongside the existing PDF export" or "the nightly job should process incrementally instead
-of re-fetching the full table"].
+I'm investigating a change request: [plain description of the desired new/changed behavior — what should work differently and why, including any concrete constraints from the request, e.g. "add CSV export alongside the existing PDF export" or "the nightly job should process incrementally instead of re-fetching the full table"].
 
 Investigate the following repo(s) for how this would be implemented:
 1. `<path-to-backend-repo>` — [stack, e.g. ".NET backend service"]
 2. `<path-to-frontend-repo>` — [stack, e.g. "Vue/TS frontend"]
 
 Please find and report on:
-1. How the current behavior/mechanism works today — trace the full call path (controller → service
-   → data-access/query layer) for the feature this change extends or modifies.
-2. What would need to change to support the new behavior — which layer(s), and any existing
-   abstraction the change could reuse vs. one it would need to introduce.
-3. Anything that complicates the change — data migration, backward compatibility, other callers of
-   the code being modified.
-4. Anything in git history/blame suggesting why the current implementation is shaped the way it is
-   (a prior deliberate constraint reads differently than an oversight).
+1. How the current behavior/mechanism works today — trace the full call path (controller → service → data-access/query layer) for the feature this change extends or modifies.
+2. What would need to change to support the new behavior — which layer(s), and any existing abstraction the change could reuse vs. one it would need to introduce.
+3. Anything that complicates the change — data migration, backward compatibility, other callers of the code being modified.
+4. Anything in git history/blame suggesting why the current implementation is shaped the way it is (a prior deliberate constraint reads differently than an oversight).
 
-Report back: exact file paths and line numbers, the specific code responsible, and a candidate
-approach with its tradeoffs. Keep it under 500 words plus snippets.
+Report back: exact file paths and line numbers, the specific code responsible, and a candidate approach with its tradeoffs. Keep it under 500 words plus snippets.
 ```
 
 ## Anti-patterns
 
-- **"Investigate issue PROJ-123"** — the agent can't fetch the tracker; it has no idea what that
-  means without you translating the symptom into plain language first.
-- **"Find the bug" / "Find how we'd build this"** — no scope, no repo, no hypothesis or candidate
-  approach. You'll get a generic tour of the codebase instead of a targeted answer.
-- **Asking for a summary instead of evidence** — "explain how the export feature works" produces
-  prose you then can't verify. Asking for file:line + snippets gives you something Step 9 can check.
-- **Dispatching against a checkout you haven't confirmed is current** — do the freshness check from
-  Step 5 (`git fetch` + compare to the remote default branch, pull or use a worktree as needed)
-  *before* launching the agent, not after it reports back. An agent has no way to know its search
-  space is missing recent commits, so it will report a plausible-sounding "no such code found"
-  instead of an error — the cost of skipping this check lands entirely on you, later, when you trust
-  a negative that was only true of a stale copy of the repo.
+- **"Investigate issue PROJ-123"** — the agent can't fetch the tracker; it has no idea what that means without you translating the symptom into plain language first.
+- **"Find the bug" / "Find how we'd build this"** — no scope, no repo, no hypothesis or candidate approach. You'll get a generic tour of the codebase instead of a targeted answer.
+- **Asking for a summary instead of evidence** — "explain how the export feature works" produces prose you then can't verify. Asking for file:line + snippets gives you something Step 9 can check.
+- **Dispatching against a checkout you haven't confirmed is current** — do the freshness check from Step 5 *before* launching the agent, not after it reports back; an agent has no way to know its search space is missing recent commits, so a stale checkout produces a plausible-sounding "no such code found" instead of an error.
