@@ -220,27 +220,18 @@ After posting all inline comments, output the summary directly in the conversati
 **JIRA**: [PROJ-123](<jira_url>) — <ticket summary>
 *(or "No JIRA ticket linked — reviewed without requirements context")*
 
-**Key findings** (most important first):
+**Findings** (<N> posted, most important first):
 - <finding 1>
 - <finding 2>
-- <finding 3>
+*(when N is 0, replace the list with one line: "None — <one-clause why, e.g. "tightly-scoped one-line fix, verified against the backend contract">.")*
 
-**Focus your own review on** (highest cost-of-change — Pyramid layers 1-2; independent of whether the AI commented there):
-- `<file>`[, `<file>`, ...] — <one-clause reason, e.g. "core domain service matching/creating a person's identity">
+**Worth your own look** (Layers 1-2 — independent of whether the AI commented there):
 - `<file>`[, `<file>`, ...] — <one-clause reason; group files sharing the same reason into one line>
+*(omit this whole section when no file rises to Layer 1-2 — don't replace it with a note about what's lower priority)*
 
-*(<N> controllers, <N> repositories, and all test/doc changes are lower priority here — thinner wiring, mechanical CRUD, or already gated by CI.)*
+**Coverage**: <comma-joined list of only the layers with >0 comments, e.g. "2 Implementation Semantics, 1 Tests"> *(or "no comments posted" when N is 0)*
 
-**Pyramid coverage:**
-| Layer | Comments posted |
-|---|---|
-| API Semantics | N |
-| Implementation Semantics | N |
-| Documentation | N |
-| Tests | N |
-| Code Style | N |
-
-*Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish.*
+*(only when N > 0)* Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish.
 ```
 
 ## Hard constraints
