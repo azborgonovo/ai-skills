@@ -185,7 +185,7 @@ python3 <skill_dir>/scripts/post_review_notes.py \
 `fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime. Add a nil check or return an early error.
 ```
 
-Don't split this into a separately labeled "Failure scenario:" sub-paragraph or restate context already visible in the diff — fold the impact into the same flow of sentences. It's fine to run longer than 4 sentences when the failure mechanism itself genuinely needs the room (concurrency races, security, a scope change spanning multiple callers) — but even then keep it one tight paragraph, not a structured breakdown, and don't stretch routine findings just to sound thorough.
+Don't restate context already visible in the diff — fold the impact into the same flow of sentences. It's fine to run longer than 4 sentences when the failure mechanism itself genuinely needs the room (concurrency races, security, a scope change spanning multiple callers) — but even then keep it one tight paragraph.
 
 When the finding is a clear-cut bug, assert it and prescribe the fix, as above. When the intent behind the code might be deliberate — a scope decision, a naming choice, a spec deviation that could be intentional — end with a direct question instead of a directive:
 ```
@@ -194,7 +194,7 @@ When the finding is a clear-cut bug, assert it and prescribe the fix, as above. 
 
 **Posting guidelines:**
 - Only comment when there's a genuine issue — not every observation
-- Be specific but brief: name the exact symbol/line, state the concrete problem, then the fix or a direct question — skip a forensic walkthrough of exactly how it would trigger
+- Be specific and brief: name the exact symbol/line, state the concrete problem, then the fix or a direct question — skip a forensic walkthrough of exactly how it would trigger
 - If a JIRA acceptance criterion isn't met, quote it explicitly (the quote doesn't count against the sentence budget)
 - Avoid style nits unless they cross into real readability problems
 - Don't repeat the same finding across multiple files — pick the clearest occurrence
