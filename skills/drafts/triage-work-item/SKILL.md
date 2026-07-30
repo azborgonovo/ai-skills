@@ -6,8 +6,9 @@ description: >
   related items, investigates the actual codebase(s) that implement the affected feature, optionally
   corroborates with an observability platform (logs/traces/metrics), then posts a verified analysis
   comment — root cause for a bug, or current-behavior/approach/effort for a change request — back to
-  the item. Works against Jira or GitHub Issues as the tracker
-  and Grafana or AWS CloudWatch for observability through per-tool adapter files. TRIGGER when the
+  the item. Ships with adapters for Jira and GitHub Issues as the tracker, and Grafana and AWS
+  CloudWatch for observability, but degrades gracefully to any other tracker or observability
+  platform reachable via tool discovery. TRIGGER when the
   user gives a work-item URL or key — Jira (`…atlassian.net/browse/KEY`) or GitHub
   (`github.com/<o>/<r>/issues/<n>`) — and asks to triage, investigate, diagnose, root-cause, or
   "figure out what's going on with" it, especially when they also want an analysis comment posted
@@ -72,7 +73,7 @@ Once classified:
 - **Bug** → use `references/bug-template.md`.
 - **Change request** (including non-behavioral tasks) → use `references/change-request-template.md`.
 
-Open the comment with an attribution line — `Triaged with 🤖 using <model> (<effort> effort)` — see the chosen template's notes for exactly how to fill in `<model>`/`<effort>`.
+Open the comment with an attribution line: `Triaged with 🤖 using <model> (<effort> effort)`. This is a convention (mirrored from the equivalent footer in the `gitlab-jira-mr-review` skill) that flags a comment as AI-assisted so readers calibrate trust and scrutiny accordingly — keep it rather than dropping it to make the comment look more "human." Always fill in `<model>` — you know your own model name from your environment context (e.g. `Sonnet 5`). Only fill in `(<effort> effort)` when you have a concretely known effort/thinking-level setting for this session — never guess one just to fill the field; when you don't have one, drop the whole parenthetical rather than write a placeholder: `Triaged with 🤖 using Sonnet 5:`. Use the literal Unicode 🤖, not a `:robot:`-style shortcode — some trackers (e.g. Jira, see `references/trackers/jira.md`) don't expand shortcodes, so it would render as literal text instead of an emoji.
 
 ## Step 4 — Note the tracker's comment markup dialect
 
@@ -158,17 +159,3 @@ If `--dry-run` was requested: write the finished comment to a file (report the p
 Otherwise, post it now via the comment call from the tracker adapter, in that tracker's expected markup. Don't add a separate "should I post this?" checkpoint — Step 9 is what earns the right to post automatically.
 
 **If you later discover a comment you already posted was wrong** (e.g. it was built on a stale checkout, or a claim didn't survive re-verification), post a new comment that explicitly says it supersedes the previous one and explains what changed and why. Don't silently edit or delete the earlier comment — readers who already saw it need the correction to be visible, and the trail of "here's what I thought, here's what was actually true" is itself useful signal.
-
-## Hard constraints
-
-- Never cite a file path, line number, code snippet, or config value in the final comment that wasn't personally confirmed in Step 9 — subagent reports are leads, not citations.
-- Never post a comment when `--dry-run` is set, no matter how confident the analysis is.
-- Never treat a shared parent epic or a keyword match as proof two issues are related — open and read anything before citing it as context.
-- Never let a large search-result payload land in your own context wholesale — extract what you need with `jq`, or delegate the search/scan to a subagent.
-- Skip observability lookups for incidents clearly outside your retention window — an empty query result from a stale time range isn't informative, it's just noise.
-- When running without an adapter for a tracker or platform, say so — don't present best-effort tool behavior as if it were verified.
-- Never accept a subagent's "no relevant code found" conclusion for a repo without first confirming that repo's local checkout is current with its remote (Step 5).
-- Don't assume a tracker's markdown renderer expands emoji shortcodes the way Slack/GitHub-flavored markdown does — the tracker adapter notes any rendering quirks (e.g. Jira does not expand shortcodes, see `references/trackers/jira.md`); use the literal Unicode emoji if unsure.
-- Every posted comment opens with the `Triaged with 🤖 using <model> (<effort> effort)` attribution line (model always filled in, effort only when concretely known) — don't drop it.
-- Never draft against the wrong template — a change request has no root cause to report, and forcing the bug template's language onto it produces a hollow "root cause: N/A" section. Classify first (Step 3) and use the matching template.
-- When the tracker's issue-type field and the content-level test disagree, follow the content: a "Story" or "Task" reporting broken existing behavior is a bug, and a "Bug" whose content actually asks for different behavior is a change request.
