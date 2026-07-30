@@ -14,7 +14,7 @@ description: >
   you find", "why is this happening, check the code"). Do not use this for simply reading or
   summarizing a work item with no code investigation intended, and do not use it for writing new
   work items.
-argument-hint: "<work-item URL or key> [reference comment URL to match style] [--dry-run]"
+argument-hint: "<work-item URL or key> [--dry-run]"
 allowed-tools: [Read, Bash, Agent, ToolSearch, AskUserQuestion, Write]
 ---
 
@@ -31,7 +31,6 @@ By default, once you've verified your findings, post the comment — don't pause
 ## Inputs
 
 - **Required**: an issue URL or key. If given a bare key (e.g. `PROJ-123`) you also need enough to identify the tracker and instance — ask if it isn't obvious from context (a prior message, a hostname already visible, the repo you're standing in).
-- **Optional**: a reference issue/comment URL whose analysis-comment style you should mirror.
 - **Optional**: which repo(s)/codebase(s) to investigate. If not given, see Step 5.
 - **Optional**: `--dry-run` — draft only, never post.
 
@@ -54,11 +53,9 @@ Note the parent epic/tracking issue and any linked issues (duplicates, relates-t
 
 ## Step 3 — Establish the comment style to write in
 
-If the user gave a reference issue/comment, fetch it the same way and study its exact shape: does it open with a specific marker or label, what section headers does it use and in what order, does it use inline code snippets, how does it phrase proposed fixes (numbered options with tradeoffs? a single recommendation?). Mirror that precisely — the point of giving you a reference is so the output feels like the same author wrote it, not a generic bot template.
+Use the structure in `references/default-template.md`. The actual content (Step 9) still has to be earned through investigation — the template only governs shape, not substance.
 
-If no reference was given, fall back to the structure in `references/default-template.md`. Either way, the actual content (Step 9) still has to be earned through investigation — the template only governs shape, not substance.
-
-Regardless of which shape you use, open the comment with an attribution line — `Triaged with 🤖 using <model> (<effort> effort)` — even when mirroring a reference comment that didn't have one; see `references/default-template.md`'s notes for exactly how to fill in `<model>`/`<effort>`.
+Open the comment with an attribution line — `Triaged with 🤖 using <model> (<effort> effort)` — see `references/default-template.md`'s notes for exactly how to fill in `<model>`/`<effort>`.
 
 ## Step 4 — Note the tracker's comment markup dialect
 
@@ -126,7 +123,7 @@ This is the step that keeps the analysis honest. A subagent's report is a *claim
 
 ## Step 10 — Draft the analysis
 
-Structure per Step 3 (mirrored reference, or `references/default-template.md`), in the markup dialect from Step 4. Regardless of exact headers used, the content needs to cover:
+Structure per `references/default-template.md` (Step 3), in the markup dialect from Step 4. Regardless of exact headers used, the content needs to cover:
 
 1. **What's happening** — the mechanism behind the user-visible symptom, in plain terms tied back to what was reported.
 2. **Root cause** — the specific, verified code path/config/data condition, with real file paths and (where it clarifies things) an actual code snippet.
@@ -160,5 +157,4 @@ earlier comment — readers who already saw it need the correction to be visible
   markdown does — the tracker adapter notes any rendering quirks (e.g. Jira does not expand
   shortcodes, see `references/trackers/jira.md`); use the literal Unicode emoji if unsure.
 - Every posted comment opens with the `Triaged with 🤖 using <model> (<effort> effort)` attribution
-  line (model always filled in, effort only when concretely known) — don't drop it even when
-  mirroring a reference comment's style in Step 3.
+  line (model always filled in, effort only when concretely known) — don't drop it.

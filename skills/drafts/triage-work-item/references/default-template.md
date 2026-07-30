@@ -1,6 +1,6 @@
 # Default analysis comment template
 
-Use this only when no reference comment was given to mirror (Step 3 of SKILL.md). It's a reasonable generic shape, not a fixed format — if the investigation genuinely doesn't fit one of these sections (e.g. there's no meaningful "why this specific case" angle), drop it rather than padding. Write it in the tracker's markup dialect (Step 4).
+This is a reasonable generic shape, not a fixed format — if the investigation genuinely doesn't fit one of these sections (e.g. there's no meaningful "why this specific case" angle), drop it rather than padding. Write it in the tracker's markup dialect (Step 4).
 
 ```markdown
 Triaged with 🤖 using <model> (<effort> effort):
@@ -34,9 +34,8 @@ issue better than prose would.>
 - The `Triaged with 🤖 using <model> (<effort> effort)` opener is a convention some engineers use
   (mirrored from the equivalent `Co-reviewed with :robot: using <model>` footer in the
   `gitlab-jira-mr-review` skill) to make it visually clear a comment was AI-assisted, and by which
-  model, so readers can calibrate their trust and scrutiny accordingly. Keep some form of it — or
-  whatever the mirrored reference comment used, see Step 3 — rather than dropping it to make the
-  comment look more "human."
+  model, so readers can calibrate their trust and scrutiny accordingly. Keep some form of it rather
+  than dropping it to make the comment look more "human."
   - Always fill in `<model>` — you always know your own model name from your environment context
     (e.g. `Sonnet 5`).
   - Only fill in `(<effort> effort)` when you have a concrete, known effort/thinking-level setting

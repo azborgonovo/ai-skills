@@ -1,11 +1,11 @@
 {
   "skill_name": "triage-work-item",
-  "notes": "This skill's value depends on live tracker access and a real, investigable codebase, so most prompts use bracketed placeholders instead of real issues/repos/companies. Before running a behavior-eval pass, substitute a real issue URL, reference comment URL, and codebase path(s) the runner actually has access to — pick something non-sensitive (a sandbox project, or a real bug you're comfortable an AI-assisted comment landing on). Do not commit the substituted, filled-in prompts back into this file if the details are sensitive; keep the placeholders here and substitute only in the ephemeral run. Supported trackers are Jira and GitHub Issues; supported observability platforms are Grafana and AWS CloudWatch. Assertions are tagged by class: 'behavior' = a workflow step happened as designed; 'verification' = the honesty gate held (cite only re-checked claims, never treat a stale/empty query as evidence); 'contract' = the skill respected an output rule such as dry-run not posting; 'triggering' = the skill fired (or correctly declined) for this prompt. Evals 1-6 and 9 are behavior/verification runs needing live substitution; evals 7-8 are triggering-boundary checks that need no substitution and no live access. Eval 9 additionally needs its codebase fixture deliberately left stale (see its own notes). Two boundaries are deliberately left for a future fixture rather than faked here: a bare Jira key with no visible site hostname (skill should ask rather than guess the cloudId), and a subagent report containing a plausible-but-wrong file:line to prove the verification gate catches it — that one needs a crafted repo to be deterministic.",
+  "notes": "This skill's value depends on live tracker access and a real, investigable codebase, so most prompts use bracketed placeholders instead of real issues/repos/companies. Before running a behavior-eval pass, substitute a real issue URL and codebase path(s) the runner actually has access to — pick something non-sensitive (a sandbox project, or a real bug you're comfortable an AI-assisted comment landing on). Do not commit the substituted, filled-in prompts back into this file if the details are sensitive; keep the placeholders here and substitute only in the ephemeral run. Supported trackers are Jira and GitHub Issues; supported observability platforms are Grafana and AWS CloudWatch. Assertions are tagged by class: 'behavior' = a workflow step happened as designed; 'verification' = the honesty gate held (cite only re-checked claims, never treat a stale/empty query as evidence); 'contract' = the skill respected an output rule such as dry-run not posting; 'triggering' = the skill fired (or correctly declined) for this prompt. Evals 1-5 and 8 are behavior/verification runs needing live substitution; evals 6-7 are triggering-boundary checks that need no substitution and no live access. Eval 8 additionally needs its codebase fixture deliberately left stale (see its own notes). Two boundaries are deliberately left for a future fixture rather than faked here: a bare Jira key with no visible site hostname (skill should ask rather than guess the cloudId), and a subagent report containing a plausible-but-wrong file:line to prove the verification gate catches it — that one needs a crafted repo to be deterministic.",
   "evals": [
     {
       "id": 1,
       "prompt": "Can you triage <JIRA_ISSUE_URL>? Look into why this is happening and post your analysis as a comment on the issue. The codebase(s) that implement this feature are at <CODEBASE_ROOT_1> and <CODEBASE_ROOT_2>.",
-      "expected_output": "Recognizes the URL as Jira, fetches the full issue and comment thread via the Atlassian tools, confirms each repo checkout is current with its remote (pulling if behind) before dispatching investigation, investigates the given repos via a subagent, independently re-verifies the key claims, drafts with the default template (no reference given) opening with a 'Triaged with 🤖 using <model>' attribution line, and posts automatically since no dry-run was requested.",
+      "expected_output": "Recognizes the URL as Jira, fetches the full issue and comment thread via the Atlassian tools, confirms each repo checkout is current with its remote (pulling if behind) before dispatching investigation, investigates the given repos via a subagent, independently re-verifies the key claims, drafts with the default template opening with a 'Triaged with 🤖 using <model>' attribution line, and posts automatically since no dry-run was requested.",
       "files": [],
       "assertions": [
         {"text": "Identifies the tracker as Jira from the atlassian.net/browse URL and uses the Atlassian tools (getJiraIssue / addCommentToJiraIssue), not the gh CLI", "class": "behavior"},
@@ -13,25 +13,12 @@
         {"text": "Confirms each repo checkout is current with its remote before dispatching investigation, pulling (or using a worktree) if it's behind", "class": "behavior"},
         {"text": "Delegates the codebase investigation to a subagent rather than grepping the repo inline", "class": "behavior"},
         {"text": "Independently re-checks the subagent's key file:line and config claims against the actual files before citing them, and cites only what it personally confirmed", "class": "verification"},
-        {"text": "Structures the comment with the default template since no reference comment was given, opening with the 'Triaged with 🤖 using <model>' attribution line", "class": "behavior"},
+        {"text": "Structures the comment with the default template, opening with the 'Triaged with 🤖 using <model>' attribution line", "class": "behavior"},
         {"text": "Posts the comment automatically without inserting a separate 'should I post this?' approval checkpoint", "class": "behavior"}
       ]
     },
     {
       "id": 2,
-      "prompt": "Please triage <JIRA_ISSUE_URL> and post an analysis comment similar in style to what I did here: <REFERENCE_COMMENT_URL>. The relevant code is in <CODEBASE_ROOT>.",
-      "expected_output": "Fetches both the target issue and the reference comment, mirrors the reference's structure rather than the default template, still earns the root-cause content through independent investigation and verification, and adds the 'Triaged with 🤖 using <model>' attribution line even though the reference comment didn't have one.",
-      "files": [],
-      "assertions": [
-        {"text": "Fetches the reference comment as well as the target issue and extracts its structural pattern (opening marker, section headers, tone)", "class": "behavior"},
-        {"text": "Produces a comment whose shape mirrors the reference rather than falling back to the generic default template", "class": "behavior"},
-        {"text": "Investigates and verifies the root cause independently — the reference governs style only, not substance", "class": "verification"},
-        {"text": "Adds the 'Triaged with 🤖 using <model>' attribution line even though the mirrored reference comment didn't have one", "class": "behavior"},
-        {"text": "Posts the mirrored comment (no dry-run requested)", "class": "behavior"}
-      ]
-    },
-    {
-      "id": 3,
       "prompt": "Investigate <ISSUE_URL> and tell me what you think is going on — don't post anything yet, I want to review it first. Codebase is at <CODEBASE_ROOT>.",
       "expected_output": "Treats the 'don't post yet' phrasing as a dry-run: does the full investigation and verification, then shows or saves the finished comment without posting anything to the tracker.",
       "files": [],
@@ -43,7 +30,7 @@
       ]
     },
     {
-      "id": 4,
+      "id": 3,
       "prompt": "Triage <GITHUB_ISSUE_URL> and post what you find. Code is at <CODEBASE_ROOT>.",
       "expected_output": "Recognizes the GitHub issue URL, reads the GitHub adapter, and uses the gh CLI for fetch/search/comment while following the same investigate-verify-post workflow.",
       "files": [],
@@ -55,7 +42,7 @@
       ]
     },
     {
-      "id": 5,
+      "id": 4,
       "prompt": "Triage <ISSUE_URL> — it's about an ongoing elevated error rate on <ENDPOINT> that's still happening now, so check our CloudWatch logs to confirm before posting. Code is at <CODEBASE_ROOT>.",
       "expected_output": "Forms a code-level hypothesis first, then reads the CloudWatch adapter and uses the Logs Insights start-query/get-query-results flow (explicit region) to corroborate the still-current error before drafting.",
       "files": [],
@@ -67,7 +54,7 @@
       ]
     },
     {
-      "id": 6,
+      "id": 5,
       "prompt": "Triage <ISSUE_URL> — a customer reported this during an outage back in February. Code is at <CODEBASE_ROOT>.",
       "expected_output": "Completes the code investigation, but recognizes the incident predates the observability retention window and skips the log/trace lookup instead of querying a dead time range and reporting the empty result as evidence.",
       "files": [],
@@ -78,7 +65,7 @@
       ]
     },
     {
-      "id": 7,
+      "id": 6,
       "prompt": "Give me a quick summary of what <ISSUE_URL> is about and where it stands — I just need to catch up before standup.",
       "expected_output": "Reads and summarizes the issue without launching a codebase investigation or posting anything — this is a read-only catch-up, not a triage.",
       "files": [],
@@ -89,7 +76,7 @@
       ]
     },
     {
-      "id": 8,
+      "id": 7,
       "prompt": "We found a bug where the export button does nothing on Safari — the click just silently fails. Can you write this up and create a ticket for it in our tracker?",
       "expected_output": "Recognizes this as authoring a new work item, not triaging an existing one, and does not run the investigate-verify-post triage workflow against a codebase.",
       "files": [],
@@ -100,7 +87,7 @@
       ]
     },
     {
-      "id": 9,
+      "id": 8,
       "prompt": "Did you `git pull` <CODEBASE_ROOT> before investigating <ISSUE_URL>? If not please do, investigate it again, and post your findings again.",
       "notes": "Set up this eval with <CODEBASE_ROOT> intentionally left several commits behind its remote's default branch before the run, where the missing commits contain the actual code relevant to <ISSUE_URL> — so a first investigation pass (without pulling) plausibly concludes 'no relevant code found' in that repo.",
       "expected_output": "The skill checks the repo's git status, fetches, and finds it behind origin; pulls (or uses a worktree if the tree wasn't clean); re-investigates the now-current checkout and finds the previously-missing code; and posts a new comment that explicitly states it supersedes/corrects the earlier one, explaining what was stale and what the corrected root cause is — it does not edit or delete the original comment.",
