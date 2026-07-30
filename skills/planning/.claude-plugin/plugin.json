@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "planning",
   "displayName": "Planning",
-  "version": "1.0.0",
-  "description": "Shape units of work that are well-defined, verifiable, and ready to be executed.",
+  "version": "1.1.0",
+  "description": "Shape units of work that are well-defined, verifiable, and ready to be executed, and triage existing ones against the codebase.",
   "author": {
     "name": "André Borgonovo",
     "url": "https://github.com/azborgonovo"
@@ -17,9 +17,12 @@
     "tickets",
     "user-stories",
     "backlog",
-    "acceptance-criteria"
+    "acceptance-criteria",
+    "triage",
+    "root-cause"
   ],
   "skills": [
-    "./work-item"
+    "./work-item",
+    "./triage-work-item"
   ]
 }
