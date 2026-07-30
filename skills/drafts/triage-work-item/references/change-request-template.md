@@ -33,9 +33,9 @@ a decision that needs a stakeholder before work starts.>
 
 ## Notes
 
-- The `Triaged with 🤖 using <model> (<effort> effort)` opener is the same convention used in
-  `references/bug-template.md` — keep it for the same reason: it signals AI assistance and by which
-  model, so readers calibrate trust and scrutiny accordingly.
+- The `Triaged with 🤖 using <model> (<effort> effort)` opener signals AI assistance and by which
+  model, so readers calibrate trust and scrutiny accordingly — keep it rather than dropping it to
+  make the comment look more "human."
   - Always fill in `<model>`. Only fill in `(<effort> effort)` when you have a concrete, known
     effort/thinking-level setting for this session — never guess one, and drop the whole
     parenthetical rather than write a placeholder.
