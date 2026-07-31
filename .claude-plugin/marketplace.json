@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Skills and tools to enhance Claude Code — for software delivery, and for working with Claude Code itself. Grouped into focused plugins you can install independently.",
-    "version": "2.2.0"
+    "version": "3.0.0"
   },
   "plugins": [
     {
@@ -97,20 +97,6 @@
         "agent-steering",
         "claude-md",
         "documentation"
-      ],
-      "license": "MIT"
-    },
-    {
-      "name": "usage-budget",
-      "source": "./skills/usage-budget",
-      "description": "Record what each turn actually costs in tokens, and report measured consumption instead of guessing at it.",
-      "category": "developer-tools",
-      "keywords": [
-        "tokens",
-        "usage",
-        "cost",
-        "hooks",
-        "telemetry"
       ],
       "license": "MIT"
     }

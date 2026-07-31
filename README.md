@@ -74,19 +74,6 @@ Shape units of work that are well-defined, verifiable, and ready to be executed,
 | [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Auto | Adopt |
 | [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Adopt |
 
-### `usage-budget`
-
-Record what each turn actually costs in tokens, and report measured consumption instead of guessing at it. Reports consumption only — Claude Code exposes no remaining-quota figure to hooks or skills, so nothing here can tell you how much budget is left; run `/usage` for real limits.
-
-| Skill | Description | Invocation | Status |
-|---|---|---|---|
-| [/usage-report](skills/usage-budget/usage-report/SKILL.md) | Reports measured token spend by project and turn, and tests whether cost is predictable from the prompt. | Auto | Trial |
-
-| Hook | Event | Behavior |
-|---|---|---|
-| [collect_usage](skills/usage-budget/scripts/collect_usage.py) | `Stop` | Records the finished turn's measured cost from the session transcript into `~/.claude/usage-budget/`. Always on. |
-| [collect_usage](skills/usage-budget/scripts/collect_usage.py) | `UserPromptSubmit` | Adds a one-line burn-rate notice once the rolling window passes a threshold. Silent below it; set `warn_at_weighted` to `0` in `~/.claude/usage-budget/config.json` to disable entirely. |
-
 ## Draft skills
 
 Not yet published to the Claude marketplace. These are **not** installable as plugins; consume them via the [link script](#via-the-link-script-symlink-based) or by copying the skill folder into your own project.
@@ -113,7 +100,6 @@ Add the marketplace once, then install any subset of plugins:
 /plugin install engineering-practices@ai-skills
 /plugin install planning@ai-skills
 /plugin install agent-docs@ai-skills
-/plugin install usage-budget@ai-skills
 ```
 
 Or pin your chosen plugins in a repository's `.claude/settings.json` so every human and agent session gets them automatically (enable only the ones you want):
