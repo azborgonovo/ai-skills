@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "planning",
   "displayName": "Planning",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Shape units of work that are well-defined, verifiable, and ready to be executed, and triage existing ones against the codebase.",
   "author": {
     "name": "André Borgonovo",

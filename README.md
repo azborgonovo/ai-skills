@@ -36,7 +36,7 @@ Structure and carry out code reviews with a consistent, cost-of-change-driven fr
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
 | [/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md) | Knowledge base for Gunnar Morling's Code Review Pyramid. | Auto | Adopt |
-| [/gitlab-jira-mr-review](skills/code-review/gitlab-jira-mr-review/SKILL.md) | Reviews a GitLab merge request against its linked JIRA work item and posts inline comments on the diff for you to submit. | Manual | Adopt |
+| [/pr-review](skills/code-review/pr-review/SKILL.md) | Reviews a GitLab MR or GitHub PR against its linked tracker ticket and posts inline comments on the diff for you to submit. | Manual | Adopt |
 
 ### `decisions`
 
@@ -72,7 +72,7 @@ Shape units of work that are well-defined, verifiable, and ready to be executed,
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
 | [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Auto | Adopt |
-| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Trial |
+| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Adopt |
 
 ### `usage-budget`
 

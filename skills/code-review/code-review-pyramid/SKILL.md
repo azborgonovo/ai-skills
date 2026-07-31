@@ -5,7 +5,7 @@ description: >
   five layers prioritized by cost-of-change. Use when the user asks how to approach a code review,
   wants to understand what to focus on in a review, asks about review priorities, or references
   "the pyramid". Also use when another skill needs a structured review framework (e.g.
-  gitlab-jira-mr-review uses this to apply consistent layer priorities and questions).
+  pr-review uses this to apply consistent layer priorities and questions).
 ---
 
 # Code Review Pyramid
