@@ -1,5 +1,7 @@
 # ralph-loop
 
+**Status: Trial** — usable, still being validated. See [scripts/README.md](../README.md) for what that means.
+
 Re-runs a prompt file through the [Claude Code](https://code.claude.com) CLI, in
 headless mode, over and over, until the agent signals it's done. Named after
 the ["Ralph Wiggum" technique](https://ghuntley.com/ralph/): a dumb `while`
