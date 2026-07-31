@@ -72,7 +72,7 @@ Shape units of work that are well-defined, verifiable, and ready to be executed,
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
 | [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Auto | Adopt |
-| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Trial |
+| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Adopt |
 
 ### `usage-budget`
 
