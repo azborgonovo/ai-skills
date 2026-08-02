@@ -1,6 +1,6 @@
 # ralph-loop
 
-**Status: Trial** — usable, still being validated. See [scripts/README.md](../README.md) for what that means.
+**Status: Trial** — usable, still being validated. See [tools/README.md](../README.md) for what that means.
 
 Re-runs a prompt file through the [Claude Code](https://code.claude.com) CLI, in
 headless mode, over and over, until the agent signals it's done. Named after
@@ -17,7 +17,7 @@ work — one subtask per iteration — without a human driving each step.
 ## Usage
 
 ```bash
-python scripts/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
+python tools/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
 ```
 
 | Argument      | Default            | Meaning                                                          |
@@ -29,7 +29,7 @@ python scripts/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
 Example:
 
 ```bash
-python scripts/ralph-loop/ralph_loop.py my-prompt.md FINISHED 20
+python tools/ralph-loop/ralph_loop.py my-prompt.md FINISHED 20
 ```
 
 Output streams live: thinking, tool calls, tool results, and a per-iteration

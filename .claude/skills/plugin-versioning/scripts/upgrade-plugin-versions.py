@@ -13,7 +13,7 @@ Bump level (only plugins whose skill files changed are touched):
 
 Pass the message you are about to commit with:
 
-    python scripts/upgrade-plugin-versions.py --message "feat(bdd): add scenario linter"
+    python .claude/skills/plugin-versioning/scripts/upgrade-plugin-versions.py --message "feat(bdd): add scenario linter"
 
 Or force a level explicitly with --major / --minor / --patch.
 

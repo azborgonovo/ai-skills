@@ -72,7 +72,7 @@ Shape units of work that are well-defined, verifiable, and ready to be executed,
 | Skill | Description | Invocation | Status |
 |---|---|---|---|
 | [/work-item](skills/planning/work-item/SKILL.md) | Drafts work items with verifiable acceptance criteria, and creates them in whatever tracker is connected. | Auto | Adopt |
-| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end — full comment thread, related items, the implementing codebase, optionally observability data — then posts a verified analysis back to the item. | Auto | Adopt |
+| [/triage-work-item](skills/planning/triage-work-item/SKILL.md) | Triages a tracker work item end-to-end, including available telemetry access, and post a comment with the root-cause analysis back to the item. | Auto | Adopt |
 
 ## Draft skills
 
@@ -82,6 +82,14 @@ Not yet published to the Claude marketplace. These are **not** installable as pl
 |---|---|---|
 | [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual |
 | [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto |
+
+## Tools
+
+Tools that use AI harnesses rather than being used by them, like skills.
+
+| Tool | What it does | Status |
+|---|---|---|
+| [`ralph-loop.py`](tools/ralph-loop/README.md) | Runs a prompt file through the `claude` CLI in a loop until it prints a sentinel value or a max-iteration cap is hit. | Trial |
 
 ## Installation
 

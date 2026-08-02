@@ -15,11 +15,11 @@ was based on) kept for portability: no zsh or jq dependency, just Python 3
 and the `claude` CLI on PATH.
 
 Usage:
-    python scripts/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
+    python tools/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
 
 Defaults: prompt_file=ralph-prompt.md, sentinel=FINISHED, max_iters=10.
 
-See scripts/ralph-loop/README.md and prompt-example.md for how to write a
+See tools/ralph-loop/README.md and prompt-example.md for how to write a
 prompt that drives this loop.
 """
 
