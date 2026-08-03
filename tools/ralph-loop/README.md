@@ -21,7 +21,7 @@ python tools/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
 
 | Argument      | Default            | Meaning                                                          |
 |---------------|---------------------|-------------------------------------------------------------------|
-| `prompt_file` | `ralph-prompt.md`  | Path to the prompt fed to `claude -p` on every iteration.        |
+| `prompt_file` | `prompt.md`         | Path to the prompt fed to `claude -p` on every iteration.        |
 | `sentinel`    | `FINISHED`          | Exact final response that stops the loop (see below).            |
 | `max_iters`   | `10`                | Safety cap so a stuck loop can't run forever.                    |
 

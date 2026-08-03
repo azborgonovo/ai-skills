@@ -19,7 +19,7 @@ and the `claude` CLI on PATH.
 Usage:
     python tools/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
 
-Defaults: prompt_file=ralph-prompt.md, sentinel=FINISHED, max_iters=10.
+Defaults: prompt_file=prompt.md, sentinel=FINISHED, max_iters=10.
 
 See tools/ralph-loop/README.md and jira-tasks-example.md for how to write a
 prompt that drives this loop.
@@ -199,7 +199,7 @@ def has_sentinel_line(text: str, sentinel: str) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("prompt_file", nargs="?", default="ralph-prompt.md")
+    parser.add_argument("prompt_file", nargs="?", default="prompt.md")
     parser.add_argument("sentinel", nargs="?", default="FINISHED")
     parser.add_argument("max_iters", nargs="?", type=int, default=10)
     parser.add_argument(
