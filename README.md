@@ -76,7 +76,9 @@ Tools that use AI harnesses rather than being used by them (like skills).
 
 ## Installation
 
-### As Claude Code plugins (recommended for repositories)
+### Skills
+
+#### As Claude Code plugins
 
 This repo is a Claude Code [plugin marketplace](https://code.claude.com/docs/en/plugins) that exposes each group above as a separate plugin, so you install only what you need.
 
@@ -111,7 +113,7 @@ Or pin your chosen plugins in a repository's `.claude/settings.json` so every hu
 
 *Draft and external skills are not part of any plugin. Get them through the link script below.*
 
-### Via the link script (symlink-based)
+#### Via the link script (symlink-based)
 
 Clone the repo, then run the link script:
 
@@ -123,3 +125,15 @@ python scripts/link_skills.py
 This links this skills published (nested under `skills/<plugin>/`) and draft (under `skills/drafts/`) — into `~/.claude/skills/`.
 
 Symlinks mean changes in any cloned repo are immediately reflected without re-running the script.
+
+### Tools
+
+Tools plain scripts you run directly from a clone, not installed as plugins or symlinked.
+Clone the repo, then invoke a tool's script with its interpreter:
+
+```bash
+git clone https://github.com/azborgonovo/ai-skills
+python tools/ralph-loop/ralph_loop.py
+```
+
+See each tool's own README (e.g. [`tools/ralph-loop/README.md`](tools/ralph-loop/README.md)) for usage and requirements.
