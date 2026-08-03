@@ -38,7 +38,10 @@ cost/turn summary — colorized when stdout is a TTY, plain otherwise (or when
 
 The loop stops when any of these happens:
 
-- Claude's final response for an iteration is *exactly* the sentinel string
+- Claude's final response for an iteration contains a line that is *exactly*
+  the sentinel string (a lead-in sentence before that line is fine — models
+  don't reliably print the sentinel with nothing else, so the check matches
+  per line rather than requiring the whole response to be just the sentinel)
 - `max_iters` iterations ran without that happening
 - the `claude` process exits non-zero
 

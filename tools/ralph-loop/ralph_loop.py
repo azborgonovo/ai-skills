@@ -5,8 +5,10 @@ Each iteration feeds the prompt file to the `claude` CLI in headless mode and
 streams its thinking, tool calls, and tool results back to your terminal in
 real time. The loop stops as soon as one of these happens:
 
-  - Claude's final response for an iteration matches --sentinel exactly
-    (the prompt should instruct it to print this once there is no work left)
+  - Claude's final response for an iteration contains a line that is
+    exactly --sentinel (the prompt should instruct it to print this once
+    there is no work left; a lead-in sentence before the sentinel line is
+    tolerated, since models don't reliably omit one)
   - --max-iters iterations have run without a match (safety cap)
   - the `claude` process exits non-zero
 
@@ -183,6 +185,18 @@ def run_iteration(claude_bin: str, prompt_path: str, emit) -> tuple[int, str | N
     return proc.returncode, last_result
 
 
+def has_sentinel_line(text: str, sentinel: str) -> bool:
+    """True if any line of text, once stripped, is exactly the sentinel.
+
+    A whole-message equality check is too strict: models don't reliably
+    omit a lead-in sentence before the sentinel, so exact-message matches
+    were missing valid stop signals and running extra, redundant iterations.
+    Matching per-line (not substring) keeps false positives like "not
+    FINISHED yet" from tripping it.
+    """
+    return any(line.strip() == sentinel for line in (text or "").splitlines())
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("prompt_file", nargs="?", default="ralph-prompt.md")
@@ -226,7 +240,7 @@ def main() -> int:
             print(f"claude exited non-zero ({exit_code}); stopping.", file=sys.stderr)
             break
 
-        if (last_result or "").strip() == args.sentinel:
+        if has_sentinel_line(last_result, args.sentinel):
             print(f'Got sentinel ("{args.sentinel}") — stopping loop.')
             break
     else:
