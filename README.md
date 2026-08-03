@@ -117,7 +117,7 @@ Clone the repo, then run the link script:
 
 ```bash
 git clone https://github.com/azborgonovo/ai-skills
-python scripts/link-skills.py
+python scripts/link_skills.py
 ```
 
 This links this skills published (nested under `skills/<plugin>/`) and draft (under `skills/drafts/`) — into `~/.claude/skills/`.
