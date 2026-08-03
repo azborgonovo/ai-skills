@@ -1,6 +1,6 @@
 # ralph-loop
 
-**Status: Trial** — usable, still being validated. See [tools/README.md](../README.md) for what that means.
+**Status: Trial** — usable, still being validated. See [README.md](../../README.md) for what that means.
 
 Re-runs a prompt file through the [Claude Code](https://code.claude.com) CLI, in
 headless mode, over and over, until the agent signals it's done. Named after

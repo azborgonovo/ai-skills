@@ -17,8 +17,6 @@ Invocation reflects [who can trigger a skill](https://code.claude.com/docs/en/sk
 
 Each plugin below is installable on its own from the `ai-skills` marketplace (see [Installation](#installation)).
 
-> Note:  Plugins with *hooks* fire on the matching event in every session, wheter or not you use the plugin's skill. That's why hooks are listed in a separate table and shipped as standalone plugins.
-
 ### `bdd`
 
 Author, automate, and reconcile behavior specifications in Gherkin, turning system behavior into executable specs.
