@@ -78,10 +78,11 @@ Shape units of work that are well-defined, verifiable, and ready to be executed,
 
 Not yet published to the Claude marketplace. These are **not** installable as plugins; consume them via the [link script](#via-the-link-script-symlink-based) or by copying the skill folder into your own project.
 
-| Skill | Description | Invocation |
-|---|---|---|
-| [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual |
-| [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto |
+| Skill | Description | Invocation | Status |
+|---|---|---|---|
+| [atlassian-identity-cache](skills/drafts/atlassian-identity-cache/SKILL.md) | Resolves and self-heals a local on-disk cache mapping Jira project-key prefixes to Atlassian cloud IDs, and cloud IDs to tracker account IDs, so Atlassian MCP calls skip re-resolving them every run. | Auto | Trial |
+| [/pareto](skills/drafts/pareto/SKILL.md) | Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. | Manual | Draft |
+| [/team-topologies](skills/drafts/team-topologies/SKILL.md) | Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. | Auto | Draft |
 
 ## Tools
 
