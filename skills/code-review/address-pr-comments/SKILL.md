@@ -51,56 +51,21 @@ If there are no open threads, skip straight to Step 10 and report there's nothin
 
 ### Step 3 — Create a fix worktree
 
-Checking out the branch in the user's main clone would switch what's checked out from under them. A disposable worktree gives the fix work its own directory instead, so the main checkout is never touched.
+Checking out the branch in the user's main clone would switch what's checked out from under them. Unlike a read-only review, this worktree also needs to hold real commits pushed back to the change's own source branch — so it's checked out on that branch, not detached at a SHA.
 
-Unlike a read-only review, this worktree needs to hold real commits that get pushed back to the change's own source branch — so it's checked out on that branch, not detached at a SHA.
+Locating the clone, fetching, and refusing to build on a leftover or colliding worktree is deterministic and identical every run, so it's a bundled script rather than inline bash — that also sidesteps writing shell that has to work on both POSIX shells and PowerShell:
 
 ```bash
-# 1. Try common project-root conventions first — there's no one standard location
-for ROOT in ~/projects ~/code ~/Code ~/dev ~/src ~/Developer ~/workspace ~/source/repos; do
-  [ -d "$ROOT/<repo_path>" ] && break
-done
-
-# 2. Not found under any common root — search more broadly, matching by remote URL
-#    rather than an assumed folder name, since the URL holds regardless of this
-#    machine's own naming convention
-find ~ -maxdepth 6 -name ".git" -type d 2>/dev/null -exec sh -c \
-  'git -C "$1/.." remote get-url origin 2>/dev/null' _ {} \; | grep "<repo_path>"
-
-# 3. Fetch the source branch
-git -C <repo_path> fetch origin <source_branch>
-git -C <repo_path> worktree prune
-
-WORKTREE_PATH="<repo_path>.address-<id>"
-
-# 4. A worktree may already sit at this path — e.g. left behind by a prior run of this
-#    skill that crashed before Step 9 cleanup. It's only safe to replace if every commit
-#    on it has already reached its upstream; otherwise it may hold unpushed fix work.
-if [ -d "$WORKTREE_PATH" ]; then
-  DIRTY=$(git -C "$WORKTREE_PATH" status --porcelain 2>&1)
-  UNPUSHED=$(git -C "$WORKTREE_PATH" log '@{u}..HEAD' --oneline 2>&1)
-  if [ -n "$DIRTY" ] || [ -n "$UNPUSHED" ]; then
-    echo "STOP: $WORKTREE_PATH exists and is not verifiably clean (uncommitted changes, or commits ahead of its upstream). Do not delete it. Report this to the user and ask how to proceed."
-    exit 1
-  else
-    git -C <repo_path> worktree remove "$WORKTREE_PATH"
-  fi
-fi
-
-# 5. Point the local branch at the freshly fetched origin ref, creating it if it doesn't
-#    exist yet — otherwise a stale local branch would defeat the fetch in step 3. This
-#    refuses (non-zero exit) if the branch is checked out anywhere else, e.g. the user's
-#    main clone — exactly the collision that should stop the run rather than force past it.
-if ! git -C <repo_path> branch -f <source_branch> "origin/<source_branch>"; then
-  echo "STOP: <source_branch> is already checked out elsewhere (likely the user's main clone). Report this to the user and ask how to proceed."
-  exit 1
-fi
-git -C <repo_path> worktree add "$WORKTREE_PATH" <source_branch>
+python3 <skill_dir>/scripts/setup_worktree.py --repo-path <repo_path> --source-branch <source_branch> --change-id <id>
 ```
 
-If the repo isn't found under any common root or by remote-URL search, stop and ask the user for the local clone path directly rather than guessing further — unlike a read-only review, there's no diff-only fallback for implementing fixes.
+(use `python` instead of `python3` if that's not on `PATH` — some native Windows installs only have the latter)
 
-Use `$WORKTREE_PATH` for every read, edit, and commit from here on.
+`<repo_path>` is the relative shape the host adapter states (e.g. GitLab's namespace or GitHub's `owner/repo`) — the script searches common project roots and, failing that, by remote URL, since there's no one standard clone location to assume. On success it prints `WORKTREE_PATH: <path>`; on any refusal (dirty/unpushed leftover worktree, or the branch checked out elsewhere) it prints `STOP: <reason>` and exits non-zero — stop and tell the user rather than working around it.
+
+If it can't locate the repo at all, ask the user for the local clone path and re-run with `--repo-root <path>` in place of `--repo-path`.
+
+Use the printed worktree path for every read, edit, and commit from here on.
 
 ### Step 4 — Classify each thread
 
@@ -123,7 +88,7 @@ If anything fails, stop and fix it before moving on — don't push or resolve th
 ### Step 7 — Push the branch
 
 ```bash
-git -C "$WORKTREE_PATH" push origin <source_branch>
+git -C <worktree_path> push origin <source_branch>
 ```
 
 Push only after Step 6 is green, and only ever to the change's own source branch — never anywhere else. If the push is rejected (e.g. non-fast-forward because someone else pushed to the branch meanwhile), stop and tell the user what git reported rather than force-pushing; force-pushing someone else's branch can silently discard their work.
@@ -136,42 +101,25 @@ For each thread classified **disagree**: reply with your reasoning. Do not resol
 
 ### Step 9 — Remove the worktree
 
-If a worktree was created in Step 3, remove it now — even if an earlier step failed partway through. If Step 3 hit its STOP check and left a pre-existing worktree untouched, this run never created one — don't remove it here either:
+If a worktree was created in Step 3, remove it now — even if an earlier step failed partway through. If Step 3 stopped before printing a worktree path, this run never created one — don't remove anything here either:
 
 ```bash
-git -C <repo_path> worktree remove "$WORKTREE_PATH"
+git -C <repo_path> worktree remove <worktree_path>
 ```
+
+(the same `<repo_path>` and `<worktree_path>` Step 3 printed)
 
 If removal is refused, leave the worktree in place and tell the user exactly what git reported.
 
 ### Step 10 — Output the summary
 
-Output directly in the conversation:
-
-```
-## Addressed Review Threads
-
-**Change**: [<title>](<web_url>)
-**Tests**: <pass/fail/skip counts from Step 6>
-
-**Fixed and resolved** (<N>):
-- `<file>:<line>` (or "general") — <one-line description> — <commit SHA>
-
-**Already fixed and resolved** (<N>):
-- `<file>:<line>` (or "general") — <where/how it was already handled>
-
-**Left open — needs your call** (<N>):
-- `<file>:<line>` (or "general") — <your reasoning for disagreeing>
-*(omit this section entirely when N is 0)*
-
-<N> commit(s) pushed to `<source_branch>`.
-```
+Summarize directly in the conversation (not posted to the change): the change's title and link, the test results from Step 6, which threads were fixed and resolved (each with its commit SHA), which were already fixed and resolved (with where/how), which were left open with your reasoning, and how many commits were pushed to the source branch. Skip any category with nothing in it rather than noting its absence.
 
 ## Hard constraints
 
 - **Never** resolve a thread classified as disagree — reply, then leave it for the reviewer to close
 - **Never** check out the change's branch in the user's main clone — always work from the isolated worktree created in Step 3
-- **Never** force-remove the fix worktree (Step 3's replacement check, Step 9's cleanup) — if it isn't verifiably clean, stop and tell the user instead of overriding
+- **Never** force-remove the fix worktree (Step 3's script won't proceed past a dirty/unpushed leftover; Step 9's cleanup shouldn't override that either) — if it isn't verifiably clean, stop and tell the user instead
 - **Never** force-push — if the push in Step 7 is rejected, stop and ask the user how to proceed
 - **Always** run the full test suite (Step 6) and confirm it's green before pushing or resolving anything
 - **Always** remove the worktree before finishing (Step 9), even if the run is aborted or fails partway
