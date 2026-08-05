@@ -43,6 +43,14 @@ A skill earns its place only when its gains outweigh its cost. If an eval agains
 
 **Precedent — `consistency-first`**: a drafted skill for keeping generated code aligned with a codebase's existing patterns and vocabulary. Across four eval iterations — easy and hard fixtures, on Opus and Haiku, plus a drift scenario built as its best case — it produced essentially the same code as the plain model while spending ~10% more tokens, because current models already match neighboring code, read steering docs and ADRs unprompted, and re-anchor after local drift on their own. It was discarded on that evidence.
 
+### Environment-specific values
+
+Don't hardcode a value that varies across machines or users — a filesystem path, a clone-root convention, a tool version, a default port — just because it matches your own setup. It reads as generic but only ever runs correctly on a machine shaped like yours; everyone else gets a silent wrong answer or a confusing failure with no clue why.
+
+Prefer discovering the value instead: search a short list of plausible candidates, or derive it from something already known (a repo's remote URL, a config file already on disk). When discovery comes up empty, ask the user directly rather than guessing further — a question is cheap; a wrong guess that "worked when I tested it" is not.
+
+**Precedent — clone-root assumption**: a host-adapter skill for locating a repo's local clone assumed every user clones repos under `~/projects/<org>/<repo>`, because that happened to be true for the machine it was written on. The assumption was copied verbatim into a second skill while generalizing it for a different code host, without being questioned either time — and it failed on the very repo it was written in, which lives under `~/Code/<org>/<repo>` instead. The fix: probe a handful of common roots, then fall back to matching by remote URL, then ask, rather than asserting one absolute path.
+
 ### General principle
 
 Prefer instructions that explain the *why* over rigid `MUST`/`NEVER` walls of formatting, and keep the always-loaded SKILL.md body lean.
