@@ -56,11 +56,15 @@ Checking out the branch in the user's main clone would switch what's checked out
 Unlike a read-only review, this worktree needs to hold real commits that get pushed back to the change's own source branch — so it's checked out on that branch, not detached at a SHA.
 
 ```bash
-# 1. Locate the local clone (per the host adapter's convention)
-ls ~/projects/<repo_path> 2>/dev/null
+# 1. Try common project-root conventions first — there's no one standard location
+for ROOT in ~/projects ~/code ~/Code ~/dev ~/src ~/Developer ~/workspace ~/source/repos; do
+  [ -d "$ROOT/<repo_path>" ] && break
+done
 
-# 2. Fallback: search by remote URL
-find ~/projects -maxdepth 5 -name ".git" -exec sh -c \
+# 2. Not found under any common root — search more broadly, matching by remote URL
+#    rather than an assumed folder name, since the URL holds regardless of this
+#    machine's own naming convention
+find ~ -maxdepth 6 -name ".git" -type d 2>/dev/null -exec sh -c \
   'git -C "$1/.." remote get-url origin 2>/dev/null' _ {} \; | grep "<repo_path>"
 
 # 3. Fetch the source branch
@@ -94,7 +98,7 @@ fi
 git -C <repo_path> worktree add "$WORKTREE_PATH" <source_branch>
 ```
 
-If the repo isn't found locally, stop and tell the user — unlike a read-only review, there's no diff-only fallback for implementing fixes.
+If the repo isn't found under any common root or by remote-URL search, stop and ask the user for the local clone path directly rather than guessing further — unlike a read-only review, there's no diff-only fallback for implementing fixes.
 
 Use `$WORKTREE_PATH` for every read, edit, and commit from here on.
 

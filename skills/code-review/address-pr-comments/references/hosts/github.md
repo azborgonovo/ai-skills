@@ -44,9 +44,9 @@ Follow `pageInfo.hasNextPage`/`endCursor` if there are more than 100 threads. Ke
 - `comments.nodes[].body`, `comments.nodes[].author.login` — the full exchange, for classification in Step 4
 - `comments.nodes[0].path`, `comments.nodes[0].line` — when present, the inline anchor; absent means it's a general PR-level thread
 
-## Local clone convention (Step 3)
+## Repo path shape (Step 3)
 
-Repos are cloned under `~/projects/<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` would be at `~/projects/acme/my-service`.
+`<repo_path>` is `<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` → `acme/my-service`. This is a relative shape, not an absolute location — Step 3 searches for it rather than assuming a fixed clone root.
 
 ## Reply and resolve (Step 8)
 

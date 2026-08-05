@@ -44,9 +44,9 @@ Each element is a discussion with a `notes` array (one per comment in the thread
 - `notes[].body`, `notes[].author` — the full exchange, for classification in Step 4
 - `notes[0].position.new_path`, `notes[0].position.new_line` — when present, the inline anchor; absent means it's a general discussion
 
-## Local clone convention (Step 3)
+## Repo path shape (Step 3)
 
-Repos are cloned under `~/projects/<org-id>/<group/subgroups>/<project>`, mirroring the GitLab namespace. For example, `https://gitlab.com/acme/platform/my-service` would be at `~/projects/acme/platform/my-service`.
+`<repo_path>` mirrors the GitLab namespace: `<group>/<subgroups>/<project>`. For example, `https://gitlab.com/acme/platform/my-service` → `acme/platform/my-service`. This is a relative shape, not an absolute location — GitLab imposes no fixed clone root, so Step 3 searches for it rather than assuming one.
 
 ## Reply and resolve (Step 8)
 
