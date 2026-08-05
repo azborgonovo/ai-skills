@@ -33,9 +33,9 @@ Each element has:
 
 **Truncation check**: `--paginate` handles GitHub's page size limit, but very large PRs can still hit GitHub's own per-file diff cap (files over ~3000 lines return no `patch`). Note in the summary "diff unavailable for N large/binary files — reviewed by reading the file directly" when this happens, and prioritize the highest-risk files (auth, data access, public API surface).
 
-## Local clone convention (Step 5)
+## Repo path shape (Step 5)
 
-Repos are cloned under `~/projects/<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` would be at `~/projects/acme/my-service`.
+`<repo_path>` is `<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` → `acme/my-service`. This is a relative shape, not an absolute location — Step 5 searches for it rather than assuming a fixed clone root.
 
 ## Post comments as a pending review (Step 7)
 

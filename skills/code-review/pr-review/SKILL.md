@@ -70,14 +70,18 @@ Using the diff call from the host adapter, fetch every changed file's diff.
 
 Checking out the branch in the user's main clone would switch what's checked out from under them — disrupting whatever branch or uncommitted work they have there. A disposable worktree gives the review its own directory instead, so the main checkout is never touched.
 
-The host adapter states the local-clone path convention (it varies slightly — GitLab's namespace can nest subgroups, GitHub's is always exactly `<owner>/<repo>`).
+The host adapter states the repo path's relative shape (it varies slightly — GitLab's namespace can nest subgroups, GitHub's is always exactly `<owner>/<repo>`) — there's no single standard clone root across users, so it's found by search rather than assumed.
 
 ```bash
-# 1. Derive the path from the host adapter's convention
-ls ~/projects/<repo_path> 2>/dev/null
+# 1. Try common project-root conventions first
+for ROOT in ~/projects ~/code ~/Code ~/dev ~/src ~/Developer ~/workspace ~/source/repos; do
+  [ -d "$ROOT/<repo_path>" ] && break
+done
 
-# 2. If not found, fall back to searching by remote URL
-find ~/projects -maxdepth 5 -name ".git" -exec sh -c \
+# 2. Not found under any common root — search more broadly, matching by remote URL
+#    rather than an assumed folder name, since the URL holds regardless of this
+#    machine's own naming convention
+find ~ -maxdepth 6 -name ".git" -type d 2>/dev/null -exec sh -c \
   'git -C "$1/.." remote get-url origin 2>/dev/null' _ {} \; | grep "<repo_path>"
 
 # 3. Once found, fetch the source branch

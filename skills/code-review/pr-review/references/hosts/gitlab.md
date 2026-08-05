@@ -50,9 +50,9 @@ The response is the full MR object with an additional `changes` array. Each elem
 
 **Truncation check**: compare `response.changes.length` with `mr.changes_count` from the metadata call. If they differ, the diff is truncated — note "diff truncated — only N of M files reviewed" in the summary and prioritize the highest-risk files (auth, data access, public API surface).
 
-## Local clone convention (Step 5)
+## Repo path shape (Step 5)
 
-Repos are cloned under `~/projects/<org-id>/<group/subgroups>/<project>`, mirroring the GitLab namespace. For example, `https://gitlab.com/acme/platform/my-service` would be at `~/projects/acme/platform/my-service`.
+`<repo_path>` mirrors the GitLab namespace: `<group>/<subgroups>/<project>`. For example, `https://gitlab.com/acme/platform/my-service` → `acme/platform/my-service`. This is a relative shape, not an absolute location — GitLab imposes no fixed clone root, so Step 5 searches for it rather than assuming one.
 
 ## Post comments as draft notes (Step 7)
 
