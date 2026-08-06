@@ -14,12 +14,11 @@ Notes file format (JSON array):
   - old_path defaults to new_path (correct for new/unmodified files).
   - "general": true posts a positionless draft note (a plain discussion comment).
 
-The signature line "Co-reviewed with :robot:" is what --purge keys on, so it only
-ever deletes drafts this skill created — never the human reviewer's own drafts. The
-posted footer extends that fixed prefix with the reviewing model (and effort, if
-known) via --model/--effort, e.g. "Co-reviewed with :robot: using Sonnet 5 (high
-effort)" — but the purge match stays on the bare prefix so it still finds prior
-drafts posted under a different model or effort.
+Every note this skill posts is marked with a trailing robot emoji, and one extra
+positionless note attributes the review as a whole — "Code reviewed using Sonnet 5
+(high) 🤖", built from --model/--effort. The emoji is what --purge keys on, so a
+rerun only ever deletes drafts this skill created (a human's own drafts don't carry
+it) and finds them regardless of which model or effort posted them.
 
 Examples:
   post_review_notes.py --project acme%2Fmy-service --mr 42 \
@@ -33,16 +32,22 @@ import json
 import subprocess
 import sys
 
-SIGNATURE = "Co-reviewed with :robot:"
+MARKER = "🤖"
 
 
-def build_signature(model, effort):
-    """Extend the fixed purge-key prefix with model/effort, when known."""
+def with_marker(text):
+    """Mark a note as this skill's, unless it already ends with the marker."""
+    text = text.rstrip()
+    return text if text.endswith(MARKER) else f"{text} {MARKER}"
+
+
+def build_attribution(model, effort):
+    """The one positionless note that attributes the review as a whole."""
     if not model:
-        return SIGNATURE
+        return with_marker("Code reviewed by an AI agent")
     if effort:
-        return f"{SIGNATURE} using {model} ({effort} effort)"
-    return f"{SIGNATURE} using {model}"
+        return with_marker(f"Code reviewed using {model} ({effort})")
+    return with_marker(f"Code reviewed using {model}")
 
 
 def glab_api(path, method="GET", body=None, dry_run=False):
@@ -80,11 +85,11 @@ def draft_notes_path(project, mr, draft_id=None):
 
 
 def purge_own_drafts(project, mr, dry_run):
-    """Delete only drafts bearing this skill's signature, so reruns don't duplicate."""
+    """Delete only drafts bearing this skill's marker, so reruns don't duplicate."""
     existing = glab_api(draft_notes_path(project, mr), dry_run=dry_run) or []
     removed = 0
     for n in existing:
-        if SIGNATURE in (n.get("note") or ""):
+        if MARKER in (n.get("note") or ""):
             glab_api(draft_notes_path(project, mr, n["id"]), method="DELETE", dry_run=dry_run)
             removed += 1
     print(f"purge: removed {removed} stale draft(s) created by this skill")
@@ -102,8 +107,8 @@ def main():
     ap.add_argument("--start-sha", required=True)
     ap.add_argument("--head-sha", required=True)
     ap.add_argument("--notes", required=True, help="Path to notes JSON array")
-    ap.add_argument("--model", help="Reviewing model name, e.g. 'Sonnet 5' — appended to the footer if given")
-    ap.add_argument("--effort", help="Reviewing effort level, e.g. 'high' — appended to the footer only if --model is also given")
+    ap.add_argument("--model", help="Reviewing model name, e.g. 'Sonnet 5' — named in the attribution note if given")
+    ap.add_argument("--effort", help="Reviewing effort level, e.g. 'high' — named in the attribution note only if --model is also given")
     ap.add_argument("--purge", action="store_true", help="Delete this skill's prior drafts first")
     ap.add_argument("--dry-run", action="store_true", help="Print actions without calling the network")
     args = ap.parse_args()
@@ -113,17 +118,16 @@ def main():
     if not isinstance(notes, list):
         sys.exit("notes file must be a JSON array")
 
-    signature = build_signature(args.model, args.effort)
-
     if args.purge:
         purge_own_drafts(args.project, args.mr, args.dry_run)
+
+    attribution = post_one(args.project, args.mr, {"note": build_attribution(args.model, args.effort)}, args.dry_run)
+    print(f"attribution note: id={(attribution or {}).get('id')}")
 
     refs = {"base_sha": args.base_sha, "start_sha": args.start_sha, "head_sha": args.head_sha}
 
     for i, item in enumerate(notes, 1):
-        text = item["note"]
-        if SIGNATURE not in text:
-            text = f"{text}\n\n{signature}"
+        text = with_marker(item["note"])
 
         if item.get("general") or "new_line" not in item:
             body = {"note": text}

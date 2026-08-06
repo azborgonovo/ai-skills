@@ -17,13 +17,12 @@ Notes file format (JSON array) — same shape as the GitLab script's:
   ]
   - "general": true (or omitting new_line) folds the note into the review body.
 
-The signature line "Co-reviewed with :robot:" is what --purge keys on, so it
-only ever deletes pending reviews this skill created — never a human
-reviewer's own in-progress pending review. The posted footer extends that
-fixed prefix with the reviewing model (and effort, if known) via
---model/--effort, e.g. "Co-reviewed with :robot: using Sonnet 5 (high
-effort)" — but the purge match stays on the bare prefix so it still finds
-prior drafts posted under a different model or effort.
+Every inline comment is marked with a trailing robot emoji, and the review's own
+body attributes the review as a whole — "Code reviewed using Sonnet 5 (high) 🤖",
+built from --model/--effort. That emoji in the body is what --purge keys on, so a
+rerun only ever deletes pending reviews this skill created (a human's own
+in-progress review doesn't carry it) and finds them regardless of which model or
+effort posted them.
 
 Examples:
   post_review_notes_github.py --owner acme --repo my-service --pr 42 \
@@ -38,16 +37,22 @@ import re
 import subprocess
 import sys
 
-SIGNATURE = "Co-reviewed with :robot:"
+MARKER = "🤖"
 
 
-def build_signature(model, effort):
-    """Extend the fixed purge-key prefix with model/effort, when known."""
+def with_marker(text):
+    """Mark a comment as this skill's, unless it already ends with the marker."""
+    text = text.rstrip()
+    return text if text.endswith(MARKER) else f"{text} {MARKER}"
+
+
+def build_attribution(model, effort):
+    """The review body line that attributes the review as a whole."""
     if not model:
-        return SIGNATURE
+        return with_marker("Code reviewed by an AI agent")
     if effort:
-        return f"{SIGNATURE} using {model} ({effort} effort)"
-    return f"{SIGNATURE} using {model}"
+        return with_marker(f"Code reviewed using {model} ({effort})")
+    return with_marker(f"Code reviewed using {model}")
 
 
 def gh_api(path, method="GET", body=None, paginate=False, dry_run=False):
@@ -137,14 +142,14 @@ def create_review(owner, repo, pr, head_sha, body, comments, dry_run):
 
 
 def purge_own_pending_reviews(owner, repo, pr, dry_run):
-    """Delete only PENDING reviews bearing this skill's signature."""
+    """Delete only PENDING reviews bearing this skill's marker."""
     existing, err = gh_api(f"repos/{owner}/{repo}/pulls/{pr}/reviews", paginate=True, dry_run=dry_run)
     if err:
         print(f"purge: could not list existing reviews ({err}) — skipping")
         return
     removed = 0
     for r in existing or []:
-        if r.get("state") == "PENDING" and SIGNATURE in (r.get("body") or ""):
+        if r.get("state") == "PENDING" and MARKER in (r.get("body") or ""):
             _, del_err = gh_api(
                 f"repos/{owner}/{repo}/pulls/{pr}/reviews/{r['id']}", method="DELETE", dry_run=dry_run
             )
@@ -160,8 +165,8 @@ def main():
     ap.add_argument("--pr", required=True, help="PR number")
     ap.add_argument("--head-sha", required=True, help="Head commit SHA (headRefOid)")
     ap.add_argument("--notes", required=True, help="Path to notes JSON array")
-    ap.add_argument("--model", help="Reviewing model name, e.g. 'Sonnet 5' — appended to the footer if given")
-    ap.add_argument("--effort", help="Reviewing effort level, e.g. 'high' — appended only if --model is also given")
+    ap.add_argument("--model", help="Reviewing model name, e.g. 'Sonnet 5' — named in the review body's attribution line if given")
+    ap.add_argument("--effort", help="Reviewing effort level, e.g. 'high' — named in the attribution line only if --model is also given")
     ap.add_argument("--purge", action="store_true", help="Delete this skill's prior pending review first")
     ap.add_argument("--dry-run", action="store_true", help="Print actions without calling the network")
     args = ap.parse_args()
@@ -171,7 +176,7 @@ def main():
     if not isinstance(notes, list):
         sys.exit("notes file must be a JSON array")
 
-    signature = build_signature(args.model, args.effort)
+    attribution = build_attribution(args.model, args.effort)
 
     if args.purge:
         purge_own_pending_reviews(args.owner, args.repo, args.pr, args.dry_run)
@@ -198,11 +203,13 @@ def main():
                 "path": item["new_path"],
                 "line": int(item["new_line"]),
                 "side": "RIGHT",
-                "body": f"{text}\n\n{signature}",
+                "body": with_marker(text),
             })
             comment_raw_texts.append(text)
 
-    body_parts = [signature]
+    # Folded notes don't get their own marker — they sit under the body's
+    # attribution line, which already carries it.
+    body_parts = [attribution]
     if general_notes:
         body_parts.append("\n\n".join(f"- {n}" for n in general_notes))
     body = "\n\n".join(body_parts)
@@ -211,7 +218,7 @@ def main():
     if err:
         print(f"review creation failed with {len(comments)} inline comment(s) ({err}) — retrying with all findings folded into the body")
         fallback_notes = general_notes + comment_raw_texts
-        fallback_body = "\n\n".join([signature] + [f"- {n}" for n in fallback_notes])
+        fallback_body = "\n\n".join([attribution] + [f"- {n}" for n in fallback_notes])
         resp, err = create_review(args.owner, args.repo, args.pr, args.head_sha, fallback_body, [], args.dry_run)
         if err:
             sys.exit(f"review creation failed even with no inline comments: {err}")

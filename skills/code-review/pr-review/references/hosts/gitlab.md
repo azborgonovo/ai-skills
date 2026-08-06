@@ -72,8 +72,8 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 
 - `new_line` is the **new-file** line number (integer). `old_path` defaults to `new_path` — set it explicitly only for renamed files (use the pre-rename path).
 - Use `"general": true` (or simply omit `new_line`) for a positionless note that publishes as a general discussion comment.
-- Don't add the `Co-reviewed with :robot:` line yourself — the script appends it to every note if missing.
-- Pass `--model "<name>"` (e.g. `"Sonnet 5"`) so the footer reads "Co-reviewed with :robot: using Sonnet 5" — you always know your own model name from your environment context, so always pass this. Add `--effort "<level>"` only when you have a concrete, known effort/thinking-level setting for this session to report — never guess one just to fill the field.
+- Don't mark the notes yourself — the script appends a trailing 🤖 to each one, and posts one extra positionless note attributing the review as a whole ("Code reviewed using Sonnet 5 (high) 🤖").
+- Pass `--model "<name>"` (e.g. `"Sonnet 5"`) so that attribution note names the reviewing model — you always know your own model name from your environment context, so always pass this. Add `--effort "<level>"` only when you have a concrete, known effort/thinking-level setting for this session to report — never guess one just to fill the field.
 
 2. Run the script (it reads `diff_refs` from the metadata call and purges this skill's own prior drafts so reruns don't duplicate):
 
@@ -84,7 +84,7 @@ python3 <skill_dir>/scripts/post_review_notes_gitlab.py \
   --notes /tmp/mr<iid>_notes.json --model "<your model name>" [--effort "<level>"] --purge
 ```
 
-3. Read the per-note summary it prints. Each line reports `resolved=True/False` or `general=True`.
+3. Read the per-note summary it prints. Each line reports `resolved=True/False` or `general=True`; the attribution note is reported first, on its own line.
 
 **Why the script, and what it protects you from:**
 - GitLab **always returns HTTP 200** for `draft_notes`, even when it can't resolve the position. The real indicator is the `line_code` field in the response — GitLab only populates it when the position actually anchored to the diff. An unresolvable draft (`line_code` null) silently never publishes as an inline comment. The script detects this, deletes the draft, and re-posts it positionless so the finding is never lost — it just lands as a general discussion comment instead.

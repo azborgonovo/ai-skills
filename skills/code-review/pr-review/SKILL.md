@@ -136,6 +136,8 @@ Post each finding as a draft (GitLab draft note, GitHub pending-review comment) 
 
 The host adapter names the bundled script that handles the posting mechanics (`scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md) and the exact invocation. Both scripts share the same notes-file JSON shape — one object per finding, with `new_path`/`new_line` for an inline anchor or `"general": true` for a positionless note — so drafting findings doesn't change based on which host you're on; only the script and its extra flags differ.
 
+Both also mark each comment with a trailing 🤖 and add one positionless comment attributing the review as a whole ("Code reviewed using Sonnet 5 (high) 🤖"). Leave both to the script — writing the marker into a note yourself only risks it landing twice.
+
 **Comment format** (what goes in each `note`): default to 2-4 sentences of continuous prose — name the symbol/line, state the concrete problem, then the fix:
 ```
 `fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime. Add a nil check or return an early error.
@@ -154,7 +156,7 @@ When the finding is a clear-cut bug, assert it and prescribe the fix, as above. 
 - If a ticket acceptance criterion isn't met, quote it explicitly (the quote doesn't count against the sentence budget)
 - Avoid style nits unless they cross into real readability problems
 - Don't repeat the same finding across multiple files — pick the clearest occurrence
-- Pass `--model "<your model name>"` to the script so the footer names the reviewing model — you always know this from your environment context, so always pass it. Add `--effort "<level>"` only when you have a concrete, known effort/thinking-level setting for this session — never guess one just to fill the field.
+- Pass `--model "<your model name>"` to the script so the attribution comment names the reviewing model — you always know this from your environment context, so always pass it. Add `--effort "<level>"` only when you have a concrete, known effort/thinking-level setting for this session — never guess one just to fill the field.
 
 ### Step 8 — Remove the worktree
 

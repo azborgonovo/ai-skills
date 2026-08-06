@@ -55,7 +55,7 @@ The script is **`scripts/post_review_notes_github.py`** (relative to the SKILL.m
 
 - `new_line` is the **new-file** line number (integer). Only lines that appear with a `+` prefix in the file's `patch` are valid anchors — the script checks this itself, but anchoring to a `+` line in the first place (same rule as the GitLab adapter) means it's very unlikely to get downgraded.
 - Use `"general": true` (or omit `new_line`) for a positionless note — it gets folded into the pending review's own body text instead of an inline thread.
-- Don't add the `Co-reviewed with :robot:` line yourself — the script appends it (to each inline comment, and once to the review body).
+- Don't mark the comments yourself — the script appends a trailing 🤖 to each inline comment, and sets the review body to an attribution line for the review as a whole ("Code reviewed using Sonnet 5 (high) 🤖"), which is where GitHub shows a review's single non-inline comment.
 - Pass `--model "<name>"` and optionally `--effort "<level>"`, same convention as the GitLab adapter.
 
 2. Run the script:

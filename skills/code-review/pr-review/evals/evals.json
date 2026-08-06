@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "Review this MR for me: https://gitlab.com/acme/my-service/-/merge_requests/42",
-      "expected_output": "Skill identifies GitLab as the host and loads its adapter, fetches MR metadata, searches for a ticket reference in the title/description, fetches diffs, attempts to locate the local clone and create an isolated review worktree pinned to the MR's head SHA, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts concise inline comments via scripts/post_review_notes_gitlab.py (each ending with 'Co-reviewed with :robot: using <model>'), removes the worktree, and outputs the review summary in the conversation (does NOT post it to the MR), including a 'Worth your own look' section naming Layer 1-2 files. Does NOT approve or submit the review.",
+      "expected_output": "Skill identifies GitLab as the host and loads its adapter, fetches MR metadata, searches for a ticket reference in the title/description, fetches diffs, attempts to locate the local clone and create an isolated review worktree pinned to the MR's head SHA, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts concise inline comments via scripts/post_review_notes_gitlab.py (each ending with a 🤖, plus one positionless note reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the review summary in the conversation (does NOT post it to the MR), including a 'Worth your own look' section naming Layer 1-2 files. Does NOT approve or submit the review.",
       "files": [],
       "expectations": [
         "Skill identifies the host from the URL shape and reads references/hosts/gitlab.md before fetching anything",
         "Inline comments are posted via scripts/post_review_notes_gitlab.py rather than hand-written glab api calls",
-        "Each inline comment ends with a footer starting 'Co-reviewed with :robot:' and naming the reviewing model (e.g. 'using Sonnet 5'), with an effort parenthetical only when one is genuinely known — never a guessed value",
+        "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value",
         "Inline comments default to 2-4 sentences of continuous prose (longer only for findings whose mechanism genuinely needs it, e.g. concurrency or security) and do not contain a separately labeled 'Failure scenario:' sub-paragraph",
         "The review summary is output in the conversation, not posted to the MR",
         "The conversation summary starts with '## Code Review Summary' and includes a Coverage line naming only the layers with posted comments (or 'no comments posted')",
@@ -29,7 +29,7 @@
       "expectations": [
         "Conversation summary states no ticket was found",
         "Inline comments are still posted (review proceeds without ticket context)",
-        "Each inline comment ends with a footer starting 'Co-reviewed with :robot:' and naming the reviewing model (e.g. 'using Sonnet 5'), with an effort parenthetical only when one is genuinely known — never a guessed value",
+        "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value",
         "The review summary is output in the conversation, not posted to the MR",
         "The skill does not halt or ask for a ticket — it continues without one",
         "The skill attempts to locate a local clone and create an isolated review worktree, or notes the limitation if not found"
@@ -51,12 +51,12 @@
     {
       "id": 4,
       "prompt": "Review this pull request: https://github.com/acme/my-service/pull/123",
-      "expected_output": "Skill identifies GitHub as the host and loads references/hosts/github.md, fetches PR metadata via gh pr view, searches for a ticket reference, fetches diffs via gh api .../pulls/123/files, creates an isolated review worktree at ~/projects/acme/my-service, reviews across all five pyramid layers, posts inline comments as a single GitHub pending review via scripts/post_review_notes_github.py (each comment ending with the 'Co-reviewed with :robot:' footer), removes the worktree, and outputs the summary in the conversation with submit instructions referencing GitHub's Files changed / Review changes UI. Does not submit the review itself.",
+      "expected_output": "Skill identifies GitHub as the host and loads references/hosts/github.md, fetches PR metadata via gh pr view, searches for a ticket reference, fetches diffs via gh api .../pulls/123/files, creates an isolated review worktree at ~/projects/acme/my-service, reviews across all five pyramid layers, posts inline comments as a single GitHub pending review via scripts/post_review_notes_github.py (each comment ending with a 🤖, and the review body reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the summary in the conversation with submit instructions referencing GitHub's Files changed / Review changes UI. Does not submit the review itself.",
       "files": [],
       "expectations": [
         "Skill identifies GitHub as the host from the URL shape and reads references/hosts/github.md before fetching anything",
         "Inline comments are posted via scripts/post_review_notes_github.py as a single pending review, not via hand-written gh api calls",
-        "Each inline comment ends with a footer starting 'Co-reviewed with :robot:' and naming the reviewing model",
+        "Each inline comment ends with a trailing 🤖 and the pending review's body attributes the review, naming the reviewing model (e.g. 'Code reviewed using Sonnet 5 🤖')",
         "The review summary is output in the conversation, not posted to the PR",
         "The summary's submit instructions reference GitHub's own UI (Files changed / Review changes), not GitLab's",
         "The skill attempts to locate a local clone and create an isolated review worktree at the GitHub owner/repo path, or notes the limitation if not found",
