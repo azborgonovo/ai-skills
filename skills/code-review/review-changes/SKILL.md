@@ -1,16 +1,19 @@
 ---
 name: review-changes
-description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+description: >
+  Reviews the diff between HEAD and a fixed point (commit, branch, tag, or merge-base) using the Code
+  Review Pyramid, split across two parallel sub-agents by cost-of-change — Foundation (API and
+  implementation semantics, including conformance to the originating issue/spec) and Supporting
+  (documentation, tests, and code style) — then reports them base-first. Use when the user wants to
+  review a branch, a PR, work-in-progress changes, or asks to "review since X".
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Pyramid-driven review of the diff between `HEAD` and a fixed point the user supplies.
 
-- **Standards** — does the code conform to this repo's documented coding standards?
-- **Spec** — does the code faithfully implement the originating issue / spec?
+The [Code Review Pyramid](../code-review-pyramid/SKILL.md) orders review attention by how expensive a mistake is to unwind: API semantics at the base, code style at the apex. This skill splits along that grain into two **parallel sub-agents**, so they don't pollute each other's context:
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
-
-The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
+- **Foundation** — Layers 1-2 (API Semantics, Implementation Semantics), where a mistake is costly and needs the deepest read. Spec conformance lives here, since Layer 2's first question is "does it satisfy the original requirements?"
+- **Supporting** — Layers 3-5 (Documentation, Tests, Code Style), where the pyramid says to lean on automation and spend proportionally less manual attention.
 
 ## Process
 
@@ -22,66 +25,53 @@ Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so th
 
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
 
-### 2. Identify the spec source
+### 2. Gather review context
 
-Look for the originating spec, in this order:
+**The spec** — look for the originating spec, in this order:
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
+1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.), fetched with whatever tracker tooling is available — discover it with a keyword `ToolSearch` or the platform's own CLI.
 2. A path the user passed as an argument.
 3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+4. If nothing is found, ask the user where the spec is.
 
-### 3. Identify the standards sources
+If the user says there isn't one, the Foundation sub-agent still runs — it skips the requirements check and reports the review as spec-less. Say so in the final report too, so a reader knows conformance was never assessed.
 
-Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+**The standards** — anything in the repo documenting how code should be written: `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `CLAUDE.md`, or an equivalent. A documented repo standard overrides a generic pyramid question wherever the two disagree, so both sub-agents get this list.
 
-On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
+### 3. Load the pyramid
 
-- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
-- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation — and, like any standard here, skip anything tooling already enforces.
+If the `code-review-pyramid` skill is listed in the available skills, invoke it (via the Skill tool with `skill: "code-review-pyramid"`) to load the full layer definitions and their questions. If it isn't available, fall back to your own judgment of what belongs at each layer and continue — the split below still holds.
 
-Each smell reads *what it is* → *how to fix*; match it against the diff:
-
-- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
-- **Duplicated Code** — the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
-- **Feature Envy** — a method that reaches into another object's data more than its own. → move the method onto the data it envies.
-- **Data Clumps** — the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
-- **Primitive Obsession** — a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
-- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
-- **Shotgun Surgery** — one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
-- **Divergent Change** — one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
-- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
-- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
-- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
-- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
+Loading it here rather than in the sub-agents is deliberate: it puts every layer's questions in *your* context, so step 4 can hand each sub-agent its own layer questions directly rather than relying on the sub-agent being able to reach the Skill tool itself.
 
 ### 4. Spawn both sub-agents in parallel
 
-**Standards sub-agent prompt** — include:
+**Foundation sub-agent prompt** — include:
 
 - The full diff command and commit list.
-- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
-- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+- The Layer 1 and Layer 2 questions, **copied verbatim from the pyramid you loaded in step 3** — the sub-agent has no other access to them.
+- The path or fetched contents of the spec, and the standards-source list from step 2.
+- The brief: "Report — per file/hunk where relevant — (a) API-surface and contract problems: leaked internals, inconsistency, breaking changes to user-facing parts; (b) implementation problems: incorrect logic, unnecessary complexity, concurrency or error-handling gaps, security, observability, dependencies that don't pull their weight; (c) spec requirements that are missing, partial, or implemented wrongly — quote the spec line for each; (d) behavior in the diff the spec didn't ask for (scope creep). Cite the standard (file + rule) when a documented repo standard is what's breached, and treat that standard as overriding any pyramid question it contradicts. Distinguish hard violations from judgment calls. Skip anything tooling enforces. Under 400 words."
 
-**Spec sub-agent prompt** — include:
+**Supporting sub-agent prompt** — include:
 
 - The diff command and commit list.
-- The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
-
-If the spec is missing, skip the Spec sub-agent and note this in the final report.
+- The Layer 3, 4, and 5 questions, copied verbatim from the loaded pyramid.
+- The standards-source list from step 2.
+- The brief: "Report (a) new behavior that should be documented and isn't, across whichever doc kinds this repo keeps; (b) new behavior that isn't reasonably tested, corner cases left uncovered, or the wrong test level for the job; (c) style and naming that breaks a documented convention or crosses into a real readability problem. Report only what a linter, formatter, or CI gate would *not* already catch — this end of the pyramid is meant to be automated, so a finding tooling already enforces is noise. Under 200 words."
 
 ### 5. Aggregate
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
+Present the two reports under `## Foundation — API & Implementation Semantics` and `## Supporting — Documentation, Tests & Style`, verbatim or lightly cleaned, Foundation first.
 
-End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+Rank base-first: a Foundation finding outranks a Supporting one by construction — that ordering is the pyramid's whole claim, and the section order already carries it. Within a section, order by severity.
 
-## Why two axes
+A sub-agent's report is a claim, not a fact. Before relaying a quoted hunk or a `file:line` reference, confirm it actually appears in the diff — a confidently misquoted snippet reads exactly like a real finding.
 
-A change can pass one axis and fail the other:
+End with a one-line summary: the count per section, and the worst Foundation finding (if any). Note there too if the review ran without a spec.
 
-- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
-- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+## Why split by layer
 
-Reporting them separately stops one axis from masking the other.
+A single reviewer holding all five layers at once tends to fill its report with the cheap findings — a naming nit is easier to spot and state than a contract that leaks an internal type. Isolating the base from the apex protects the expensive findings twice over: in the sub-agent's context, where style observations can't crowd out the deeper read, and in the reader's attention, where the section order says plainly which findings are worth their time first.
+
+That's also why the two sections get different word budgets. Equal space per layer would flatten the pyramid into a checklist and quietly contradict the framework it's built on.
