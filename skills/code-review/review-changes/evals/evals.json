@@ -1,0 +1,104 @@
+{
+  "skill_name": "review-changes",
+  "fixture": {
+    "description": "A synthetic `orders-service` repo with a base commit on `main` and a `feature/partial-refunds` branch. `CODING_STANDARDS.md` sits in the base commit of every variant so standards discovery is always exercised, and `specs/ORD-104-partial-refunds.md` is present in all variants but `defective-nospec`.",
+    "builder": "evals/build_fixture.py <dest-dir> <variant>",
+    "variants": {
+      "defective": "Ten planted defects, at least one per pyramid layer, deliberately crossing the severity/layer grain so that Supporting-layer findings are blocking and a Foundation-layer finding is not. Spec discoverable via `Closes ORD-104` in a commit message.",
+      "defective-nospec": "The same code, but no spec file ever existed and no commit message references a ticket. Tests whether the review caveats honestly rather than stalling or inventing conformance findings.",
+      "regression": "Reads clean on a diff review \u2014 every acceptance criterion implemented, tested, documented, SQL parameterized, naming and type hints conformant \u2014 but `post_refund` was rerouted to `refund`, which lacks the `already_refunded` guard that only `refund_order` still applies. A second full refund through the endpoint now returns a zero-cent refund where `main` rejected it, breaking AC-5. The suite passes; finding it takes executing both branches.",
+      "clean": "The same feature implemented correctly, including the guard the `regression` variant drops. No defects. Tests whether the review invents blocking findings when there are none."
+    },
+    "placeholder": "`<fixture-repo>` in each prompt below is the absolute path to the built fixture for that eval's variant.",
+    "notes": "There is no CI in any variant. The suite runs locally via `.venv/bin/python -m pytest` and the README says so, which is what makes the skill's test-status rule testable: a review must establish status from the local run and say which signal it used, rather than reporting it unverified.",
+    "known_true_findings": "Beyond the planted defects, three real issues exist in every variant and a correct review may raise any of them: `amount_cents` is never validated as an integer, so a float like 49.99 is accepted and stored; the check-then-act read of the refunded total has no transaction primitive; and in the `regression` and `clean` variants `refund_order` now delegates to `refund`, so the 90-day window applies to full refunds where it did not on `main`. Do not grade these as fabrications \u2014 they reproduce. The float gap in particular is the one unaided reviews catch and skill-driven ones have repeatedly missed, so it is worth tracking as a coverage signal."
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "spec-present-defective-diff",
+      "variant": "defective",
+      "prompt": "I've wrapped up the partial refunds work on this branch. Review the diff since main for me before I put it up for review. The repo is at <fixture-repo>.",
+      "expected_output": "Verdict is Request changes. The review finds the missing AC-4 refund window, the over-refund bug that ignores prior refunds, the f-string SQL injection, and the unrequested amount_cents -> amount rename, cites CODING_STANDARDS.md by rule where one is breached, quotes the spec line for each unmet requirement, separately flags the Slack notification as behavior the spec never asked for, and reports the committed skipped test and the missing AC-4 test as blocking. Findings are split by severity rather than by layer, each tagged with its pyramid layer and a file:line reference, under the skill's report template.",
+      "files": [],
+      "assertions": [
+        "Verdict is 'Request changes'",
+        "Finds the missing 90-day refund window (AC-4 is not implemented at all) and quotes or cites the acceptance criterion",
+        "Finds the over-refund bug: the guard compares against the order total while ignoring refunds already recorded, so repeated partial refunds can exceed AC-2's limit",
+        "Finds the f-string SQL interpolation in _log_refund_audit and cites the CODING_STANDARDS.md database-access rule",
+        "Finds the amount_cents to amount rename in serialize_refund and identifies it as an unrequested breaking change to a client-facing contract",
+        "Flags the Slack notification separately as behavior the spec never asked for, rather than folding it into an unrelated finding",
+        "Reports the committed @pytest.mark.skip as a requested change, citing the standards rule that tests are never committed skipped",
+        "Notes that no test covers AC-4",
+        "Notes that README.md still documents amount_cents and the full-refund-only endpoint",
+        "Every finding carries a pyramid layer tag and a file or file:line reference",
+        "Report follows the template: verdict as an H2 heading on the first line, a summary paragraph, then 'Requested changes' and 'Suggestions', plus a 'Path to merge' sequence",
+        "Severity drives placement rather than layer: at least one Supporting-layer finding (documentation, tests, or style) appears under Requested changes",
+        "Every blocking finding reproduces when checked against the repo \u2014 no finding misstates what the code does",
+        "Every claim in the 'Checked and clean' section is true of the code; nothing is certified clean that a check would disprove",
+        "Every finding carries exactly one layer tag, and the tag matches the pyramid layer the finding actually belongs to rather than merely being present",
+        "Every acceptance criterion is accounted for explicitly in a 'Spec accounting' section rather than summarized in prose"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "no-spec-defective-diff",
+      "variant": "defective-nospec",
+      "prompt": "Review my changes since main. There's no ticket or spec for this one \u2014 it came out of a support escalation last week. The repo is at <fixture-repo>.",
+      "expected_output": "Verdict is Request changes. The review states up front that no spec was available and that conformance was therefore never assessed, then reviews everything else fully \u2014 the over-refund bug, the SQL injection, the breaking rename, the skipped test \u2014 without claiming any spec violation it cannot support. It does not stall waiting for a spec.",
+      "files": [],
+      "assertions": [
+        "Verdict is 'Request changes'",
+        "The review states plainly that no spec was available and that conformance was not assessed",
+        "A complete review is still produced \u2014 the skill does not halt, refuse, or return only a request for the spec",
+        "The over-refund bug is still found without a spec to compare against",
+        "The f-string SQL interpolation is still found and the CODING_STANDARDS.md rule cited",
+        "The committed @pytest.mark.skip is still reported",
+        "No finding is asserted as a spec or acceptance-criterion violation, since no spec exists to cite",
+        "Every blocking finding reproduces when checked against the repo \u2014 no finding misstates what the code does",
+        "Every claim in the 'Checked and clean' section is true of the code; nothing is certified clean that a check would disprove",
+        "Every finding carries exactly one layer tag, and the tag matches the pyramid layer the finding actually belongs to rather than merely being present"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "subtle-regression-diff",
+      "variant": "regression",
+      "prompt": "Can you review this branch against main? I think it's ready to merge. The repo is at <fixture-repo>.",
+      "expected_output": "Verdict is Request changes, on the strength of the guard bypass. The review identifies that post_refund now routes through refund, which lacks the already_refunded guard, so a second full refund through the endpoint succeeds where main rejected it \u2014 an AC-5 regression the passing suite misses because its AC-5 test calls refund_order directly. Nothing that does not exist on this branch is reported.",
+      "files": [],
+      "assertions": [
+        "Verdict is 'Request changes'",
+        "Finds that post_refund was rerouted to refund(), bypassing the already_refunded guard that only refund_order still applies, so a second full refund through the endpoint now succeeds where main rejected it",
+        "Identifies the bypass as a regression against AC-5, which requires existing full-refund behavior to be unchanged for callers that pass no amount",
+        "Notes that the existing AC-5 test passes only because it calls refund_order directly and never exercises the changed api.post_refund path",
+        "No fabricated defect: the review does not claim a SQL injection, a _cents naming breach, or an entirely unimplemented acceptance criterion, none of which exist on this branch",
+        "Test-passing status is reported either from an actual run of the suite (7 passed) or explicitly as unverified",
+        "Every blocking finding reproduces when checked against the repo \u2014 no finding misstates what the code does",
+        "Every claim in the 'Checked and clean' section is true of the code; nothing is certified clean that a check would disprove",
+        "Every finding carries exactly one layer tag, and the tag matches the pyramid layer the finding actually belongs to rather than merely being present",
+        "Every acceptance criterion is accounted for explicitly in a 'Spec accounting' section rather than summarized in prose"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "clean-diff-no-fabrication",
+      "variant": "clean",
+      "prompt": "Can you review this branch against main? I think it's ready to merge. The repo is at <fixture-repo>.",
+      "expected_output": "Verdict is Approved or Approved with suggestions. No blocking findings are invented: all five acceptance criteria are implemented, each has a test, the README is updated, SQL is parameterized, money fields keep their _cents suffix, type hints are complete, and the duplicate-refund guard holds through the HTTP path. Test-passing status is either established by running the suite or reported as unverified, and if unverified the verdict is capped below a clean Approved.",
+      "files": [],
+      "assertions": [
+        "Verdict is 'Approved' or 'Approved with suggestions', not 'Request changes'",
+        "The Requested changes list is empty or absent",
+        "No fabricated defect: the review does not claim a missing acceptance criterion, an over-refund bug, a SQL injection, a breaking field rename, or a dropped duplicate-refund guard, none of which exist on this branch",
+        "Conformance is confirmed against the spec, with all five acceptance criteria accounted for",
+        "Test-passing status is reported either from an actual run of the suite (9 passed) or explicitly as unverified",
+        "If test status is reported as unverified, the verdict is capped at 'Approved with suggestions' rather than 'Approved', per the skill's caveat rule",
+        "Every blocking finding reproduces when checked against the repo \u2014 no finding misstates what the code does",
+        "Every claim in the 'Checked and clean' section is true of the code; nothing is certified clean that a check would disprove",
+        "Every finding carries exactly one layer tag, and the tag matches the pyramid layer the finding actually belongs to rather than merely being present",
+        "Every acceptance criterion is accounted for explicitly in a 'Spec accounting' section rather than summarized in prose"
+      ]
+    }
+  ]
+}

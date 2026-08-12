@@ -32,7 +32,7 @@ Structure and carry out code reviews with a consistent, cost-of-change-driven fr
 - **[/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md)** — Knowledge base for Gunnar Morling's Code Review Pyramid. *Auto · Adopt*
 - **[/pr-review](skills/code-review/pr-review/SKILL.md)** — Reviews a GitLab MR or GitHub PR against its linked tracker ticket and posts inline comments on the diff for you to submit. *Manual · Adopt*
 - **[/address-pr-comments](skills/code-review/address-pr-comments/SKILL.md)** — Triages every open review thread on a GitLab MR or GitHub PR, fixes what needs fixing, then replies and resolves each thread. *Manual · Trial*
-- **[/review-changes](skills/code-review/review-changes/SKILL.md)** — Reviews the diff since a fixed point with the Code Review Pyramid, splitting foundation layers from supporting ones across parallel sub-agents, then reports one verdict — approved, approved with suggestions, or request changes. *Auto · Trial*
+- **[/review-changes](skills/code-review/review-changes/SKILL.md)** — Reviews the diff since a fixed point with the Code Review Pyramid, then reports one verdict — approved, approved with suggestions, or request changes. *Auto · Trial*
 
 ### `decisions`
 
