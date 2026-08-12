@@ -46,19 +46,21 @@ Loading it here rather than in the sub-agents is deliberate: it puts every layer
 
 ### 4. Spawn both sub-agents in parallel
 
+Issue both `Agent` calls in a single message, using the `general-purpose` agent type — each needs to read files and run `git`.
+
 **Foundation sub-agent prompt** — include:
 
-- The full diff command and commit list.
-- The Layer 1 and Layer 2 questions, **copied verbatim from the pyramid you loaded in step 3** — the sub-agent has no other access to them.
+- The Layer 1 and Layer 2 questions, copied verbatim from the pyramid loaded in step 3.
+- The diff command and commit list.
 - The path or fetched contents of the spec, and the standards-source list from step 2.
-- The brief: "Report — per file/hunk where relevant — (a) API-surface and contract problems: leaked internals, inconsistency, breaking changes to user-facing parts; (b) implementation problems: incorrect logic, unnecessary complexity, concurrency or error-handling gaps, security, observability, dependencies that don't pull their weight; (c) spec requirements that are missing, partial, or implemented wrongly — quote the spec line for each; (d) behavior in the diff the spec didn't ask for (scope creep). Cite the standard (file + rule) when a documented repo standard is what's breached, and treat that standard as overriding any pyramid question it contradicts. Distinguish hard violations from judgment calls. Skip anything tooling enforces. Under 400 words."
+- The brief: "Work through every question above, not just the ones that surface first. These are the most expensive mistakes in this diff to unwind, so read deeply. Report findings citing `file:line`. Quote the spec line for every requirement that is missing, partial, or implemented wrongly, and separately flag behavior in the diff the spec never asked for. Read the repo's standards as a constraint on what 'correct' and 'consistent' mean here — cite the standard (file + rule) when one is what's breached, treat it as overriding any question above that it contradicts, and report a documented convention as settled rather than as a problem. Leave style, naming, formatting, and documentation review to the other reviewer. Distinguish hard violations from judgment calls. Under 500 words."
 
 **Supporting sub-agent prompt** — include:
 
+- The Layer 3, 4, and 5 questions, copied verbatim from the pyramid loaded in step 3.
 - The diff command and commit list.
-- The Layer 3, 4, and 5 questions, copied verbatim from the loaded pyramid.
 - The standards-source list from step 2.
-- The brief: "Report (a) new behavior that should be documented and isn't, across whichever doc kinds this repo keeps; (b) new behavior that isn't reasonably tested, corner cases left uncovered, or the wrong test level for the job; (c) style and naming that breaks a documented convention or crosses into a real readability problem. Report only what a linter, formatter, or CI gate would *not* already catch — this end of the pyramid is meant to be automated, so a finding tooling already enforces is noise. Under 200 words."
+- The brief: "Work through every question above, not just the ones that surface first. Documentation, tests, style, naming, and formatting are yours; API and implementation semantics belong to the other reviewer. The repo's standards are the second half of your checklist: they are the conventions the author was expected to follow, so cite the standard (file + rule) whenever the diff breaches one. Report documentation and test gaps first, then style. Answer 'are all tests passing' from an actual CI result, or report it as unverified. Report findings citing `file:line`. Under 200 words."
 
 ### 5. Aggregate
 
@@ -69,9 +71,3 @@ Rank base-first: a Foundation finding outranks a Supporting one by construction 
 A sub-agent's report is a claim, not a fact. Before relaying a quoted hunk or a `file:line` reference, confirm it actually appears in the diff — a confidently misquoted snippet reads exactly like a real finding.
 
 End with a one-line summary: the count per section, and the worst Foundation finding (if any). Note there too if the review ran without a spec.
-
-## Why split by layer
-
-A single reviewer holding all five layers at once tends to fill its report with the cheap findings — a naming nit is easier to spot and state than a contract that leaks an internal type. Isolating the base from the apex protects the expensive findings twice over: in the sub-agent's context, where style observations can't crowd out the deeper read, and in the reader's attention, where the section order says plainly which findings are worth their time first.
-
-That's also why the two sections get different word budgets. Equal space per layer would flatten the pyramid into a checklist and quietly contradict the framework it's built on.
