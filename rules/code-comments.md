@@ -5,7 +5,7 @@ Every piece of explanation has exactly one home. Pick it by what kind of explana
 ## Route the explanation
 
 - **Why this change was made** — the approach chosen, the alternatives rejected, the performance win, the constraint
-  that forced it: write it in the commit message body and the MR description.
+  that forced it: write it in the commit message body and the PR description.
 - **What a member does, and how it behaves** — write it as documentation on the declaration, in the language's own
   documentation-comment format.
 - **A fact the reader needs at this exact line and cannot get from the code** — a magic value's origin, a workaround for
@@ -22,7 +22,7 @@ Read the file's existing comments before writing one, and land within the same d
 itself in five lines across three hundred gets the same treatment for the code you add.
 
 Document a new member when its siblings are documented. In a type whose members carry no documentation, add the member
-bare and put what you would have documented into the MR description instead.
+bare and put what you would have documented into the PR description instead.
 
 ## Size
 

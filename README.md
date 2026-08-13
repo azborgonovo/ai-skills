@@ -135,7 +135,7 @@ Clone the repo, then run the link script:
 
 ```bash
 git clone https://github.com/azborgonovo/ai-skills
-python scripts/link_skills.py
+python scripts/link_claude_extensions.py
 ```
 
 This links every skill — published (nested under `skills/<plugin>/`) and draft (under `skills/drafts/`) — into

@@ -34,4 +34,4 @@ The same applies to `rules/`: whenever a rule is added, removed, or renamed ther
 
 Put guidance in `rules/` when it has to be in context *before* the harness acts: conventions it would otherwise violate on its first edit, with no prompt along the way that would make it reach for a skill. Put guidance in `skills/` when a prompt or a task kicks it off.
 
-Rules cost context in every session, so scope anything language- or stack-specific with `paths` frontmatter and keep each file short. Rules cannot ship as a plugin — [a plugin contributes context only through skills, agents, and hooks](https://code.claude.com/docs/en/plugins-reference) — so they reach other machines through `scripts/link_skills.py`, which symlinks them into `~/.claude/rules/`.
+Rules cost context in every session, so scope anything language- or stack-specific with `paths` frontmatter and keep each file short. Rules cannot ship as a plugin — [a plugin contributes context only through skills, agents, and hooks](https://code.claude.com/docs/en/plugins-reference) — so they reach other machines through `scripts/link_claude_extensions.py`, which symlinks them into `~/.claude/rules/`.
