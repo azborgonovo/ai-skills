@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Link this repo's skills into ~/.claude/skills (cross-platform).
+"""Link this repo's skills into ~/.claude/skills and rules into ~/.claude/rules (cross-platform).
 
 By default only local skills (this repo's own, under skills/) are linked. Pass
 --include-external (--ie) to also clone/update and link the third-party skills
 listed in personal/external-skills.conf.
+
+Rules under rules/ are always linked. They load into every session rather than on
+demand, which is why they are rules and not skills, and why plugins cannot carry
+them: a plugin contributes context only through skills, agents, and hooks.
 """
 
 import os
@@ -16,6 +20,8 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO       = SCRIPT_DIR.parent
 DEST       = Path.home() / ".claude" / "skills"
+RULES_SRC  = REPO / "rules"
+RULES_DEST = Path.home() / ".claude" / "rules"
 CONF_FILE  = SCRIPT_DIR / "personal" / "external-skills.conf"
 
 INCLUDE_EXTERNAL = any(arg in ("--include-external", "--ie") for arg in sys.argv[1:])
@@ -59,8 +65,10 @@ def make_symlink(src: Path, target: Path) -> str:
             target.unlink()
         except OSError:
             os.rmdir(target)  # directory symlinks/junctions unlink as dirs
-    elif target.exists():
+    elif target.is_dir():
         shutil.rmtree(target)
+    elif target.exists():
+        target.unlink()  # rules link file-to-file, so the target can be a plain file
 
     if sys.platform == "win32" and src.is_dir():
         # Directory junctions need no elevated privileges, unlike directory symlinks.
@@ -111,17 +119,21 @@ if INCLUDE_EXTERNAL and clone_dir and skill_entries:
             subprocess.run(["git", "clone", url, str(clone_dest)], check=True)
             item(f"[{'cloned':<10}] {local_name}")
 
-# --- Guard: DEST must not be a symlink into this repo ---
+# --- Guard: a destination must not be a symlink into this repo ---
 
-if DEST.is_symlink():
-    resolved = DEST.resolve()
-    try:
-        resolved.relative_to(REPO)
-        abort(f"{DEST} is a symlink into this repo ({resolved}). Remove it and re-run.")
-    except ValueError:
-        pass
+def prepare_dest(dest: Path) -> None:
+    """Abort if dest is a symlink into this repo, otherwise make sure it exists."""
+    if dest.is_symlink():
+        resolved = dest.resolve()
+        try:
+            resolved.relative_to(REPO)
+            abort(f"{dest} is a symlink into this repo ({resolved}). Remove it and re-run.")
+        except ValueError:
+            pass
+    dest.mkdir(parents=True, exist_ok=True)
 
-DEST.mkdir(parents=True, exist_ok=True)
+
+prepare_dest(DEST)
 
 step(f"Linking skills to {DEST}")
 
@@ -175,6 +187,16 @@ if INCLUDE_EXTERNAL and clone_dir:
         report(skill_name, make_symlink(src, target), f"external: {local_name}")
 elif skill_entries:
     item(f"[{'skipped':<10}] {len(skill_entries)} external skill(s)  (re-run with --include-external to include)")
+
+# --- Link rules, file by file, so hand-written rules alongside them are left alone ---
+
+rule_files = sorted(RULES_SRC.glob("*.md")) if RULES_SRC.is_dir() else []
+
+if rule_files:
+    prepare_dest(RULES_DEST)
+    step(f"Linking rules to {RULES_DEST}")
+    for rule_file in rule_files:
+        report(rule_file.name, make_symlink(rule_file, RULES_DEST / rule_file.name))
 
 # --- Report skills present in DEST that this run did not manage ---
 

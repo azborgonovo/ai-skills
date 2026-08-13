@@ -1,8 +1,9 @@
 # ai-skills
 
-Skills and tools carefully crafted to enhance **software delivery** capabilities of AI harnesses.
+Skills, rules, and tools carefully crafted to enhance **software delivery** capabilities of AI harnesses.
 
-Use them as Claude Plugins or simply clone this repository and symlink skills into your own folders. 
+Use the skills as Claude Plugins or simply clone this repository and symlink them into your own folders. Rules are
+symlink-only: they load into every session, and a plugin contributes context only through skills, agents, and hooks.
 
 Status reflects the maturity of each skill based on my usage and results I achieved with them:
 - *Adopt*: proven on real work, use with confidence
@@ -70,6 +71,19 @@ Not yet published to the Claude marketplace. These are **not** installable as pl
 - **[/pareto](skills/drafts/pareto/SKILL.md)** — Ranks the causes driving most of an outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that bought. *Manual · Draft*
 - **[/team-topologies](skills/drafts/team-topologies/SKILL.md)** — Knowledge base for Team Topologies: team types, interaction modes, cognitive load, and Conway's Law for organizing teams for fast flow. *Auto · Draft*
 
+## Rules
+
+Standing instructions loaded into every session, rather than invoked like a skill. They cover conventions that have to
+be in context *before* the first line is written, so waiting for the model to reach for a skill would be too late.
+
+Rules scoped with `paths` frontmatter load only when the harness touches a matching file.
+
+- **[`code-comments.md`](rules/code-comments.md)** — Routes each kind of explanation to one home: change rationale to
+  the commit message, member behavior to its documentation comment, line-local facts to a short inline comment,
+  everything else into a name. Matches the comment density of the file being edited. *All files*
+- **[`csharp-xml-docs.md`](rules/csharp-xml-docs.md)** — `<summary>` always, written to stand alone in IntelliSense;
+  `<remarks>` for the implementation semantics that would otherwise bury it or leak into call sites. *`**/*.cs`*
+
 ## Tools
 
 Tools that use AI harnesses rather than being used by them (like skills).
@@ -124,9 +138,22 @@ git clone https://github.com/azborgonovo/ai-skills
 python scripts/link_skills.py
 ```
 
-This links this skills published (nested under `skills/<plugin>/`) and draft (under `skills/drafts/`) — into `~/.claude/skills/`.
+This links every skill — published (nested under `skills/<plugin>/`) and draft (under `skills/drafts/`) — into
+`~/.claude/skills/`, and every rule under `rules/` into `~/.claude/rules/`.
 
 Symlinks mean changes in any cloned repo are immediately reflected without re-running the script.
+
+### Rules
+
+Rules ship only through the link script above; there is no plugin equivalent. It links them file by file into
+`~/.claude/rules/`, where they apply to every project on the machine, and leaves any hand-written rule sitting beside
+them untouched.
+
+To scope a rule to one project instead of all of them, symlink it into that project's `.claude/rules/`:
+
+```bash
+ln -s ~/code/github-azborgonovo/ai-skills/rules/csharp-xml-docs.md .claude/rules/csharp-xml-docs.md
+```
 
 ### Tools
 

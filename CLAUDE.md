@@ -1,6 +1,6 @@
 # Repository guidelines
 
-Working guidelines for this repository: how work lands, how to write commits, author skills, and version plugins.
+Working guidelines for this repository: how work lands, how to write commits, author skills and rules, and version plugins.
 
 ## Trunk-based development
 
@@ -27,3 +27,11 @@ See the `plugin-versioning` skill for how to bump a plugin's SemVer version befo
 ## Keeping the README in sync
 
 `README.md` is the only listing a user actually reads to discover what a plugin offers — nothing regenerates it from the `skills/` tree, so a skill that exists in code but not in the README is invisible to them. Whenever a skill is added, removed, or renamed under `skills/<plugin>/`, update that plugin's entry in the README's [Plugins](README.md#plugins) section in the same commit (or the [Draft skills](README.md#draft-skills) section for anything under `skills/drafts/`): the one-line description, its `Auto`/`Manual` invocation, and its `Draft`/`Trial`/`Adopt` status.
+
+The same applies to `rules/`: whenever a rule is added, removed, or renamed there, update its entry in the README's [Rules](README.md#rules) section in the same commit — the one-line description and the paths it is scoped to.
+
+## Rules vs skills
+
+Put guidance in `rules/` when it has to be in context *before* the harness acts: conventions it would otherwise violate on its first edit, with no prompt along the way that would make it reach for a skill. Put guidance in `skills/` when a prompt or a task kicks it off.
+
+Rules cost context in every session, so scope anything language- or stack-specific with `paths` frontmatter and keep each file short. Rules cannot ship as a plugin — [a plugin contributes context only through skills, agents, and hooks](https://code.claude.com/docs/en/plugins-reference) — so they reach other machines through `scripts/link_skills.py`, which symlinks them into `~/.claude/rules/`.
