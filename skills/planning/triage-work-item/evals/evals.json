@@ -5,10 +5,10 @@
     {
       "id": 1,
       "prompt": "Can you triage <JIRA_ISSUE_URL>? Look into why this is happening and post your analysis as a comment on the issue. The codebase(s) that implement this feature are at <CODEBASE_ROOT_1> and <CODEBASE_ROOT_2>.",
-      "expected_output": "Recognizes the URL as Jira, fetches the full issue and comment thread via the Atlassian tools, confirms each repo checkout is current with its remote (pulling if behind) before dispatching investigation, investigates the given repos via a subagent, independently re-verifies the key claims, drafts with the default template opening with a 'Triaged with 🤖 using <model>' attribution line, and posts automatically since no dry-run was requested.",
+      "expected_output": "Recognizes the URL as Jira, fetches the full issue and comment thread via whichever Jira backend the adapter selects, confirms each repo checkout is current with its remote (pulling if behind) before dispatching investigation, investigates the given repos via a subagent, independently re-verifies the key claims, drafts with the default template opening with a 'Triaged with 🤖 using <model>' attribution line, and posts automatically since no dry-run was requested.",
       "files": [],
       "assertions": [
-        {"text": "Identifies the tracker as Jira from the atlassian.net/browse URL and uses the Atlassian tools (getJiraIssue / addCommentToJiraIssue), not the gh CLI", "class": "behavior"},
+        {"text": "Identifies the tracker as Jira from the atlassian.net/browse URL and drives it through one of the adapter's two Jira backends \u2014 the twg CLI (jira workitem get / comment create) or the Atlassian MCP tools (getJiraIssue / addCommentToJiraIssue) \u2014 not the gh CLI", "class": "behavior"},
         {"text": "Fetches the issue with its full comment thread and factors in later comments, not just the description", "class": "behavior"},
         {"text": "Confirms each repo checkout is current with its remote before dispatching investigation, pulling (or using a worktree) if it's behind", "class": "behavior"},
         {"text": "Delegates the codebase investigation to a subagent rather than grepping the repo inline", "class": "behavior"},
