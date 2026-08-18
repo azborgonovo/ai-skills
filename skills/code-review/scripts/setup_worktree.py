@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Locate a repo's local clone and prepare an isolated fix worktree — reliably.
+"""Locate a repo's local clone and prepare an isolated worktree for a change — reliably.
 
-Replaces the inline bash that used to live in SKILL.md Step 3. Handles locating the
-clone across common project-root conventions (there's no one standard location, and
-hardcoding one breaks for anyone who doesn't use it), refuses to clobber a leftover
-worktree from a prior crashed run unless it's fully pushed, and refuses to build on a
-branch that's checked out somewhere else (e.g. the user's main clone) rather than
-forcing past either collision. Uses subprocess argument lists throughout, never a
-shell — so there's no bash/PowerShell dialect to get wrong, and no quoting to get
-subtly right.
+Lives at the plugin root rather than inside either skill because both need it:
+address-pr-comments needs a worktree it can commit on (checked out on the source
+branch), pr-review needs one it only reads (detached at the change's head SHA, which
+can never collide with a branch already checked out elsewhere).
+Handles locating the clone across common project-root conventions (there's no one
+standard location, and hardcoding one breaks for anyone who doesn't use it), refuses to
+clobber a leftover worktree from a prior crashed run unless it's fully pushed, and
+refuses to build on a branch that's checked out somewhere else (e.g. the user's main
+clone) rather than forcing past either collision. Uses subprocess argument lists
+throughout, never a shell — so there's no bash/PowerShell dialect to get wrong, and no
+quoting to get subtly right.
 
 On success, prints "WORKTREE_PATH: <path>" as the last line. On any refusal, prints
 "STOP: <reason>" and exits non-zero — the calling skill should stop and ask the user
@@ -17,6 +20,8 @@ how to proceed rather than working around it.
 Examples:
   setup_worktree.py --repo-path acme/platform/my-service --source-branch fix/login --change-id 42
   setup_worktree.py --repo-root ~/dev/my-service --source-branch fix/login --change-id 42
+  setup_worktree.py --repo-path acme/my-service --source-branch fix/login --change-id 42 \
+      --purpose review --detach-sha 9fceb02 --target-branch main
 """
 
 import argparse
@@ -64,12 +69,21 @@ def find_by_remote_url(repo_path):
     return None
 
 
+def has_unpushed_work(worktree_path):
+    """A leftover worktree may be detached (a prior review run) or on a branch (a prior
+    fix run), so ask the question both ways: commits ahead of an upstream, or a HEAD no
+    remote branch contains."""
+    if run("git", "-C", str(worktree_path), "rev-parse", "--abbrev-ref", "@{u}").returncode == 0:
+        return bool(run("git", "-C", str(worktree_path), "log", "@{u}..HEAD", "--oneline").stdout.strip())
+    return not run("git", "-C", str(worktree_path), "branch", "-r", "--contains", "HEAD").stdout.strip()
+
+
 def locate_repo(args):
     if args.repo_root:
         repo = Path(args.repo_root).expanduser()
         if not repo.is_dir():
             stop(f"--repo-root {repo} doesn't exist")
-        return repo
+        return repo.resolve()
     repo = find_by_common_roots(args.repo_path) or find_by_remote_url(args.repo_path)
     if not repo:
         stop(
@@ -86,38 +100,44 @@ def main():
     ap.add_argument("--repo-root", help="Explicit local clone path, if already known — skips the search")
     ap.add_argument("--source-branch", required=True)
     ap.add_argument("--change-id", required=True, help="MR iid or PR number, used for the worktree directory suffix")
+    ap.add_argument("--purpose", default="address", help="Worktree directory suffix label: <repo>.<purpose>-<change-id>")
+    ap.add_argument("--detach-sha", help="Create a detached worktree pinned to this SHA instead of checking out the source branch")
+    ap.add_argument("--target-branch", help="Also fetch this branch — the diff base a review needs present locally")
     args = ap.parse_args()
     if not args.repo_path and not args.repo_root:
         sys.exit("pass --repo-path (to search) or --repo-root (if already known)")
 
     repo = locate_repo(args)
 
-    fetch = run("git", "-C", str(repo), "fetch", "origin", args.source_branch)
+    refs = [args.source_branch] + ([args.target_branch] if args.target_branch else [])
+    fetch = run("git", "-C", str(repo), "fetch", "origin", *refs)
     if fetch.returncode != 0:
-        stop(f"fetching {args.source_branch} failed: {fetch.stderr.strip()}")
+        stop(f"fetching {' and '.join(refs)} failed: {fetch.stderr.strip()}")
     run("git", "-C", str(repo), "worktree", "prune")
 
-    worktree_path = repo.parent / f"{repo.name}.address-{args.change_id}"
+    worktree_path = repo.parent / f"{repo.name}.{args.purpose}-{args.change_id}"
 
     if worktree_path.is_dir():
         dirty = run("git", "-C", str(worktree_path), "status", "--porcelain").stdout.strip()
-        unpushed = run("git", "-C", str(worktree_path), "log", "@{u}..HEAD", "--oneline").stdout.strip()
+        unpushed = has_unpushed_work(worktree_path)
         if dirty or unpushed:
             stop(
                 f"{worktree_path} exists and isn't verifiably clean (uncommitted changes, "
-                "or commits ahead of its upstream). Do not delete it — report this to the "
+                "or a commit no remote branch has). Do not delete it — report this to the "
                 "user and ask how to proceed."
             )
         run("git", "-C", str(repo), "worktree", "remove", str(worktree_path))
 
-    branch_ff = run("git", "-C", str(repo), "branch", "-f", args.source_branch, f"origin/{args.source_branch}")
-    if branch_ff.returncode != 0:
-        stop(
-            f"{args.source_branch} is checked out elsewhere (likely the user's main clone): "
-            f"{branch_ff.stderr.strip()}"
-        )
-
-    add = run("git", "-C", str(repo), "worktree", "add", str(worktree_path), args.source_branch)
+    if args.detach_sha:
+        add = run("git", "-C", str(repo), "worktree", "add", "--detach", str(worktree_path), args.detach_sha)
+    else:
+        branch_ff = run("git", "-C", str(repo), "branch", "-f", args.source_branch, f"origin/{args.source_branch}")
+        if branch_ff.returncode != 0:
+            stop(
+                f"{args.source_branch} is checked out elsewhere (likely the user's main clone): "
+                f"{branch_ff.stderr.strip()}"
+            )
+        add = run("git", "-C", str(repo), "worktree", "add", str(worktree_path), args.source_branch)
     if add.returncode != 0:
         stop(f"creating the worktree failed: {add.stderr.strip()}")
 

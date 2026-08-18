@@ -33,11 +33,12 @@ Extract:
 - `title`, `description` — scan both for a ticket reference (Step 3)
 - `source_branch`, `target_branch`
 - `diff_refs.base_sha`, `diff_refs.start_sha`, `diff_refs.head_sha` — needed for inline comment positions
+- `head_pipeline.status` (or `pipeline.status`) — the CI signal handed to review-changes, so the review reports test status from GitLab's own run rather than building the MR locally
 - `web_url` — for the summary note
 
-## Fetch diffs (Step 4)
+## Fetch diffs (Step 4, diff-only fallback)
 
-Use `limit: 150000` to avoid truncation on large MRs:
+Only needed when Step 4 can't create a worktree — with one, the review reads the diff from git in the worktree, which has no size cap to work around. Use `limit: 150000` to avoid truncation on large MRs:
 
 ```
 GET projects/<project_path_encoded>/merge_requests/<mr_iid>/changes   (limit: 150000)
@@ -50,11 +51,11 @@ The response is the full MR object with an additional `changes` array. Each elem
 
 **Truncation check**: compare `response.changes.length` with `mr.changes_count` from the metadata call. If they differ, the diff is truncated — note "diff truncated — only N of M files reviewed" in the summary and prioritize the highest-risk files (auth, data access, public API surface).
 
-## Repo path shape (Step 5)
+## Repo path shape (Step 4)
 
-`<repo_path>` mirrors the GitLab namespace: `<group>/<subgroups>/<project>`. For example, `https://gitlab.com/acme/platform/my-service` → `acme/platform/my-service`. This is a relative shape, not an absolute location — GitLab imposes no fixed clone root, so Step 5 searches for it rather than assuming one.
+`<repo_path>` mirrors the GitLab namespace: `<group>/<subgroups>/<project>`. For example, `https://gitlab.com/acme/platform/my-service` → `acme/platform/my-service`. This is a relative shape, not an absolute location — GitLab imposes no fixed clone root, so Step 4's script searches for it rather than assuming one.
 
-## Post comments as draft notes (Step 7)
+## Post comments as draft notes (Step 6)
 
 Post each finding as a **draft note** — only you can see them until the user submits the review in the GitLab UI, so they can edit or remove comments before they go live.
 
@@ -91,10 +92,10 @@ python3 <skill_dir>/scripts/post_review_notes_gitlab.py \
 - `old_path` is required for inline placement; omitting it silently downgrades to a plain note. The script always sends it.
 - **Prefer `+` lines as anchors**: pick a `new_line` that appears with a `+` prefix in the diff (added in this MR) — GitLab resolves those reliably. **Context lines (unchanged lines) are unreliable anchors even when they appear inside the hunk** — GitLab often fails to set `line_code` for them. If your finding is on an unchanged line, anchor to the nearest `+` line nearby, or mark it `general` from the start.
 
-## Submit instructions (Step 9)
+## Submit instructions (Step 8)
 
 Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish.
 
-## Markup dialect (Step 4 tracker-note cross-reference)
+## Markup dialect (Step 6, when quoting a ticket in a comment)
 
 GitLab-flavored Markdown. Fenced code blocks, headings, and links render. Emoji shortcodes (`:robot:`) render.

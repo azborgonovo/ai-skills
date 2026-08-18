@@ -32,6 +32,6 @@ Once auth is established and the cloudId is cached, this is the fast path every 
 
 If the fetch fails for any reason, continue the review without requirements context — note it in the summary at the end.
 
-## Markup dialect (Step 4 in the main workflow, when citing the ticket)
+## Markup dialect (Step 6, when quoting the ticket in a comment)
 
 Jira's markdown-to-ADF conversion does not expand emoji shortcodes (`:robot:`) the way GitLab/GitHub-flavored markdown do — posting `:robot:` in a comment elsewhere would render as the literal text ":robot:". This adapter is read-only (this skill never posts back to the ticket), so it only matters if you quote ticket content verbatim in an inline comment — quote the text as-is rather than reformatting it.

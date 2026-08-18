@@ -56,10 +56,13 @@ Checking out the branch in the user's main clone would switch what's checked out
 Locating the clone, fetching, and refusing to build on a leftover or colliding worktree is deterministic and identical every run, so it's a bundled script rather than inline bash — that also sidesteps writing shell that has to work on both POSIX shells and PowerShell:
 
 ```bash
-python3 <skill_dir>/scripts/setup_worktree.py --repo-path <repo_path> --source-branch <source_branch> --change-id <id>
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "<skill_dir>/SKILL.md")")")}"
+python3 "$PLUGIN_ROOT/scripts/setup_worktree.py" --repo-path <repo_path> --source-branch <source_branch> --change-id <id>
 ```
 
 (use `python` instead of `python3` if that's not on `PATH` — some native Windows installs only have the latter)
+
+The helper sits at the plugin root, not in this skill's own `scripts/`, because the `pr-review` skill shares it. That first line finds the root in either install mode: `CLAUDE_PLUGIN_ROOT` is set when the skill runs from an installed plugin, and when it instead runs from a directory symlinked into `~/.claude/skills`, resolving this SKILL.md's own real path is the only anchor that holds.
 
 `<repo_path>` is the relative shape the host adapter states (e.g. GitLab's namespace or GitHub's `owner/repo`) — the script searches common project roots and, failing that, by remote URL, since there's no one standard clone location to assume. On success it prints `WORKTREE_PATH: <path>`; on any refusal (dirty/unpushed leftover worktree, or the branch checked out elsewhere) it prints `STOP: <reason>` and exits non-zero — stop and tell the user rather than working around it.
 

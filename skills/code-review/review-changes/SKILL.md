@@ -24,6 +24,10 @@ Capture the diff once with `git diff <fixed-point>...HEAD` (three-dot, so the co
 
 Confirm the ref resolves (`git rev-parse <fixed-point>`) and the diff is non-empty before going further, so a bad ref fails here rather than halfway through a review.
 
+When the caller names a repository directory — another skill handing you a worktree it prepared, or a user pointing at a clone that isn't the shell's own working directory — run every git command against it with `git -C <dir>` and read every file under it. Reviewing the wrong repository produces a report that looks complete and describes nothing the caller asked about.
+
+When the caller hands you a diff it captured itself — a change fetched from a code host with no clone available locally — review that diff in place of running your own, and caveat the missing working tree: with no code to run, every claim rests on reading alone.
+
 ### 2. Gather review context
 
 **The spec** — look for the originating spec, cheapest source first:

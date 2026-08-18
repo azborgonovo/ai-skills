@@ -11,16 +11,19 @@ Use the `gh` CLI over Bash — no separate MCP connector needed once `gh auth st
 ## Fetch change metadata (Step 2)
 
 ```
-gh pr view <url> --json title,body,baseRefName,headRefName,baseRefOid,headRefOid,changedFiles,url
+gh pr view <url> --json title,body,baseRefName,headRefName,baseRefOid,headRefOid,changedFiles,statusCheckRollup,url
 ```
 
 Extract:
 - `title`, `body` — scan both for a ticket reference (Step 3)
 - `baseRefName`, `headRefName`
 - `baseRefOid`, `headRefOid` — these are the `base_sha`/`head_sha` equivalents used for inline comment positions
+- `statusCheckRollup` — the CI signal handed to review-changes, so the review reports test status from GitHub's own checks rather than building the PR locally
 - `url` — for the summary note
 
-## Fetch diffs (Step 4)
+## Fetch diffs (Step 4, diff-only fallback)
+
+Only needed when Step 4 can't create a worktree — with one, the review reads the diff from git in the worktree, which has neither GitHub's per-file cap nor its pagination to work around.
 
 ```
 gh api repos/<owner>/<repo>/pulls/<number>/files --paginate
@@ -33,11 +36,11 @@ Each element has:
 
 **Truncation check**: `--paginate` handles GitHub's page size limit, but very large PRs can still hit GitHub's own per-file diff cap (files over ~3000 lines return no `patch`). Note in the summary "diff unavailable for N large/binary files — reviewed by reading the file directly" when this happens, and prioritize the highest-risk files (auth, data access, public API surface).
 
-## Repo path shape (Step 5)
+## Repo path shape (Step 4)
 
-`<repo_path>` is `<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` → `acme/my-service`. This is a relative shape, not an absolute location — Step 5 searches for it rather than assuming a fixed clone root.
+`<repo_path>` is `<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` → `acme/my-service`. This is a relative shape, not an absolute location — Step 4's script searches for it rather than assuming a fixed clone root.
 
-## Post comments as a pending review (Step 7)
+## Post comments as a pending review (Step 6)
 
 GitHub's equivalent of a draft note is a **pending review**: a review created via the API with no `event` field stays in `PENDING` state, visible only to you, until the user submits it from the GitHub UI. Unlike GitLab, GitHub validates every inline comment's `line`/`path` against the diff **atomically** — if even one comment in the batch doesn't land on a line that's actually part of the diff, the whole review-creation call is rejected (HTTP 422) and *none* of the comments are created. The bundled script handles this by validating anchors locally before ever calling the API, so a bad anchor downgrades just that one finding instead of failing the whole batch.
 
@@ -73,10 +76,10 @@ python3 <skill_dir>/scripts/post_review_notes_github.py \
 - `side: "RIGHT"` (new-file side) is set on every inline comment automatically — the script only ever anchors to added (`+`) lines, matching the GitLab adapter's own anchor policy, so behavior is consistent regardless of which host the change lives on.
 - If the API call somehow still fails after local validation (e.g. a stale `head_sha`), the script retries with all comments folded into the review body rather than losing the review entirely.
 
-## Submit instructions (Step 9)
+## Submit instructions (Step 8)
 
 A pending review has been created. Open the PR on GitHub, go to **Files changed → Review changes**, confirm the draft comments, then submit the review to publish it.
 
-## Markup dialect (Step 4 tracker-note cross-reference)
+## Markup dialect (Step 6, when quoting a ticket in a comment)
 
 GitHub-flavored Markdown. Fenced code blocks, headings, and `#`/`@` autolinks all render. Emoji shortcodes (`:robot:`) render.

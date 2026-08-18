@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Post code-review findings as GitLab MR draft notes — reliably.
 
-Replaces the inline bash/python that used to live in SKILL.md Step 7. Handles an
+Replaces the inline bash/python that used to live in the SKILL.md body. Handles an
 arbitrary number of notes, verifies each positioned note actually resolved against
 the diff (GitLab returns HTTP 200 even when it didn't), falls back to a positionless
 note when resolution fails, and optionally purges this skill's own stale drafts.

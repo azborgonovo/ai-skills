@@ -4,62 +4,63 @@
     {
       "id": 1,
       "prompt": "Review this MR for me: https://gitlab.com/acme/my-service/-/merge_requests/42",
-      "expected_output": "Skill identifies GitLab as the host and loads its adapter, fetches MR metadata, searches for a ticket reference in the title/description, fetches diffs, attempts to locate the local clone and create an isolated review worktree pinned to the MR's head SHA, reviews across all five Code Review Pyramid layers (invoking the code-review-pyramid skill if available), posts concise inline comments via scripts/post_review_notes_gitlab.py (each ending with a 🤖, plus one positionless note reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the review summary in the conversation (does NOT post it to the MR), including a 'Worth your own look' section naming Layer 1-2 files. Does NOT approve or submit the review.",
+      "expected_output": "Skill identifies GitLab as the host and loads its adapter, fetches MR metadata (including its pipeline status), searches for a ticket reference in the title/description, locates the local clone and creates an isolated review worktree detached at the MR's head SHA via the shared setup_worktree.py, hands the review to the review-changes skill (worktree path, base SHA as fixed point, ticket file as spec, pipeline status as the test signal), turns its findings into concise inline comments posted via scripts/post_review_notes_gitlab.py (each ending with a 🤖, plus one positionless note reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the review in the conversation led by review-changes' verdict (never posted to the MR), including a 'Worth your own look' section naming Layer 1-2 files. Does NOT approve or submit the review.",
       "files": [],
       "expectations": [
         "Skill identifies the host from the URL shape and reads references/hosts/gitlab.md before fetching anything",
+        "The review itself is delegated to the review-changes skill (invoked via the Skill tool), handed the worktree path, the base SHA as the fixed point, the saved ticket file as the spec, and the host's checks status as the test signal — the skill does not re-derive the pyramid layers, severity split, or verdict itself",
+        "The isolated review worktree is created with the shared address-pr-comments/scripts/setup_worktree.py using --purpose review and --detach-sha <head_sha>, never by checking out the branch in the user's main clone",
         "Inline comments are posted via scripts/post_review_notes_gitlab.py rather than hand-written glab api calls",
         "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value",
         "Inline comments default to 2-4 sentences of continuous prose (longer only for findings whose mechanism genuinely needs it, e.g. concurrency or security) and do not contain a separately labeled 'Failure scenario:' sub-paragraph",
-        "The review summary is output in the conversation, not posted to the MR",
-        "The conversation summary starts with '## Code Review Summary' and includes a Coverage line naming only the layers with posted comments (or 'no comments posted')",
-        "The conversation summary includes a 'Worth your own look' section listing a short, selectively-chosen set of files (Layer 1 API Semantics and/or Layer 2 Implementation Semantics — new/changed public contracts or business-rule-bearing logic), with files sharing the same reason grouped into one line, and no note about what's lower priority",
-        "The review covers Implementation Semantics and API Semantics (bottom layers)",
-        "The skill attempts to invoke the code-review-pyramid skill, or falls back to its own judgment if unavailable",
-        "The skill attempts to locate a local clone and create an isolated review worktree (never checking out the branch in the user's main clone), or notes the limitation if not found",
+        "The conversation output leads with review-changes' verdict (Approved / Approved with suggestions / Request changes) and keeps its Requested changes, Suggestions, Checked and clean, and Path to merge sections, with each finding that was posted marked as such",
+        "The review output is printed in the conversation, not posted to the MR — and the verdict is never turned into an approve/request-changes action on the host",
+        "The conversation output includes a 'Worth your own look' section listing a short, selectively-chosen set of files (Layer 1 API Semantics and/or Layer 2 Implementation Semantics — new/changed public contracts or business-rule-bearing logic), with files sharing the same reason grouped into one line, and no note about what's lower priority",
         "The skill does not call any approve, submit, or review-completion API endpoint",
-        "If a ticket is found in the MR, the summary references it"
+        "If a ticket is found in the MR, it is saved to a file, handed to review-changes as the spec, and referenced in the output"
       ]
     },
     {
       "id": 2,
       "prompt": "Can you do a code review on https://gitlab.com/acme/platform/-/merge_requests/7? There's no ticket for this one, it's a quick hotfix.",
-      "expected_output": "Skill reviews the MR without ticket context. The conversation summary explicitly states no ticket was found. Review still covers all pyramid layers. Inline comments are posted where issues exist. Skill attempts to create an isolated review worktree locally rather than checking out the branch in place.",
+      "expected_output": "Skill reviews the MR without ticket context: it tells review-changes there is no spec, and the conversation output carries review-changes' spec-less caveat — conformance was never assessed — alongside its verdict. Inline comments are posted where issues exist. Skill creates an isolated review worktree rather than checking out the branch in place.",
       "files": [],
       "expectations": [
-        "Conversation summary states no ticket was found",
+        "The output states no ticket was found and carries the spec-less caveat that conformance was not assessed",
+        "review-changes is invoked with no spec rather than the skill halting to ask for a ticket",
         "Inline comments are still posted (review proceeds without ticket context)",
         "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value",
-        "The review summary is output in the conversation, not posted to the MR",
-        "The skill does not halt or ask for a ticket — it continues without one",
-        "The skill attempts to locate a local clone and create an isolated review worktree, or notes the limitation if not found"
+        "The review output is printed in the conversation, not posted to the MR",
+        "The skill attempts to locate a local clone and create an isolated review worktree, or notes the diff-only limitation as a caveat"
       ]
     },
     {
       "id": 3,
       "prompt": "Please review https://gitlab.com/acme/backend/-/merge_requests/201 — the ticket is GH-4521 in the MR title",
-      "expected_output": "Skill finds GH-4521 in the MR title, identifies it as a JIRA-style key, loads references/trackers/jira.md, fetches the ticket details, and uses the acceptance criteria to evaluate whether the implementation satisfies the requirements. The conversation summary links to the ticket.",
+      "expected_output": "Skill finds GH-4521 in the MR title, identifies it as a JIRA-style key, loads references/trackers/jira.md, fetches the ticket, saves its summary/description/acceptance criteria verbatim to a file, and hands that path to review-changes as the spec so the report accounts for every requirement. The conversation output links to the ticket.",
       "files": [],
       "expectations": [
-        "Ticket GH-4521 is fetched via the JIRA tracker adapter and referenced in the summary",
-        "At least one inline comment references the ticket's requirements",
-        "The review summary is output in the conversation and links to the ticket",
-        "The review summary is not posted to the MR",
-        "Each inline comment ends with a footer starting 'Co-reviewed with :robot:' and naming the reviewing model (e.g. 'using Sonnet 5'), with an effort parenthetical only when one is genuinely known — never a guessed value"
+        "Ticket GH-4521 is fetched via the JIRA tracker adapter and referenced in the output",
+        "The fetched ticket is written to a file and that path is passed to review-changes as the spec, rather than paraphrased into the prompt",
+        "The output accounts for the ticket's requirements explicitly (each one satisfied, missing, partial, or wrong), and an unmet criterion is quoted verbatim in the inline comment that raises it",
+        "The review output is printed in the conversation and links to the ticket",
+        "The review output is not posted to the MR",
+        "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value"
       ]
     },
     {
       "id": 4,
       "prompt": "Review this pull request: https://github.com/acme/my-service/pull/123",
-      "expected_output": "Skill identifies GitHub as the host and loads references/hosts/github.md, fetches PR metadata via gh pr view, searches for a ticket reference, fetches diffs via gh api .../pulls/123/files, creates an isolated review worktree at ~/projects/acme/my-service, reviews across all five pyramid layers, posts inline comments as a single GitHub pending review via scripts/post_review_notes_github.py (each comment ending with a 🤖, and the review body reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the summary in the conversation with submit instructions referencing GitHub's Files changed / Review changes UI. Does not submit the review itself.",
+      "expected_output": "Skill identifies GitHub as the host and loads references/hosts/github.md, fetches PR metadata via gh pr view (including statusCheckRollup), searches for a ticket reference, locates the local clone and creates an isolated review worktree detached at the PR's head SHA, hands the review to review-changes, posts its findings as a single GitHub pending review via scripts/post_review_notes_github.py (each comment ending with a 🤖, and the review body reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the verdict-led review in the conversation with submit instructions referencing GitHub's Files changed / Review changes UI. Does not submit the review itself.",
       "files": [],
       "expectations": [
         "Skill identifies GitHub as the host from the URL shape and reads references/hosts/github.md before fetching anything",
+        "The review itself is delegated to the review-changes skill (invoked via the Skill tool), handed the worktree path, the base SHA as the fixed point, the saved ticket file as the spec, and the host's checks status as the test signal — the skill does not re-derive the pyramid layers, severity split, or verdict itself",
         "Inline comments are posted via scripts/post_review_notes_github.py as a single pending review, not via hand-written gh api calls",
         "Each inline comment ends with a trailing 🤖 and the pending review's body attributes the review, naming the reviewing model (e.g. 'Code reviewed using Sonnet 5 🤖')",
-        "The review summary is output in the conversation, not posted to the PR",
-        "The summary's submit instructions reference GitHub's own UI (Files changed / Review changes), not GitLab's",
-        "The skill attempts to locate a local clone and create an isolated review worktree at the GitHub owner/repo path, or notes the limitation if not found",
+        "The review output is printed in the conversation, not posted to the PR",
+        "The output's submit instructions reference GitHub's own UI (Files changed / Review changes), not GitLab's",
+        "The skill locates the clone by searching common roots and remote URL (never assuming one hardcoded clone root) and creates the review worktree beside it, or notes the diff-only limitation",
         "The skill does not approve, request changes on, or submit the pending review"
       ]
     },
@@ -70,9 +71,9 @@
       "files": [],
       "expectations": [
         "Skill correctly identifies the GitHub issue reference and loads the GitHub tracker adapter rather than the JIRA one",
-        "The GitHub issue is fetched and referenced in the summary",
-        "At least one inline comment or the summary references the issue's stated requirements",
-        "The review summary is output in the conversation and is not posted to the PR or the issue"
+        "The GitHub issue is fetched, saved to a file, and handed to review-changes as the spec",
+        "The output accounts for the issue's stated requirements, or an inline comment references them",
+        "The review output is printed in the conversation and is not posted to the PR or the issue"
       ]
     }
   ]

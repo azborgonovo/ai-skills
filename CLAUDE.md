@@ -30,6 +30,12 @@ See the `plugin-versioning` skill for how to bump a plugin's SemVer version befo
 
 The same applies to `rules/`: whenever a rule is added, removed, or renamed there, update its entry in the README's [Rules](README.md#rules) section in the same commit — the one-line description and the paths it is scoped to.
 
+## Shared helpers inside a plugin
+
+When two skills in the same plugin need the same deterministic helper, it goes in `scripts/` at the *plugin* root — `skills/<plugin>/scripts/`. Both skills resolve it as `${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "<skill_dir>/SKILL.md")")")}/scripts/<helper>`. [Claude Code copies a plugin's entire directory into its cache](https://code.claude.com/docs/en/plugins-reference), so anything at the plugin root ships; that fallback covers the other install mode, where `scripts/link_claude_extensions.py` symlinks each skill directory on its own into `~/.claude/skills` and only the SKILL.md's resolved real path still points at the plugin root.
+
+Sharing a helper *across* plugins doesn't work: a path traversing outside the plugin root isn't copied to the cache, so it breaks once installed. A second plugin that needs the same helper gets its own copy.
+
 ## Rules vs skills
 
 Put guidance in `rules/` when it has to be in context *before* the harness acts: conventions it would otherwise violate on its first edit, with no prompt along the way that would make it reach for a skill. Put guidance in `skills/` when a prompt or a task kicks it off.
