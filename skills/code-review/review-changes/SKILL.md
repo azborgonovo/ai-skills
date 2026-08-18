@@ -79,6 +79,8 @@ Two caveats belong in the summary whatever the verdict comes out as: there was n
 
 Lead with the verdict, then a summary paragraph under all three outcomes — the fixed point and diff scope (commits, files), what the review verified, and any caveat.
 
+When the caller supplied a destination for the report — another skill invoking this one as a step inside its own workflow — writing the report to that path *is* how this step is satisfied: write the file and print nothing in the conversation, because the caller's own output is what the user reads.
+
 ```markdown
 ## <Approved | Approved with suggestions | Request changes>
 

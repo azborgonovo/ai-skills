@@ -97,7 +97,7 @@ On success it prints `WORKTREE_PATH: <path>`; use that path for every read, `gre
 
 With no worktree, the review is diff-only: fetch every changed file's diff per the host adapter (including its truncation check) and write it to `${TMPDIR:-/tmp}/<change-id>.diff`. Step 5 hands that file over in place of the worktree, and Step 8 carries the limitation as a caveat — no working tree means no claim can be settled by running the code.
 
-### Step 5 — Hand the review to review-changes
+### Step 5 — Hand the review to review-changes, then come straight back
 
 Invoke the `review-changes` skill (via the Skill tool with `skill: "review-changes"`), passing:
 
@@ -105,32 +105,48 @@ Invoke the `review-changes` skill (via the Skill tool with `skill: "review-chang
 - **the fixed point**: the base SHA from Step 2 (the target branch also works — review-changes diffs three-dot, so either resolves to the merge base). In diff-only mode there is no working tree to diff, so hand over `${TMPDIR:-/tmp}/<change-id>.diff` as the already-captured diff instead, and say so
 - **the spec**: the `${TMPDIR:-/tmp}/<change-id>-work-item.md` path from Step 3, or that there is no spec
 - **the test signal**: the checks/pipeline status from Step 2, as the CI result to report — this is someone else's repo, freshly fetched, so take the host's verdict rather than building and running its suite unprompted
+- **where the report goes**: `${TMPDIR:-/tmp}/<change-id>-review.md`, written as a file rather than printed in the conversation. Step 8's output is the only review the user should have to read, and a report printed here would say the same thing twice — the second time without knowing what actually reached the author
+- **how long each finding may run**: 2-4 sentences of continuous prose per entry — name the symbol, state the concrete problem, then the fix or the question — because Step 6 posts those entries verbatim as the inline comments. A requested change asserts the problem and prescribes the fix; a suggestion reads as something the author can decline, often best as a direct question when the code might be deliberate. Longer than one tight paragraph only when the failure mechanism genuinely needs the room (a concurrency race, a security hole, a scope change spanning callers). Two things sit outside that budget: a verbatim quote of an unmet acceptance criterion, and a fenced code block carrying the corrected expression when the fix is shorter to show than to describe
+
+**review-changes runs inside this workflow, not in place of it.** Its process is numbered independently of this one and ends in a step called "Report" — that step is satisfied by writing the file above, and it is not the end of the run. Read the file back and go straight into Step 6 in the same turn: publishing is what this skill exists to do, and a review that stops at the report has produced nothing the author can see.
 
 Its report is the review of record: the verdict, the blocking/non-blocking split, spec accounting, and what it checked and found clean. Steps 6 through 8 turn that report into comments, a verdict action, and output — they don't re-review the change.
 
 If `review-changes` isn't among the available skills, fall back to the `code-review-pyramid` skill (or your own judgment if that's absent too), and produce the same shape yourself: findings tagged by layer, split into requested changes and suggestions, resolved into one verdict.
 
-### Step 6 — Draft the findings as notes, then post them per the host adapter
+### Step 6 — Post the findings per the host adapter
 
-Every finding review-changes reported becomes one note object, keeping its own severity: a **requested change** asserts the problem and prescribes the fix, a **suggestion** reads as something the author can decline — often best as a direct question when the code might be deliberate.
+Every finding review-changes reported becomes one note object, and its text is **the entry as review-changes wrote it, verbatim** — layer tag, `file:line` citation and all. Don't re-draft, expand, re-explain or trim it: the report and the change should say the same thing, and a rewrite here reliably comes out longer than the entry it replaced. Strip only the list number, which belongs to the report's ordering and means nothing on a standalone comment.
+
+The citation stays even though the anchor points at the same line, because the anchor is not guaranteed to survive: when a host can't resolve a position it re-posts the same text positionless (GitLab's `line_code` path, below), and a comment that lost its anchor is exactly the one that needs to name its own file and line.
+
+So a report entry reading
 
 ```
-`fetchUser` doesn't handle the case where the DB returns `null` — the `.Name` access on line 47 will panic at runtime. Add a nil check or return an early error.
+1. **[Impl. Semantics]** `svc/user.go:47` — `fetchUser` doesn't handle the case where the DB returns `null`, so the `.Name` access will panic at runtime. Add a nil check or return an early error.
 ```
 
+posts as
+
 ```
-`PersonMatchOutcome.MatchedAndAdvanced`/`MatchedNoChange` are referenced in this doc but don't exist on the enum (only `Created`, `Matched`, `RejectedActiveMatch` do) — leftover from an earlier draft? Worth fixing since this is the domain layer's public contract.
+**[Impl. Semantics]** `svc/user.go:47` — `fetchUser` doesn't handle the case where the DB returns `null`, so the `.Name` access will panic at runtime. Add a nil check or return an early error.
 ```
 
-**Comment format**: default to 2-4 sentences of continuous prose — name the symbol/line, state the concrete problem, then the fix or the question. Skip context the diff already shows and fold the impact into the same flow of sentences; run longer than 4 sentences only when the failure mechanism genuinely needs the room (a concurrency race, a security hole, a scope change spanning callers), and even then keep it one tight paragraph. Quote a spec line verbatim whenever the finding is an unmet acceptance criterion — the quote doesn't count against the sentence budget.
+An entry too long to read as an inline comment is an entry to shorten in *both* places — go back and tighten it in the report rather than posting one length and reporting another.
 
 **Anchors**: a finding cited as `file:line` becomes an inline note (`new_path` plus `new_line`); a cross-cutting one with no single site becomes `"general": true` rather than being pinned to a misleading line. `new_line` must be a line added in this change — find it with `grep -n '<snippet>' <worktree_path>/<file>` rather than counting diff lines, and confirm it carries a `+` in `git -C <worktree_path> diff <base_sha>...HEAD -- <file>`. A finding that lands on an unchanged line anchors to the nearest added line or goes general; both host scripts reject or downgrade an anchor the diff doesn't contain.
 
 **What stays out of the comments**: the summary paragraph, the "checked and clean" list, and the path to merge all belong to Step 8's output in the conversation. Skip a suggestion no author would act on — a style nit that automation should be catching — and where the same finding recurs across files, post the clearest occurrence once.
 
-**The verdict summary**: a Request changes verdict in the default mode needs one — GitHub requires a body on that event, and GitLab has nowhere else to state the verdict. Write review-changes' verdict line and summary paragraph to `${TMPDIR:-/tmp}/<change-id>-summary.md` and pass it as `--summary-file`. No other mode posts one.
+**The verdict summary**: only a Request changes verdict in the default mode posts one — GitHub requires a body on that event, and GitLab has nowhere else to state the verdict. Write the one thing the author needs in order to act, not a second copy of the review:
 
-The host adapter names the bundled script that does the posting (`scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md) and its exact invocation for the mode Step 2 settled on. Both read the same notes-file JSON shape, so drafting doesn't change with the host; both mark each comment with a trailing 🤖; both publish comments before touching the verdict, so an approval never lands without its reasoning; and both skip a finding this account already published rather than deleting or duplicating it. Leave the marking to the script — writing it yourself only risks it landing twice.
+```
+I did not approve this <merge request | pull request> yet because <the blocking finding, in one sentence>. <Why that blocks — the defect that would reach production, the contract broken for callers, the acceptance criterion left unmet.> <Where the detail is: the inline comment on `<file>`, or "the N inline comments" when there are several.>
+```
+
+Two or three sentences, no headings and no lists. The inline comments carry the mechanism, and the suggestions, the "checked and clean" list and the path to merge all stay in Step 8's output. Write it to `${TMPDIR:-/tmp}/<change-id>-summary.md` and pass it as `--summary-file`; the script marks it, so leave the 🤖 off.
+
+The host adapter names the bundled script that does the posting (`scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md) and its exact invocation for the mode Step 2 settled on. Both read the same notes-file JSON shape, so the notes file doesn't change with the host; both mark each comment and the verdict summary with a trailing 🤖; both publish comments before touching the verdict, so an approval never lands without its reasoning; and both skip a finding this account already published rather than deleting or duplicating it. Leave the marking to the script — writing it yourself only risks it landing twice.
 
 Read the script's tally afterward: what was posted, what was skipped as already present, and what the verdict action did. Step 8 reports all three.
 
@@ -146,7 +162,7 @@ If removal is refused, leave the worktree in place and tell the user exactly wha
 
 ### Step 8 — Output the review
 
-Output the full review in the conversation — the change carries the comments and the verdict, not the reasoning around them. Lead with review-changes' verdict, keep its lists as it wrote them, and add what only this skill knows: where the change and work item live, what the author will actually see, and where a human's own attention is worth spending.
+Output the full review in the conversation — the change carries the comments and the verdict, not the reasoning around them. Since Step 5 kept review-changes' report in a file, this is the only review the user reads, so it has to stand on its own. Lead with review-changes' verdict, keep its lists as it wrote them, and add what only this skill knows: where the change and work item live, what the author will actually see, and where a human's own attention is worth spending.
 
 ```markdown
 ## <Approved | Approved with suggestions | Request changes>
@@ -184,8 +200,9 @@ Output the full review in the conversation — the change carries the comments a
 
 ## Hard constraints
 
-The steps above carry their own reasoning; these three are repeated because each one is irreversible from the author's side once done.
+The steps above carry their own reasoning; these four are repeated because each one is either irreversible from the author's side once done, or leaves the run having delivered nothing.
 
+- **Never** end the turn between the review and the posting — review-changes' report is an intermediate artifact, and the run isn't finished until Step 6 has posted and Step 8 has reported. If the user has to ask whether the comments went up, this skill failed.
 - **Never** act on the verdict outside the default mode — `draft` and `comments-only` report it in the conversation and leave the change's approval state untouched, as does a self-authored change.
 - **Never** delete or overwrite a comment that is already published, on a rerun or otherwise — the author may have replied to it. Reruns skip what's already there instead.
 - **Never** check out the change in the user's main clone — always review from the isolated worktree created in Step 4.
