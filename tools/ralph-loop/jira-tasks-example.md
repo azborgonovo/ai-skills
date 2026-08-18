@@ -1,13 +1,13 @@
 You are running autonomously. Complete the steps below without asking for confirmation.
 
-Use the Atlassian MCP tools (`getJiraIssue`, `searchJiraIssuesUsingJql`, `getTransitionsForJiraIssue`, `transitionJiraIssue`, `editJiraIssue`) for the tracker, and the `glab` MCP tools (`glab_mr_create`, `glab_api`) for the repo host.
+Use Atlassian's `twg` CLI for the tracker, and the `glab` MCP tools (`glab_mr_create`, `glab_api`) for the repo host. If the shell reports `command not found` for `twg`, use `$HOME/.local/bin/twg`; treat an auth or command error as a twg problem to report, not a missing binary.
 
-Resolve your tracker identity cache-first, so every iteration after the first skips the lookup entirely: cloud ID from `$HOME/.claude/atlassian-cloud-id` (if missing, call `getAccessibleAtlassianResources`, take the returned site's `id`, and write it to that file); account ID from `$HOME/.claude/atlassian-account-id` (if missing, call `lookupJiraAccountId` with your tracker username and write the result to that file).
+`twg` holds the site and your identity in `~/.config/twg/auth.conf` from `twg login`, so no per-iteration identity lookup is needed. Confirm a command's flags with `twg help describe "<exact path>"` rather than guessing — the command surface moves between releases.
 
-1. **Fetch tasks** — call `searchJiraIssuesUsingJql` with `key in (PROJ-101, PROJ-102, PROJ-103)`, requesting only the fields you need (`status`, `summary`, `description`) in that single batched query rather than one `getJiraIssue` call per task.
+1. **Fetch tasks** — run `twg jira workitem bulk-get PROJ-101 PROJ-102 PROJ-103 --fields status,summary,description --expand renderedFields -o json --output-summary stats` to hydrate all three in one call rather than one `get` per task. `--expand renderedFields` matters: without it the description arrives as raw ADF JSON instead of prose. Read the payload with `jq -r '.data.items[].data | {key, summary, status: .status.name, description: .renderedFields.description}'` against `output_files.stdout` — the compact file drops the description you need in step 4.
 2. **Find the next task** — identify the first task with status `"To Do"`.
    - If no task is in `"To Do"`, print exactly `FINISHED`, then stop immediately. Do not proceed further.
-3. **Start the task** — look up the transition ID via `getTransitionsForJiraIssue` and call `transitionJiraIssue` to move the task to `"In Progress"`.
+3. **Start the task** — discover the transition ID with `twg jira workitem transitions query --id {TASK-NUMBER} -o json`, then move the task to `"In Progress"` with `twg jira workitem transition --id {TASK-NUMBER} --transition-id <id>`. Discover the ID rather than hardcoding one — transition IDs differ per project workflow.
 4. **Find the repository** — read the task title and description to determine which repository under `~/projects/` is relevant.
 5. **Create a worktree** — in that repository, give this task its own working directory off the shared clone, so this iteration never fights another agent (or a parallel loop) over a single checked-out branch:
    1. Fetch the latest from origin and prune any stale worktree entries left behind by earlier iterations: `git fetch origin main && git worktree prune`

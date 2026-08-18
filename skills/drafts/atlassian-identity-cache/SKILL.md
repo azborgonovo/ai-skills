@@ -5,15 +5,24 @@ description: >
   cloud IDs, and cloud IDs to tracker account IDs, so calls into the Atlassian MCP tools
   (`getJiraIssue`, `searchJiraIssuesUsingJql`, `transitionJiraIssue`, etc.) skip re-resolving
   `cloudId`/`accountId` via `getAccessibleAtlassianResources`/`lookupJiraAccountId` on every
-  run. Use before any Atlassian/Jira MCP call when you don't already have a cloudId or accountId
-  in context — especially valuable for a prompt that starts from scratch on every invocation
-  (e.g. a headless loop like ralph-loop) or one that may span more than one connected Atlassian
-  site.
+  run. Applies only when the Atlassian MCP tools are the backend — especially valuable for a
+  prompt that starts from scratch on every invocation (e.g. a headless loop like ralph-loop) or
+  one that may span more than one connected Atlassian site. Do NOT use when Atlassian's `twg`
+  CLI is available: it carries the site and identity in `~/.config/twg/auth.conf`, so there is
+  nothing left to resolve or cache.
 ---
 
 # Atlassian identity cache
 
 Two Atlassian facts get looked up over and over by anything that calls the Atlassian MCP tools: the `cloudId` for a Jira site, and the `accountId` for a tracker user on that site. Both are constants for a given site, so rediscovering them on every call — or every iteration, for something like a headless loop — is pure waste. This skill resolves them through a small on-disk cache that heals itself if it's ever wrong, instead of a flat single value that would silently break the moment more than one Atlassian site is in play.
+
+## Precondition: is there anything to cache?
+
+Check for Atlassian's Teamwork Graph CLI first: `command -v twg`, then `$HOME/.local/bin/twg` if the shell reports `command not found`.
+
+If the binary is there, stop — this skill has nothing to add. `twg` stores the site, `cloud-id`, and `user-id` in `~/.config/twg/auth.conf` at login and refreshes the token on its own schedule, so every command already knows who and where it is. Drive the tracker through `twg` and skip the rest of this file.
+
+Everything below applies to the Atlassian MCP path only.
 
 ## Cache files
 
@@ -21,6 +30,8 @@ Two Atlassian facts get looked up over and over by anything that calls the Atlas
 - `$HOME/.claude/atlassian-account-ids.json` — `{ "<cloudId>": "<accountId>" }`
 
 Both are plain JSON maps. Treat a missing file as an empty map (`{}`), not an error — create it the first time you write to it.
+
+Two older, singular files exist alongside these: `$HOME/.claude/atlassian-cloud-id` and `$HOME/.claude/atlassian-account-id`, each a single bare line holding one value. That is the legacy single-site form, and the `pr-review` skill still reads the cloud-id one directly. It cannot represent more than one site, which is the whole reason for the JSON maps here — so write the maps, and treat a singular file as a seed value for the map rather than a destination to keep in sync.
 
 ## Resolving a cloud ID for a task key
 
