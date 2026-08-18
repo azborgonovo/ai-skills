@@ -18,7 +18,7 @@ The message is the only place the *intent* of a change lives: `git status` shows
 
 ## Skill authoring guidelines
 
-See the `skill-authoring-style` skill for formatting and prose conventions to apply when creating a new skill or improving an existing one.
+See the `skill-authoring` skill for the conventions to apply when creating a new skill or improving an existing one, and for the `check_skills.py` validator to run before committing.
 
 ## Claude plugins versioning
 
