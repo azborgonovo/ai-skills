@@ -4,33 +4,34 @@
     {
       "id": 1,
       "prompt": "Review this MR for me: https://gitlab.com/acme/my-service/-/merge_requests/42",
-      "expected_output": "Skill identifies GitLab as the host and loads its adapter, fetches MR metadata (including its pipeline status), searches for a work-item reference in the title/description, locates the local clone and creates an isolated review worktree detached at the MR's head SHA via the shared setup_worktree.py, hands the review to the review-changes skill (worktree path, base SHA as fixed point, work item file as spec, pipeline status as the test signal), turns its findings into concise inline comments posted via scripts/post_review_notes_gitlab.py (each ending with a 🤖, plus one positionless note reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the review in the conversation led by review-changes' verdict (never posted to the MR), including a 'Worth your own look' section naming Layer 1-2 files. Does NOT approve or submit the review.",
+      "expected_output": "Skill identifies GitLab as the host and loads its adapter, fetches MR metadata (including its pipeline status and author), compares the author against the authenticated user, searches for a work-item reference in the title/description, locates the local clone and creates an isolated review worktree detached at the MR's head SHA via the shared setup_worktree.py, hands the review to the review-changes skill (worktree path, base SHA as fixed point, work item file as spec, pipeline status as the test signal), turns its findings into concise inline comments published via scripts/post_review_notes_gitlab.py --mode direct (each ending with a 🤖), applies the verdict on the MR after the comments land, removes the worktree, and outputs the review in the conversation led by review-changes' verdict, including a 'Worth your own look' section naming Layer 1-2 files and an 'On the change' section stating what was posted, what the verdict did, and how to reverse it.",
       "files": [],
       "expectations": [
         "Skill identifies the host from the URL shape and reads references/hosts/gitlab.md before fetching anything",
         "The review itself is delegated to the review-changes skill (invoked via the Skill tool), handed the worktree path, the base SHA as the fixed point, the saved work item file as the spec, and the host's checks status as the test signal — the skill does not re-derive the pyramid layers, severity split, or verdict itself",
         "The isolated review worktree is created with the shared address-pr-comments/scripts/setup_worktree.py using --purpose review and --detach-sha <head_sha>, never by checking out the branch in the user's main clone",
-        "Inline comments are posted via scripts/post_review_notes_gitlab.py rather than hand-written glab api calls",
-        "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value",
+        "With no mode word after the URL, comments are published directly (--mode direct) rather than left as drafts",
+        "Comments are posted via scripts/post_review_notes_gitlab.py rather than hand-written glab api calls, and each one ends with a trailing 🤖",
+        "No note attributing the review to a model is posted — the reviewing model's name and effort level appear nowhere on the MR",
+        "The verdict is acted on after the comments are published, never before: Approved or Approved with suggestions calls approve, Request changes does not",
+        "Approving passes sha=<head_sha> so a head that moved mid-review returns 409 and aborts the approval rather than approving a stale review",
         "Inline comments default to 2-4 sentences of continuous prose (longer only for findings whose mechanism genuinely needs it, e.g. concurrency or security) and do not contain a separately labeled 'Failure scenario:' sub-paragraph",
         "The conversation output leads with review-changes' verdict (Approved / Approved with suggestions / Request changes) and keeps its Requested changes, Suggestions, Checked and clean, and Path to merge sections, with each finding that was posted marked as such",
-        "The review output is printed in the conversation, not posted to the MR — and the verdict is never turned into an approve/request-changes action on the host",
+        "The conversation output includes an 'On the change' section reporting what was posted, what the verdict action did, and the one-line way to reverse it",
         "The conversation output includes a 'Worth your own look' section listing a short, selectively-chosen set of files (Layer 1 API Semantics and/or Layer 2 Implementation Semantics — new/changed public contracts or business-rule-bearing logic), with files sharing the same reason grouped into one line, and no note about what's lower priority",
-        "The skill does not call any approve, submit, or review-completion API endpoint",
         "If a work item is found in the MR, it is saved to a file, handed to review-changes as the spec, and referenced in the output"
       ]
     },
     {
       "id": 2,
       "prompt": "Can you do a code review on https://gitlab.com/acme/platform/-/merge_requests/7? There's no ticket for this one, it's a quick hotfix.",
-      "expected_output": "Skill reviews the MR without work-item context: it tells review-changes there is no spec, and the conversation output carries review-changes' spec-less caveat — conformance was never assessed — alongside its verdict. Inline comments are posted where issues exist. Skill creates an isolated review worktree rather than checking out the branch in place.",
+      "expected_output": "Skill reviews the MR without work-item context: it tells review-changes there is no spec, and the conversation output carries review-changes' spec-less caveat — conformance was never assessed — alongside its verdict. Comments are published where issues exist and the verdict is recorded. Skill creates an isolated review worktree rather than checking out the branch in place.",
       "files": [],
       "expectations": [
         "The output states no work item was found and carries the spec-less caveat that conformance was not assessed",
         "review-changes is invoked with no spec rather than the skill halting to ask for a work item",
-        "Inline comments are still posted (review proceeds without work-item context)",
-        "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value",
-        "The review output is printed in the conversation, not posted to the MR",
+        "Comments are still published (review proceeds without work-item context) and the verdict is still recorded",
+        "Each comment ends with a trailing 🤖 and no model-attribution note is posted",
         "The skill attempts to locate a local clone and create an isolated review worktree, or notes the diff-only limitation as a caveat"
       ]
     },
@@ -44,24 +45,23 @@
         "The fetched work item is written to a file and that path is passed to review-changes as the spec, rather than paraphrased into the prompt",
         "The output accounts for the work item's requirements explicitly (each one satisfied, missing, partial, or wrong), and an unmet criterion is quoted verbatim in the inline comment that raises it",
         "The review output is printed in the conversation and links to the work item",
-        "The review output is not posted to the MR",
-        "Each inline comment ends with a trailing 🤖 and a single positionless comment attributes the review (e.g. 'Code reviewed using Sonnet 5 (high) 🤖'), with an effort parenthetical only when one is genuinely known — never a guessed value"
+        "Nothing is posted back to the JIRA work item — the tracker adapter is read-only"
       ]
     },
     {
       "id": 4,
       "prompt": "Review this pull request: https://github.com/acme/my-service/pull/123",
-      "expected_output": "Skill identifies GitHub as the host and loads references/hosts/github.md, fetches PR metadata via gh pr view (including statusCheckRollup), searches for a work-item reference, locates the local clone and creates an isolated review worktree detached at the PR's head SHA, hands the review to review-changes, posts its findings as a single GitHub pending review via scripts/post_review_notes_github.py (each comment ending with a 🤖, and the review body reading 'Code reviewed using <model> 🤖'), removes the worktree, and outputs the verdict-led review in the conversation with submit instructions referencing GitHub's Files changed / Review changes UI. Does not submit the review itself.",
+      "expected_output": "Skill identifies GitHub as the host and loads references/hosts/github.md, fetches PR metadata via gh pr view (including author and statusCheckRollup), compares the author against gh api user, searches for a work-item reference, locates the local clone and creates an isolated review worktree detached at the PR's head SHA, hands the review to review-changes, publishes its findings via scripts/post_review_notes_github.py --mode direct (one comment call per anchored finding, conversation comments for unanchored ones, each ending with a 🤖), records the verdict as APPROVE or REQUEST_CHANGES after the comments land, removes the worktree, and outputs the verdict-led review in the conversation with an 'On the change' section.",
       "files": [],
       "expectations": [
         "Skill identifies GitHub as the host from the URL shape and reads references/hosts/github.md before fetching anything",
         "The review itself is delegated to the review-changes skill (invoked via the Skill tool), handed the worktree path, the base SHA as the fixed point, the saved work item file as the spec, and the host's checks status as the test signal — the skill does not re-derive the pyramid layers, severity split, or verdict itself",
-        "Inline comments are posted via scripts/post_review_notes_github.py as a single pending review, not via hand-written gh api calls",
-        "Each inline comment ends with a trailing 🤖 and the pending review's body attributes the review, naming the reviewing model (e.g. 'Code reviewed using Sonnet 5 🤖')",
-        "The review output is printed in the conversation, not posted to the PR",
-        "The output's submit instructions reference GitHub's own UI (Files changed / Review changes), not GitLab's",
+        "Comments are posted via scripts/post_review_notes_github.py rather than hand-written gh api calls, and each one ends with a trailing 🤖",
+        "No model-attribution text is posted — neither as a review body nor as a comment",
+        "A finding with no valid anchor is posted as a conversation comment on the PR rather than being dropped or pinned to an arbitrary line",
+        "The verdict is recorded after the comments are published: APPROVE carries no body, REQUEST_CHANGES carries the summary file GitHub requires for that event",
         "The skill locates the clone by searching common roots and remote URL (never assuming one hardcoded clone root) and creates the review worktree beside it, or notes the diff-only limitation",
-        "The skill does not approve, request changes on, or submit the pending review"
+        "The output's 'On the change' section names the verdict recorded and how to reverse it, referencing GitHub's own mechanics"
       ]
     },
     {
@@ -72,8 +72,55 @@
       "expectations": [
         "Skill correctly identifies the GitHub issue reference and loads the GitHub tracker adapter rather than the JIRA one",
         "The GitHub issue is fetched, saved to a file, and handed to review-changes as the spec",
-        "The output accounts for the issue's stated requirements, or an inline comment references them",
-        "The review output is printed in the conversation and is not posted to the PR or the issue"
+        "The output accounts for the issue's stated requirements, or a comment references them",
+        "Nothing is posted to the issue itself — only to the PR"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "/pr-review https://gitlab.com/acme/my-service/-/merge_requests/55 draft",
+      "expected_output": "Skill recognizes the draft mode word, reviews the MR the same way, but leaves every finding as a GitLab draft note (no --mode direct) and takes no action on the MR's approval state. The output reports the verdict in the conversation and closes with GitLab's Submit review instruction.",
+      "files": [],
+      "expectations": [
+        "The script is invoked without --mode direct, so findings stay as unpublished draft notes",
+        "No --verdict is passed and the MR's approval state is left untouched, even when the verdict is Approved",
+        "--purge is used so a rerun replaces this skill's own prior drafts rather than duplicating them",
+        "The output reports the verdict in the conversation and tells the user to open the MR and hit Submit review to publish the drafts"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "/pr-review https://github.com/acme/my-service/pull/300 comments-only",
+      "expected_output": "Skill publishes the comments directly but records no verdict: the script runs with --mode direct and --verdict none, so each finding lands as a standalone review comment (or a conversation comment when unanchored) and the PR's review state is untouched. The conversation output still leads with the verdict and says it was not recorded.",
+      "files": [],
+      "expectations": [
+        "Comments are published directly rather than left as a pending review",
+        "No review event is submitted — no APPROVE, no REQUEST_CHANGES, and no review body carrying a summary",
+        "The output leads with review-changes' verdict and states explicitly that it was not recorded on the PR because comments-only mode was requested"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Review my own MR before I ask the team: https://gitlab.com/acme/my-service/-/merge_requests/61",
+      "expected_output": "Step 2 compares the MR's author against the authenticated user, finds they match, and drops to comments-only for the rest of the run: comments are published, no approve call is attempted, and the output explains that a self-authored change can't carry its author's verdict.",
+      "files": [],
+      "expectations": [
+        "The skill compares the change's author against the authenticated user (glab api user / gh api user) as part of fetching metadata",
+        "On a match it does not attempt an approve call, rather than firing one and reporting the host's rejection",
+        "Comments are still published directly",
+        "The output states the verdict is informational because the change is self-authored"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Review https://gitlab.com/acme/backend/-/merge_requests/410 — I think it's broken, be strict",
+      "expected_output": "When review-changes returns Request changes, the skill writes the verdict line and summary paragraph to a summary file, runs the GitLab script with --mode direct --verdict request-changes --summary-file, and reports that GitLab exposes no API for a reviewer's requested-changes state — so the merge-blocking state needs a click in the UI.",
+      "files": [],
+      "expectations": [
+        "A Request changes verdict passes --verdict request-changes with a --summary-file holding the verdict line and summary paragraph",
+        "Any approval this account already holds on the MR is cleared (unapprove) rather than left standing under a Request changes verdict",
+        "The output tells the user that GitLab has no API for the requested-changes reviewer state and that setting it means opening the MR and choosing Request changes",
+        "The skill does not claim the MR is blocked from merging when only a comment and a cleared approval were applied"
       ]
     }
   ]

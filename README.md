@@ -31,7 +31,7 @@ Author, automate, and reconcile behavior specifications in Gherkin, turning syst
 Structure and carry out code reviews with a consistent, cost-of-change-driven framework and reviewer workflows.
 
 - **[/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md)** — Knowledge base for Gunnar Morling's Code Review Pyramid. *Auto · Adopt*
-- **[/pr-review](skills/code-review/pr-review/SKILL.md)** — Reviews a GitLab MR or GitHub PR against its linked work item with `/review-changes`, then posts its findings as inline comments on the diff for you to submit. *Manual · Adopt*
+- **[/pr-review](skills/code-review/pr-review/SKILL.md)** — Reviews a GitLab MR or GitHub PR against its linked work item with `/review-changes`, then publishes the findings as inline comments and approves or requests changes to match the verdict — `draft` and `comments-only` modes hold either half back. *Manual · Adopt*
 - **[/address-pr-comments](skills/code-review/address-pr-comments/SKILL.md)** — Triages every open review thread on a GitLab MR or GitHub PR, fixes what needs fixing, then replies and resolves each thread. *Manual · Trial*
 - **[/review-changes](skills/code-review/review-changes/SKILL.md)** — Reviews the diff since a fixed point with the Code Review Pyramid, then reports one verdict — approved, approved with suggestions, or request changes. *Auto · Trial*
 
