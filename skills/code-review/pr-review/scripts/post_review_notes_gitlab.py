@@ -149,7 +149,7 @@ def post_one(project, mr, body, dry_run):
     return glab_api(draft_notes_path(project, mr), method="POST", body=body, dry_run=dry_run)
 
 
-def apply_verdict(project, mr, verdict, head_sha, summary_file, dry_run):
+def apply_verdict(project, mr, verdict, head_sha, summary_file, dry_run, published_texts=frozenset()):
     """Approve, or clear approval and post the summary — GitLab can't set 'requested changes'."""
     if verdict == "approve":
         resp = glab_api(
@@ -173,9 +173,13 @@ def apply_verdict(project, mr, verdict, head_sha, summary_file, dry_run):
     else:
         print("verdict: cleared this account's approval")
     with open(summary_file) as f:
-        summary = f.read().strip()
-    glab_api(mr_path(project, mr, "/notes"), method="POST", body={"body": summary}, dry_run=dry_run)
-    print("verdict: posted the request-changes summary as a note")
+        summary = with_marker(f.read().strip())
+    # Marked like every other note, so a rerun recognises it instead of posting a second copy.
+    if normalize(summary) in published_texts:
+        print("verdict: summary already on the MR, left as it is")
+    else:
+        glab_api(mr_path(project, mr, "/notes"), method="POST", body={"body": summary}, dry_run=dry_run)
+        print("verdict: posted the request-changes summary as a note")
     print("verdict: GitLab has no API for a reviewer's 'requested changes' state — tell the user to set it in the UI")
     return True
 
@@ -285,7 +289,7 @@ def main():
                 print(f"  · {s}")
         if args.verdict != "none":
             apply_verdict(args.project, args.mr, args.verdict, args.head_sha,
-                          args.summary_file, args.dry_run)
+                          args.summary_file, args.dry_run, texts)
 
 
 if __name__ == "__main__":

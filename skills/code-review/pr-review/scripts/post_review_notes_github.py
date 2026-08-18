@@ -224,7 +224,7 @@ def apply_verdict(owner, repo, pr, head_sha, verdict, summary_file, dry_run):
     payload = {"commit_id": head_sha, "event": "APPROVE" if verdict == "approve" else "REQUEST_CHANGES"}
     if verdict == "request-changes":
         with open(summary_file) as f:
-            payload["body"] = f.read().strip()
+            payload["body"] = with_marker(f.read().strip())
     resp, err = gh_api(f"repos/{owner}/{repo}/pulls/{pr}/reviews", method="POST", body=payload, dry_run=dry_run)
     if err:
         hint = " — GitHub rejects acting on your own PR" if "own pull request" in err else ""
