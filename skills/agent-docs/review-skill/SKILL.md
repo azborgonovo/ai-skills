@@ -22,21 +22,18 @@ Work in two phases: **critique first, edit second.** Never rewrite the skill bef
 
 Take the skill from `$ARGUMENTS` — a skill name (resolve to `skills/<name>/SKILL.md` or the installed `~/.claude/skills/<name>/SKILL.md`) or a direct path. With no argument, review the skill in progress: the `SKILL.md` most recently edited this session or showing in `git status`; if that's ambiguous, confirm which one before reviewing. Read the whole bundle, not just `SKILL.md` — note any `scripts/`, `references/`, `assets/`, and `evals/`, since their presence (or absence) is itself a finding.
 
-## Load the lenses
-
-Two lenses sharpen the review when available. Use each only if present, and do not reconstruct it inline when it's missing — a partial review beats a duplicated rubric that drifts out of sync.
-
-- **Project conventions** — if the repo has a `CLAUDE.md` with skill-authoring guidance, read it and treat its rules as binding for this review (this repo's, for instance, bans `---` section separators, reserves bold for lead-ins and directives, and prefers explaining *why* over `MUST` walls).
-- **Shared vocabulary** — if the `writing-great-skills` skill is installed (use `Glob` to find its `GLOSSARY.md`), read it and run the review in its terms: diagnose with its failure-mode catalogue — premature completion, duplication, sediment, sprawl, no-op — and name those terms in findings so they trace back to a single source of truth. If it isn't installed, review with the dimensions below and skip the borrowed terms.
-
 ## What to review
 
-Walk these dimensions and collect concrete findings, each tied to specific lines:
+**The standards** — before walking the dimensions, find the authoring conventions this skill is held to: a `CLAUDE.md`, `CONTRIBUTING.md`, a skill-authoring style guide, or an equivalent. A documented convention overrides a generic dimension below wherever the two disagree, and a convention the repo has settled is settled rather than a finding to raise.
+
+Take them only from the repo the skill under review lives in. A skill resolved under `~/.claude/skills/` often has no repo of its own — review it on the dimensions alone rather than holding it to the conventions of whatever repo your shell happens to be in, or to the user's global ones.
+
+Then walk these dimensions and collect concrete findings, each tied to specific lines:
 
 - **Triggering** — does the `description` front-load the skill's leading word and cover the real branches a user would actually phrase, without false-trigger overlap with neighboring skills? Flag both gaps and collisions. Static smell-test only; for a measured trigger rate, defer to skill-creator.
 - **Scope** — one clear responsibility, with an honest "do not use for…" boundary where it earns its place. Flag scope creep and overlap with skills that already exist.
 - **Domain fidelity** — covered below.
-- **Prose and leanness** — is the body objective, clear, and lean? Hunt no-ops sentence by sentence, collapse restatements, and call out sediment and sprawl. Recommend pushing deterministic or repetitive mechanics into `scripts/` and bulky reference into `references/` behind a pointer, so the always-loaded body stays legible.
+- **Prose and leanness** — is the body objective, clear, and lean? Hunt *no-ops* sentence by sentence — a line the model already obeys by default, which costs context to say nothing; delete the sentence rather than rewriting it tighter, since a reworded no-op is still a no-op. Collapse restatements: the same meaning in two places costs tokens now and drifts into a contradiction the day one copy gets edited. Call out *sediment*, the stale layers that settle because adding feels safe and removing feels risky, and *sprawl*, length itself even where every line is live and unique. Recommend pushing deterministic or repetitive mechanics into `scripts/` and bulky reference into `references/` behind a pointer, so the always-loaded body stays legible.
 - **Structure and frontmatter** — `name`/`description`/`argument-hint`/`allowed-tools` valid and consistent; headers that earn their place; no contradictory instructions; completion criteria that are checkable rather than vague.
 
 ## Domain fidelity
