@@ -1,10 +1,10 @@
 ---
 name: decide
 description: >
-  Explore a problem, its context, and possible solutions before making a significant decision.
-  TRIGGER when: the user invokes /decide; OR the user is uncertain about a direction, hasn't yet
-  evaluated their options, or wants help thinking through a problem. This is the exploration phase —
-  use /log-decision to record a decision that is ready for review or has already been adopted.
+  Explores a problem, its context, and possible solutions before a significant decision is made.
+  Use when the user invokes /decide, is uncertain about a direction, hasn't yet evaluated their
+  options, or wants help thinking through a problem. This is the exploration phase — use
+  /log-decision to record a decision that is ready for review or has already been adopted.
 argument-hint: "[decision topic]"
 allowed-tools: [Read, Glob, Grep, AskUserQuestion]
 ---

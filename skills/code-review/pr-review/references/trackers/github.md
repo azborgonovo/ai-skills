@@ -1,12 +1,6 @@
 # Tracker adapter: GitHub Issues
 
-Mechanics for fetching work-item context from a GitHub issue. Read this when Step 3 identifies the linked work item as a GitHub issue reference — a full `github.com/<owner>/<repo>/issues/<n>` URL, a cross-repo `<owner>/<repo>#<n>` reference, or a bare `#<n>` when the change itself lives on GitHub in the same repo.
-
-This applies whether or not the change under review also lives on GitHub — the code host and the tracker are independent (a GitLab MR can reference a GitHub issue for requirements, and vice versa).
-
-## Tooling
-
-Use the `gh` CLI over Bash — no separate MCP connector needed once `gh auth status` shows you're logged in. If `gh` isn't installed or authenticated, fall back to the graceful-degradation path from Step 3 (discover MCP GitHub tools via `ToolSearch`).
+Mechanics for fetching work-item context from a GitHub issue. Read this when Step 3 identifies the linked work item as a GitHub issue reference — a full `github.com/<owner>/<repo>/issues/<n>` URL, a cross-repo `<owner>/<repo>#<n>`, or a bare `#<n>` when the change itself lives on GitHub in the same repo. The tracker is independent of the code host: a GitLab MR can reference a GitHub issue for its requirements.
 
 ## Fetch the work item (Step 3)
 
@@ -14,13 +8,10 @@ Use the `gh` CLI over Bash — no separate MCP connector needed once `gh auth st
 gh issue view <url_or_owner/repo#n> --json title,body,labels,url
 ```
 
-Extract:
-- `title` (the "what")
-- `body` (the "done conditions" — GitHub issues have no dedicated acceptance-criteria field, so treat the body's own structure, checklists, or a linked design doc as the ground truth)
-- `labels` — GitHub has no first-class "issue type" field; infer bug vs. feature/task from labels (`bug`, `enhancement`, `feature`) when present, otherwise treat the body's own framing as the signal
+**GitHub issues have no acceptance-criteria field and no issue-type field**, which changes what you extract: the body *is* the whole specification, so read its own structure, checklists, and any design doc it links as the ground truth, and take bug-vs-feature from the labels (`bug`, `enhancement`, `feature`) or, absent those, from the body's own framing.
 
-If the fetch fails for any reason, continue the review without requirements context — note it in the summary at the end.
+If `gh` isn't installed or authenticated, fall back to the graceful-degradation path from Step 3. If the fetch fails for any reason, continue the review without requirements context and note it in the summary.
 
 ## Markup dialect
 
-GitHub-flavored Markdown. This adapter is read-only (this skill never posts back to the work item) — quote issue content verbatim when citing it in an inline comment rather than reformatting it.
+GitHub-flavored Markdown. This adapter is read-only, so quote issue content verbatim when citing it in an inline comment rather than reformatting it.

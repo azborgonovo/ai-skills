@@ -62,7 +62,7 @@ python3 "$PLUGIN_ROOT/scripts/setup_worktree.py" --repo-path <repo_path> --sourc
 
 (use `python` instead of `python3` if that's not on `PATH` — some native Windows installs only have the latter)
 
-The helper sits at the plugin root, not in this skill's own `scripts/`, because the `pr-review` skill shares it. That first line finds the root in either install mode: `CLAUDE_PLUGIN_ROOT` is set when the skill runs from an installed plugin, and when it instead runs from a directory symlinked into `~/.claude/skills`, resolving this SKILL.md's own real path is the only anchor that holds.
+That first line resolves the shared helper at the plugin root in either install mode.
 
 `<repo_path>` is the relative shape the host adapter states (e.g. GitLab's namespace or GitHub's `owner/repo`) — the script searches common project roots and, failing that, by remote URL, since there's no one standard clone location to assume. On success it prints `WORKTREE_PATH: <path>`; on any refusal (dirty/unpushed leftover worktree, or the branch checked out elsewhere) it prints `STOP: <reason>` and exits non-zero — stop and tell the user rather than working around it.
 
@@ -120,10 +120,8 @@ Summarize directly in the conversation (not posted to the change): the change's 
 
 ## Hard constraints
 
+The steps above carry their own reasoning; these three are repeated because each one destroys work that isn't yours to destroy.
+
+- **Never** force-push — if the push in Step 7 is rejected, stop and ask the user how to proceed
 - **Never** resolve a thread classified as disagree — reply, then leave it for the reviewer to close
 - **Never** check out the change's branch in the user's main clone — always work from the isolated worktree created in Step 3
-- **Never** force-remove the fix worktree (Step 3's script won't proceed past a dirty/unpushed leftover; Step 9's cleanup shouldn't override that either) — if it isn't verifiably clean, stop and tell the user instead
-- **Never** force-push — if the push in Step 7 is rejected, stop and ask the user how to proceed
-- **Always** run the full test suite (Step 6) and confirm it's green before pushing or resolving anything
-- **Always** remove the worktree before finishing (Step 9), even if the run is aborted or fails partway
-- **Always** reply through the host adapter's true threaded-reply call, tied to the thread's ID — never a standalone/general comment

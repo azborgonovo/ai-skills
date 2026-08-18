@@ -1,7 +1,7 @@
 ---
 name: pareto
 description: >
-  Process the user's request through the Pareto Principle: rank the causes generating most of the outcome, then spend roughly a fifth of the effort on the interventions that address them and report what that effort bought.
+  Processes the user's request through the Pareto Principle: ranks the causes generating most of the outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that effort bought.
   User-only: runs only when explicitly invoked with /pareto [request]. When the user wants the highest-leverage slice of a large task, asks "what matters most here", wants to cut scope to what actually moves the needle, or wants an 80/20 pass over analysis, planning, test coverage, refactoring, or cleanup, suggest running this command.
   Not for work whose value depends on being complete — security fixes, compliance changes, migrations, or a specific reported bug.
 argument-hint: "[request to process]"

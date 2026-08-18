@@ -5,7 +5,7 @@ description: >
   comments on the diff and records the verdict on the change — it fetches the change and work-item
   context, isolates the change locally, delegates the review itself to the review-changes skill,
   posts each finding, and approves or requests changes according to that verdict. Ships with adapters
-  for GitLab and GitHub as the code host, and JIRA and GitHub Issues as the tracker, but degrades
+  for GitLab and GitHub as the code host, and Jira and GitHub Issues as the tracker, but degrades
   gracefully to any other host or tracker reachable via tool discovery. User-only: runs only when
   explicitly invoked with /pr-review <MR or PR URL>. When the user wants to review a GitLab MR or
   GitHub PR, code-review a merge/pull request, or evaluate a change's diff against its linked work
@@ -28,7 +28,7 @@ The reviewing itself belongs to the [review-changes](../review-changes/SKILL.md)
 - rendering the resulting findings as inline comments anchored to the diff
 - turning the verdict into the host's own approve / request-changes action
 
-Throughout, "change" is the generic term for what the host calls a merge request (GitLab) or pull request (GitHub, Bitbucket), and "work item" the generic term for whatever the tracker holds (a JIRA issue, a GitHub issue). The host- and tracker-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them, so the always-loaded body stays host-agnostic.
+Throughout, "change" is the generic term for what the host calls a merge request (GitLab) or pull request (GitHub, Bitbucket), and "work item" the generic term for whatever the tracker holds (a Jira issue, a GitHub issue). The host- and tracker-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them, so the always-loaded body stays host-agnostic.
 
 ## Modes
 
@@ -67,14 +67,14 @@ Compare the author against the authenticated user (the adapter names both calls)
 
 Scan the title and description for a work-item reference:
 
-- A JIRA key (regex `[A-Z][A-Z0-9]+-\d+`), bare or in a full `…atlassian.net/browse/<KEY>` URL → read `references/trackers/jira.md`
+- A Jira key (regex `[A-Z][A-Z0-9]+-\d+`), bare or in a full `…atlassian.net/browse/<KEY>` URL → read `references/trackers/jira.md`
 - A GitHub issue reference — a full `github.com/<owner>/<repo>/issues/<n>` URL, a cross-repo `<owner>/<repo>#<n>`, or a bare `#<n>` when the change itself is on GitHub in the same repo → read `references/trackers/github.md`
 
 A full URL is unambiguous about which tracker it names; prefer it over a bare key/number if both somehow appear. The tracker is independent of the code host — a GitLab MR can reference a GitHub issue for requirements, and vice versa.
 
 The tracker adapter is the authority for fetching that work item: how to load or authenticate its tools, the exact call to fetch it, and what fields to extract (summary, description/acceptance criteria, issue type). Read it now and follow it as "per the tracker adapter."
 
-Write what you fetched — summary, description, acceptance criteria, and the work item's URL — verbatim to `/tmp/<change-id>-work-item.md`. Step 5 hands that path to review-changes as the spec, and a file keeps the requirements as the tracker worded them instead of a paraphrase that has already lost the wording a conformance check needs.
+Write what you fetched — summary, description, acceptance criteria, and the work item's URL — verbatim to `${TMPDIR:-/tmp}/<change-id>-work-item.md`. Step 5 hands that path to review-changes as the spec, and a file keeps the requirements as the tracker worded them instead of a paraphrase that has already lost the wording a conformance check needs.
 
 If there's no adapter for the tracker you're facing, degrade gracefully the same way as Step 1. If no work-item reference is found at all, or the fetch fails, continue without a spec file — review-changes then reports the review as spec-less, which surfaces in Step 8's output as the caveat that conformance was never assessed.
 
@@ -91,19 +91,19 @@ python3 "$PLUGIN_ROOT/scripts/setup_worktree.py" \
 
 (use `python` instead of `python3` if that's not on `PATH` — some native Windows installs only have the latter)
 
-The helper sits at the plugin root, not in this skill's own `scripts/`, because the `address-pr-comments` skill shares it. That first line finds the root in either install mode: `CLAUDE_PLUGIN_ROOT` is set when the skill runs from an installed plugin, and when it instead runs from a directory symlinked into `~/.claude/skills`, resolving this SKILL.md's own real path is the only anchor that holds. `<repo_path>` is the relative shape the host adapter states (GitLab's namespace, GitHub's `owner/repo`) — the script searches common project roots and, failing that, by remote URL, since there's no one standard clone location to assume. `--target-branch` gets the diff base fetched too, which is what makes the fixed point in Step 5 resolvable locally.
+That first line resolves the shared helper at the plugin root in either install mode. `<repo_path>` is the relative shape the host adapter states (GitLab's namespace, GitHub's `owner/repo`) — the script searches common project roots and, failing that, by remote URL, since there's no one standard clone location to assume. `--target-branch` gets the diff base fetched too, which is what makes the fixed point in Step 5 resolvable locally.
 
 On success it prints `WORKTREE_PATH: <path>`; use that path for every read, `grep`, and `git` call from here on. On any refusal (a dirty or unpushed leftover worktree, a clone it can't find) it prints `STOP: <reason>` and exits non-zero — never force past it, and never fall back to checking out the change in the user's main clone. If it can't locate the clone, ask the user for the path and re-run with `--repo-root <path>` in place of `--repo-path`.
 
-With no worktree, the review is diff-only: fetch every changed file's diff per the host adapter (including its truncation check) and write it to `/tmp/<change-id>.diff`. Step 5 hands that file over in place of the worktree, and Step 8 carries the limitation as a caveat — no working tree means no claim can be settled by running the code.
+With no worktree, the review is diff-only: fetch every changed file's diff per the host adapter (including its truncation check) and write it to `${TMPDIR:-/tmp}/<change-id>.diff`. Step 5 hands that file over in place of the worktree, and Step 8 carries the limitation as a caveat — no working tree means no claim can be settled by running the code.
 
 ### Step 5 — Hand the review to review-changes
 
 Invoke the `review-changes` skill (via the Skill tool with `skill: "review-changes"`), passing:
 
 - **the worktree path**, with the instruction to run every git command as `git -C <worktree_path>` — the shell's own working directory is still the user's main clone, and a review that silently diffs the wrong repo is the one failure mode here worth spelling out
-- **the fixed point**: the base SHA from Step 2 (the target branch also works — review-changes diffs three-dot, so either resolves to the merge base). In diff-only mode there is no working tree to diff, so hand over `/tmp/<change-id>.diff` as the already-captured diff instead, and say so
-- **the spec**: the `/tmp/<change-id>-work-item.md` path from Step 3, or that there is no spec
+- **the fixed point**: the base SHA from Step 2 (the target branch also works — review-changes diffs three-dot, so either resolves to the merge base). In diff-only mode there is no working tree to diff, so hand over `${TMPDIR:-/tmp}/<change-id>.diff` as the already-captured diff instead, and say so
+- **the spec**: the `${TMPDIR:-/tmp}/<change-id>-work-item.md` path from Step 3, or that there is no spec
 - **the test signal**: the checks/pipeline status from Step 2, as the CI result to report — this is someone else's repo, freshly fetched, so take the host's verdict rather than building and running its suite unprompted
 
 Its report is the review of record: the verdict, the blocking/non-blocking split, spec accounting, and what it checked and found clean. Steps 6 through 8 turn that report into comments, a verdict action, and output — they don't re-review the change.
@@ -128,7 +128,7 @@ Every finding review-changes reported becomes one note object, keeping its own s
 
 **What stays out of the comments**: the summary paragraph, the "checked and clean" list, and the path to merge all belong to Step 8's output in the conversation. Skip a suggestion no author would act on — a style nit that automation should be catching — and where the same finding recurs across files, post the clearest occurrence once.
 
-**The verdict summary**: a Request changes verdict in the default mode needs one — GitHub requires a body on that event, and GitLab has nowhere else to state the verdict. Write review-changes' verdict line and summary paragraph to `/tmp/<change-id>-summary.md` and pass it as `--summary-file`. No other mode posts one.
+**The verdict summary**: a Request changes verdict in the default mode needs one — GitHub requires a body on that event, and GitLab has nowhere else to state the verdict. Write review-changes' verdict line and summary paragraph to `${TMPDIR:-/tmp}/<change-id>-summary.md` and pass it as `--summary-file`. No other mode posts one.
 
 The host adapter names the bundled script that does the posting (`scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md) and its exact invocation for the mode Step 2 settled on. Both read the same notes-file JSON shape, so drafting doesn't change with the host; both mark each comment with a trailing 🤖; both publish comments before touching the verdict, so an approval never lands without its reasoning; and both skip a finding this account already published rather than deleting or duplicating it. Leave the marking to the script — writing it yourself only risks it landing twice.
 
@@ -184,10 +184,8 @@ Output the full review in the conversation — the change carries the comments a
 
 ## Hard constraints
 
+The steps above carry their own reasoning; these three are repeated because each one is irreversible from the author's side once done.
+
 - **Never** act on the verdict outside the default mode — `draft` and `comments-only` report it in the conversation and leave the change's approval state untouched, as does a self-authored change.
-- **Always** publish the comments before the verdict action, so an approval never lands on a change without the reasoning behind it. Both scripts already order it that way.
 - **Never** delete or overwrite a comment that is already published, on a rerun or otherwise — the author may have replied to it. Reruns skip what's already there instead.
 - **Never** check out the change in the user's main clone — always review from the isolated worktree created in Step 4.
-- **Never** force past a `STOP:` from the worktree script, and never force-remove the worktree in Step 7 — if it isn't verifiably clean, tell the user instead of overriding.
-- **Always** remove the worktree before finishing (Step 7), even if the review is aborted or fails partway.
-- **Always** post comments and record the verdict through the host adapter's bundled script — the anchor validation, rerun skipping, and publish-then-verdict ordering all live there.

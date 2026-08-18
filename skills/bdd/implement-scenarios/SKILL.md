@@ -9,8 +9,7 @@ description: >
   xUnit/NUnit/Vitest/Jest/pytest/Playwright tests; build a feature test-first (TDD) from acceptance
   criteria; decide which scenarios belong in unit vs service (Testcontainers) vs end-to-end tests; or
   keep a traceability link between scenarios and the tests that verify them — even when they don't
-  say "BDD" or "TDD". This is BDD's automation step, the one that runs after define-behavior writes
-  the Gherkin and review-feature-suite audits it. Do not use it to author or refine the Gherkin
+  say "BDD" or "TDD". Do not use it to author or refine the Gherkin
   itself (that is define-behavior) or to reconcile a suite of feature files against each other (that
   is review-feature-suite).
 argument-hint: "[path to a .feature file or features directory]"
@@ -29,7 +28,7 @@ Work in two phases, and keep them separate: classify the whole suite and get sig
 
 The findings that shape every later decision come from the project, so read it before touching anything.
 
-**Steering.** Scan `.kiro/steering/`, `docs/`, and the repo root for standards-style files (`*standards*.md`, `*conventions*.md`, `testing-*.md`, `api-*.md`) and read every one you find. These define the team's preferred test pyramid, frameworks, and conventions. Precedence when sources disagree: an explicit steering document wins, then the repo's existing conventions, then the defaults below. When a steering doc contradicts what the codebase actually does (doc says NUnit, every project references xUnit), **surface the conflict to the user** rather than silently introducing a second framework — adopting both is almost never what they want.
+**Steering.** Scan the repo root, `docs/`, and any harness steering directory (`.claude/rules/`, `.cursor/rules/`, `.kiro/steering/`) for standards-style files (`*standards*.md`, `*conventions*.md`, `testing-*.md`, `api-*.md`) and read every one you find. These define the team's preferred test pyramid, frameworks, and conventions. Precedence when sources disagree: an explicit steering document wins, then the repo's existing conventions, then the defaults below. When a steering doc contradicts what the codebase actually does (doc says NUnit, every project references xUnit), **surface the conflict to the user** rather than silently introducing a second framework — adopting both is almost never what they want.
 
 **Stack and tooling.** Detect the language, test frameworks, and whether a Gherkin runner is already in use (SpecFlow/Reqnroll, cucumber-js, behave, godog) from the manifests (`*.csproj`, `package.json`, `pyproject.toml`, `go.mod`) and the existing test setup. What the project already does is a stronger, more current signal than any default.
 

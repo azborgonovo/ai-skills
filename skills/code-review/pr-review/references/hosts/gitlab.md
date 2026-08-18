@@ -63,7 +63,7 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 1. Write findings to a JSON array — one object per finding:
 
 ```json
-// /tmp/mr<iid>_notes.json
+// ${TMPDIR:-/tmp}/mr<iid>_notes.json
 [
   { "note": "<observation>\n\n<suggested fix if applicable>", "new_path": "src/user.go", "new_line": 47 },
   { "note": "<a finding with no good line anchor>", "general": true }
@@ -81,11 +81,11 @@ The mechanics of posting are deterministic and easy to get subtly wrong, so they
 python3 <skill_dir>/scripts/post_review_notes_gitlab.py \
   --project <project_path_encoded> --mr <mr_iid> \
   --base-sha <diff_refs.base_sha> --start-sha <diff_refs.start_sha> --head-sha <diff_refs.head_sha> \
-  --notes /tmp/mr<iid>_notes.json --purge \
+  --notes ${TMPDIR:-/tmp}/mr<iid>_notes.json --purge \
   --mode direct --verdict approve
 
 # default mode, Request changes verdict — needs the summary GitLab will carry as a note
-python3 ... --mode direct --verdict request-changes --summary-file /tmp/mr<iid>_summary.md
+python3 ... --mode direct --verdict request-changes --summary-file ${TMPDIR:-/tmp}/mr<iid>_summary.md
 
 # comments-only mode — publish the comments, leave approval state alone
 python3 ... --mode direct

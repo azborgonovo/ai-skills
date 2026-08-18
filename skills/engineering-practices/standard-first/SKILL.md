@@ -1,52 +1,24 @@
 ---
 name: standard-first
 description: >
-  Guides technical implementation to always prefer the standard, officially-documented solution over custom or AI-generated code. Use this skill whenever the agent is about to: write new code for a feature, suggest or add a library/package, scaffold a new project, or configure a framework. TRIGGER for any .NET/C#, Node.js/npm, Python, Go, Java, or other language implementation task — especially when the problem sounds like something a built-in framework feature or package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Do not skip this skill just because the answer feels obvious from training data.
+  Guides technical implementation to always prefer the standard, officially-documented solution over custom or AI-generated code. Use when about to write new code for a feature, suggest or add a library/package, scaffold a new project, or configure a framework — in any language (.NET/C#, Node.js/npm, Python, Go, Java, and the rest), and especially when the problem sounds like something a built-in framework feature or package registry might already solve (logging enrichment, auth, serialization, retries, health checks, migrations, etc.). Do not skip this skill just because the answer feels obvious from training data.
 argument-hint: "[task description]"
 allowed-tools: [WebSearch, WebFetch, Read, Glob, Write, Bash]
 ---
 
 # Standard-First
 
-Before implementing anything, find what already exists — a built-in framework feature, a well-maintained package, or an official pattern. The simplest solution that fully solves the stated problem is the right one; do not add custom implementations for problems that an existing package already covers.
+Before implementing anything, find what already exists — a built-in framework feature, a well-maintained package, or an official pattern. Steps 1-3 find the candidates; Step 4 ranks them.
 
 ## Step 1 — Understand the Stack
 
-Before searching for solutions, read the project's dependency and configuration files to identify the exact technology stack and what is already installed.
-
-Use `Glob` to find these files, then `Read` them:
-
-| File | What it tells you |
-|---|---|
-| `*.csproj`, `*.sln`, `global.json` | .NET version, existing NuGet packages |
-| `package.json`, `package-lock.json`, `yarn.lock` | Node.js runtime, installed packages |
-| `go.mod` | Go module path and dependencies |
-| `requirements.txt`, `pyproject.toml`, `Pipfile` | Python packages |
-| `pom.xml`, `build.gradle` | Java/Kotlin dependencies |
-| `Cargo.toml` | Rust crates |
-
-Reading these files prevents mismatches — e.g., looking up ASP.NET Core 9 docs when the project targets .NET 6, or suggesting a package that is already installed under a different name.
+`Glob` then `Read` the project's dependency and configuration manifests — `*.csproj`/`*.sln`/`global.json`, `package.json`, `go.mod`, `requirements.txt`/`pyproject.toml`, `pom.xml`/`build.gradle`, `Cargo.toml`, and their lockfiles. Pin the exact framework version and what is already installed: that is what prevents looking up ASP.NET Core 9 docs for a project targeting .NET 6, or proposing a package the project already has under a different name.
 
 If no project files are found, ask the user for the tech stack before proceeding.
 
 ## Step 2 — Check for a Technology-Specific Skill
 
-Before going to the web, check whether a skill is already available for the detected technology. Look at the `available_skills` list in your context and match against the stack identified in Step 1.
-
-Examples of what to look for:
-
-| Stack | Skill to look for |
-|---|---|
-| .NET / C# / ASP.NET Core | `dotnet-agent-skills`, `dotnet`, `csharp` |
-| Node.js / npm | `node`, `nodejs`, `javascript` |
-| Python | `python`, `django`, `fastapi` |
-| Go | `go`, `golang` |
-| Java / Kotlin | `java`, `spring` |
-| Docker / Kubernetes | `docker`, `kubernetes`, `k8s` |
-
-If a matching skill is available, invoke it and follow its guidance. A dedicated skill has curated, up-to-date knowledge for that ecosystem and should be preferred over a web search. Skip Step 3 entirely if the skill covers the task.
-
-If no matching skill is found, continue to Step 3.
+Before going to the web, scan the skills available in this session for one covering the stack from Step 1 — an ecosystem skill carries curated, current knowledge for that stack and beats a web search. If one matches, invoke it and follow its guidance, skipping Step 3 wherever it covers the task. Otherwise continue to Step 3.
 
 ## Step 3 — Search Before Implementing
 
@@ -54,18 +26,7 @@ For every implementation task, search official sources before writing any code.
 
 ### 3a. Check if a package already solves it
 
-The first question is always: does this already exist? Search the relevant package registry:
-
-| Technology | Registry to search |
-|---|---|
-| .NET / C# | `nuget.org` |
-| Node.js | `npmjs.com` |
-| Python | `pypi.org` |
-| Go | `pkg.go.dev` |
-| Java / Kotlin | Maven Central (`mvnrepository.com`) |
-| Rust | `crates.io` |
-
-Use `WebSearch` with a query like: `[problem description] nuget` or `serilog log masking nuget`.
+The first question is always: does this already exist? Search the stack's own package registry with `WebSearch` — naming the registry in the query is what surfaces its listing, e.g. `serilog log masking nuget` or `[problem description] npm`.
 
 A well-maintained package (actively updated, thousands of downloads, clear docs) is almost always preferable to custom code. It gets security patches, bug fixes, and compatibility updates automatically.
 
@@ -84,19 +45,7 @@ Once a candidate package or framework feature is identified, fetch its current d
 
 **Fallback — `WebFetch`**: if neither is available, use `WebFetch` to retrieve the official documentation page directly.
 
-Prioritize these sources by technology:
-
-| Technology | Primary official source |
-|---|---|
-| .NET / C# | `learn.microsoft.com/en-us/dotnet/` |
-| ASP.NET Core | `learn.microsoft.com/en-us/aspnet/core/` |
-| NuGet packages | `nuget.org/packages/[name]` → then follow the package's own docs link |
-| Node.js | `nodejs.org/en/docs/` |
-| npm packages | The package README on `npmjs.com`, then its own docs site |
-| Python stdlib | `docs.python.org/3/library/` |
-| Go stdlib | `pkg.go.dev/[module]` |
-| Docker | `docs.docker.com` |
-| Kubernetes | `kubernetes.io/docs/` |
+Take it from the vendor's own domain rather than a blog or aggregator — `learn.microsoft.com` for .NET and ASP.NET Core, `nodejs.org`, `docs.python.org`, `pkg.go.dev`, `docs.docker.com`, `kubernetes.io`. For a package, start at its registry listing and follow the docs site it links to.
 
 Regardless of the source, read the section relevant to the task. Also look for sections titled "Best practices", "Recommendations", "Security considerations", "Performance", or "Production" — these are distinct from the getting-started example and often contain configuration options, ordering constraints, or caveats that the minimal snippet omits but that matter in real applications.
 

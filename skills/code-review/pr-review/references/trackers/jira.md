@@ -1,20 +1,18 @@
-# Tracker adapter: JIRA
+# Tracker adapter: Jira
 
-Mechanics for fetching work-item context from JIRA. Read this when Step 3 identifies the linked work item as a JIRA key (regex `[A-Z][A-Z0-9]+-\d+` found in the change's title or description).
+Mechanics for fetching work-item context from Jira. Read this when Step 3 identifies the linked work item as a Jira key (regex `[A-Z][A-Z0-9]+-\d+` found in the change's title or description).
 
-This adapter is read-only — the skill never posts back to the work item — so all it needs is a single fetch. There are two backends; the first one available wins.
+This adapter is read-only — the skill never posts back to the work item — so all it needs is one fetch of three things: summary, description/acceptance criteria, and issue type.
 
-## Backend A — the TWG CLI
+## Fetch the work item (Step 3)
 
-Check for Atlassian's Teamwork Graph CLI: `command -v twg`, then `$HOME/.local/bin/twg` if the shell reports `command not found`. If it's there, this is the whole adapter — the CLI carries the site and your identity in `~/.config/twg/auth.conf`, so there is no OAuth handshake and no `cloudId` to resolve or cache:
+Prefer Atlassian's Teamwork Graph CLI when it's present — `command -v twg`, then `$HOME/.local/bin/twg` if the shell reports `command not found`. It carries the site and your identity in `~/.config/twg/auth.conf`, so there is no site to resolve:
 
 ```
 twg jira workitem bulk-get <KEY> --fields summary,description,issuetype --expand renderedFields -o json --output-summary stats
 ```
 
-**`--expand renderedFields` is what makes the description readable.** Without it the description comes back as raw ADF (`{"type":"doc","content":[...]}`) rather than prose, and acceptance criteria are exactly the part you cannot afford to misread.
-
-Fields sit flat on the item, not nested under a `fields` key, so extract the three things this skill needs from `output_files.stdout`:
+**`--expand renderedFields` is what makes the description readable.** Without it the description arrives as raw ADF (`{"type":"doc","content":[...]}`) instead of prose, and the acceptance criteria are exactly the part a conformance check cannot afford to misread. Fields sit flat on the item, not nested under a `fields` key:
 
 ```
 OUT=<output_files.stdout>
@@ -22,45 +20,14 @@ jq -r '.data.items[0].data | {key, summary, type: .issuetype.name}' "$OUT"
 jq -r '.data.items[0].data.renderedFields.description' "$OUT"
 ```
 
-- Summary (the "what")
-- Description / acceptance criteria (the "done conditions") — the rendered HTML
-- Issue type (Story / Task / Bug)
+Read `output_files.stdout`, not `output_files.compact` — the compact view keeps only key, summary, and status, dropping the description this fetch exists for.
 
-Read `output_files.stdout` rather than `output_files.compact` here: the compact view keeps only key, summary, and status, dropping the description this skill exists to fetch. Confirm flags with `twg help describe "jira workitem bulk-get"` if a call is rejected — the command surface moves between releases.
-
-## Backend B — the Atlassian MCP tools
-
-Take this path only when the `twg` binary is absent.
-
-### One-time setup: authorize the Atlassian MCP server
-
-Load `mcp__claude_ai_Atlassian__getJiraIssue` via ToolSearch. If the cloudId cache file (below) is missing, add `mcp__claude_ai_Atlassian__getAccessibleAtlassianResources` to the same ToolSearch call.
-
-**If ToolSearch returns only `mcp__claude_ai_Atlassian__authenticate`** (not `getJiraIssue`), the server needs OAuth before continuing:
-
-1. Call `mcp__claude_ai_Atlassian__authenticate` (no parameters needed).
-2. Share the returned authorization URL with the user:
-   > Atlassian needs authorization. Please open this URL and complete the login: `<url>`
-   > Let me know when done.
-3. **Pause** — do not proceed until the user confirms.
-4. Once confirmed, retry ToolSearch for `mcp__claude_ai_Atlassian__getJiraIssue`. If it's now available, continue. If it still isn't, skip JIRA context and note it in the summary.
-
-### One-time setup: resolve the cloudId
-
-The cloudId is machine- and org-specific, so it lives in a local cache file — never in this skill:
-
-1. Read `$HOME/.claude/atlassian-cloud-id` (use the expanded absolute path — `~` isn't expanded by file tools). If it exists, its single line is the cloudId; skip discovery.
-2. Otherwise call `getAccessibleAtlassianResources` and take the returned resource's `id` (the site-URL form like `acme.atlassian.net` also works as a cloudId). If it returns several sites, ask the user which one their JIRA lives on.
-3. Write the resolved value to `$HOME/.claude/atlassian-cloud-id` and tell the user you cached it — every future run then takes the one-file-read fast path below.
-
-### Fetch the work item (Step 3)
-
-Once auth is established and the cloudId is cached, call `getJiraIssue` with `issueIdOrKey: "<KEY>"` and the cached `cloudId`, extracting the same three things as Backend A.
+With no `twg` binary, use the Atlassian MCP tools: load `mcp__claude_ai_Atlassian__getJiraIssue` via `ToolSearch`, then call it with `issueIdOrKey: "<KEY>"`, `responseContentFormat: "markdown"`, and a `cloudId`. **`cloudId` is just the site hostname** (`acme.atlassian.net`) — take it from the `…atlassian.net/browse/<KEY>` URL matched in Step 3. A bare key carries no hostname, so ask the user for the site when nothing in context supplies one.
 
 ## When the fetch fails
 
-On either backend: if the fetch fails for any reason, continue the review without requirements context — note it in the summary at the end.
+Continue the review without requirements context and note it in the summary — the spec is optional, and Step 8 already reports a spec-less review as a caveat. If `ToolSearch` surfaces only `mcp__claude_ai_Atlassian__authenticate`, the connector isn't authorized: say so and proceed spec-less rather than opening an OAuth flow in the middle of a review.
 
 ## Markup dialect (Step 6, when quoting the work item in a comment)
 
-Jira's markdown-to-ADF conversion does not expand emoji shortcodes (`:robot:`) the way GitLab/GitHub-flavored markdown do — posting `:robot:` in a comment elsewhere would render as the literal text ":robot:". This adapter is read-only, so it only matters if you quote work-item content verbatim in an inline comment — quote the text as-is rather than reformatting it.
+Quote work-item text as-is rather than reformatting it. Jira's markdown-to-ADF conversion doesn't expand emoji shortcodes, so a quoted `:robot:` would land as literal text — one more reason to leave the quote alone.

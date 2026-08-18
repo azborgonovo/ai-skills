@@ -53,7 +53,7 @@ twg jira workitem comment create --issue-id <KEY> --body-format markdown --body 
 `--body-format` accepts `html` (the default), `markdown`, or `plain`. There is no `--body-file` on this command, so build a multi-line body into a shell variable first and pass it as one quoted argument:
 
 ```
-COMMENT=$(cat "$TMPDIR/triage-comment.md")
+COMMENT=$(cat "${TMPDIR:-/tmp}/triage-comment.md")
 twg jira workitem comment create --issue-id <KEY> --body-format markdown --body "$COMMENT"
 ```
 

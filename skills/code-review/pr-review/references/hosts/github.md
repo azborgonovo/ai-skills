@@ -53,7 +53,7 @@ GitHub's review-creation call is **atomic**: if even one inline comment's `line`
 1. Write findings to a JSON array — same shape as the GitLab adapter, so the note-drafting step doesn't change based on host:
 
 ```json
-// /tmp/pr<number>_notes.json
+// ${TMPDIR:-/tmp}/pr<number>_notes.json
 [
   { "note": "<observation>\n\n<suggested fix if applicable>", "new_path": "src/user.go", "new_line": 47 },
   { "note": "<a finding with no good line anchor>", "general": true }
@@ -70,11 +70,11 @@ GitHub's review-creation call is **atomic**: if even one inline comment's `line`
 # default mode — publish the comments, then approve
 python3 <skill_dir>/scripts/post_review_notes_github.py \
   --owner <owner> --repo <repo> --pr <number> --head-sha <headRefOid> \
-  --notes /tmp/pr<number>_notes.json \
+  --notes ${TMPDIR:-/tmp}/pr<number>_notes.json \
   --mode direct --verdict approve
 
 # default mode, Request changes verdict — GitHub requires the body for this event
-python3 ... --mode direct --verdict request-changes --summary-file /tmp/pr<number>_summary.md
+python3 ... --mode direct --verdict request-changes --summary-file ${TMPDIR:-/tmp}/pr<number>_summary.md
 
 # comments-only mode — publish the comments, record no verdict
 python3 ... --mode direct

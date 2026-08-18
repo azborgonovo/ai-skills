@@ -13,6 +13,12 @@ clone) rather than forcing past either collision. Uses subprocess argument lists
 throughout, never a shell — so there's no bash/PowerShell dialect to get wrong, and no
 quoting to get subtly right.
 
+Callers resolve this path as "${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f
+"<skill_dir>/SKILL.md")")")}/scripts/setup_worktree.py", which covers both install modes:
+CLAUDE_PLUGIN_ROOT is set when the skill runs from an installed plugin, and when it
+instead runs from a directory symlinked into ~/.claude/skills, resolving the SKILL.md's
+own real path is the only anchor that still points here.
+
 On success, prints "WORKTREE_PATH: <path>" as the last line. On any refusal, prints
 "STOP: <reason>" and exits non-zero — the calling skill should stop and ask the user
 how to proceed rather than working around it.

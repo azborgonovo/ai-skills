@@ -2,20 +2,16 @@
 name: triage-work-item
 description: >
   Triages a tracker work item — a bug, task, or story — end-to-end against the codebase: reads the
-  item (description, full comment/discussion thread, linked items, parent epic), cross-references
-  related items, investigates the actual codebase(s) that implement the affected feature, optionally
-  corroborates with an observability platform (logs/traces/metrics), then posts a verified analysis
-  comment — root cause for a bug, or current-behavior/approach/effort for a change request — back to
-  the item. Ships with adapters for Jira and GitHub Issues as the tracker, and Grafana and AWS
-  CloudWatch for observability, but degrades gracefully to any other tracker or observability
-  platform reachable via tool discovery. TRIGGER when the
-  user gives a work-item URL or key — Jira (`…atlassian.net/browse/KEY`) or GitHub
-  (`github.com/<o>/<r>/issues/<n>`) — and asks to triage, investigate, diagnose, root-cause, or
-  "figure out what's going on with" it, especially when they also want an analysis comment posted
-  back — even if they don't say "triage" explicitly (e.g. "can you look into TICKET-123 and post what
-  you find", "why is this happening, check the code"). Do not use this for simply reading or
-  summarizing a work item with no code investigation intended, and do not use it for writing new
-  work items.
+  item with its full comment thread, links, and parent epic, cross-references related items,
+  investigates the codebase(s) implementing the affected feature, optionally corroborates with
+  observability data, then posts a verified analysis comment — root cause for a bug, or
+  current-behavior/approach/effort for a change request — back to the item. Ships with Jira and
+  GitHub Issues tracker adapters and Grafana and CloudWatch observability adapters, degrading
+  gracefully to any other platform reachable via tool discovery. Use when the user gives a work-item
+  URL or key — Jira (`…atlassian.net/browse/KEY`) or GitHub (`github.com/<o>/<r>/issues/<n>`) — and
+  asks to triage, investigate, diagnose, or root-cause it, even without the word "triage" (e.g.
+  "look into TICKET-123 and post what you find"). Do not use for reading or summarizing a work item
+  with no code investigation intended, or for writing new work items.
 argument-hint: "<work-item URL or key> [--dry-run]"
 allowed-tools: [Read, Grep, Bash, Agent, ToolSearch, AskUserQuestion, Write]
 ---
@@ -73,7 +69,7 @@ Once classified:
 - **Bug** → use `references/bug-template.md`.
 - **Change request** (including non-behavioral tasks) → use `references/change-request-template.md`.
 
-Open the comment with an attribution line: `Triaged with 🤖 using <model> (<effort> effort)`. This is a convention (mirrored from the equivalent footer in the `pr-review` skill) that flags a comment as AI-assisted so readers calibrate trust and scrutiny accordingly — keep it rather than dropping it to make the comment look more "human." Always fill in `<model>` — you know your own model name from your environment context (e.g. `Sonnet 5`). Only fill in `(<effort> effort)` when you have a concretely known effort/thinking-level setting for this session — never guess one just to fill the field; when you don't have one, drop the whole parenthetical rather than write a placeholder: `Triaged with 🤖 using Sonnet 5:`. Use the literal Unicode 🤖, not a `:robot:`-style shortcode — some trackers (e.g. Jira, see `references/trackers/jira.md`) don't expand shortcodes, so it would render as literal text instead of an emoji.
+Open the comment with an attribution line: `Triaged with 🤖 using <model> (<effort> effort)`. This flags the comment as AI-assisted so readers calibrate trust and scrutiny accordingly — keep it rather than dropping it to make the comment look more "human." Always fill in `<model>` — you know your own model name from your environment context (e.g. `Sonnet 5`). Only fill in `(<effort> effort)` when you have a concretely known effort/thinking-level setting for this session — never guess one just to fill the field; when you don't have one, drop the whole parenthetical rather than write a placeholder: `Triaged with 🤖 using Sonnet 5:`. Use the literal Unicode 🤖, not a `:robot:`-style shortcode — some trackers (e.g. Jira, see `references/trackers/jira.md`) don't expand shortcodes, so it would render as literal text instead of an emoji.
 
 ## Step 4 — Note the tracker's comment markup dialect
 

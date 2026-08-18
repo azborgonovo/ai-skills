@@ -1,8 +1,8 @@
 ---
 name: backfill-decisions
 description: >
-  Mine a repository's git history for architecturally significant decisions made in the past and
-  retroactively write Decision Records for them, following the log-decision conventions. User-only:
+  Mines a repository's git history for architecturally significant decisions made in the past and
+  retroactively writes Decision Records for them, following the log-decision conventions. User-only:
   runs only when explicitly invoked with /backfill-decisions [time range, path, or topic]. When the
   user wants to document historical or undocumented decisions, reconstruct ADRs/DRs from git history,
   generate ADRs for a legacy or existing codebase, or document the architecture history, suggest

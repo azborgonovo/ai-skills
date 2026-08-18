@@ -2,25 +2,22 @@
 name: tune-agent-docs
 description: >
   Reviews every markdown file in a repository that steers an AI coding agent — CLAUDE.md, AGENTS.md,
-  GEMINI.md, `.cursor/rules/*.mdc`, `.clinerules`, `.windsurfrules`/`.windsurf/rules`,
-  `.github/copilot-instructions.md`, Kiro's `.kiro/steering/*.md`, and similar — together as one
-  corpus, then tightens them. Use whenever the user wants to audit, tune, reconcile, or clean up the
-  instructions a repo gives its AI agents, or asks why an agent keeps missing or contradicting its
-  own steering docs, or burning tokens on them — even when they only name one file, since the value
-  is in reading it alongside its neighbors. Checks consistent terminology, front-loaded directives,
-  and each doc's token budget — size against its own format's stated limits, content loaded
-  unconditionally that the harness could scope instead, one meaning duplicated across docs or
-  restated within one, and instructions the model already follows by default —
-  applies the repo's own doc-authoring conventions where they hold generally, and calibrates each
-  instruction's degrees of freedom to the fragility of what it governs. Do not use for a single
-  `SKILL.md` in isolation — that is review-skill's job.
+  GEMINI.md, `.cursor/rules/*.mdc`, `.clinerules`, `.windsurfrules`, `.github/copilot-instructions.md`,
+  Kiro's `.kiro/steering/*.md`, and similar — together as one corpus, then tightens them. Use when
+  the user wants to audit, tune, reconcile, or clean up the instructions a repo gives its AI agents,
+  or asks why an agent keeps missing, contradicting, or burning tokens on its own steering docs —
+  even when they name only one file, since the value is in reading it alongside its neighbors. Checks
+  terminology consistency, front-loaded directives, each doc's size against its format's stated limit,
+  always-loaded content the harness could scope, guidance duplicated across docs or restated within
+  one, no-op instructions, and each instruction's degrees of freedom against what it governs. Do not
+  use for a single `SKILL.md` in isolation — that is review-skill's job.
 argument-hint: "[path or glob, optional — defaults to the whole repo]"
 allowed-tools: [Read, Glob, Grep, Edit, Write, AskUserQuestion]
 ---
 
 # Tune Agent Docs
 
-A repo's AI-steering docs are read by whatever agent shows up, often several loaded into one context window at once — a root `CLAUDE.md` is rarely the only text an agent takes as instruction. When these docs disagree, use different words for the same thing, bury their point, or demand more rigor than the task needs, the agent pays that tax silently, on every run. This skill treats every steering doc in the repo as one corpus, combining review-skill's read-then-tighten mechanics with review-feature-suite's cross-file reconciliation.
+A repo's AI-steering docs are read by whatever agent shows up, often several loaded into one context window at once — a root `CLAUDE.md` is rarely the only text an agent takes as instruction. When these docs disagree, use different words for the same thing, bury their point, or demand more rigor than the task needs, the agent pays that tax silently, on every run. This skill treats every steering doc in the repo as one corpus: read them all first, then reconcile and tighten them together.
 
 Work in two phases: **critique first, edit second**. Build the full picture, surface the findings, and only then touch a file.
 
@@ -45,8 +42,8 @@ Read every file in the corpus in full, including every file pulled in by a point
 - **Duplication** — one meaning, one home. Compare guidance by what it *means*, not by string match: two docs that say the same thing in different words duplicate it as fully as two that say it verbatim, and paraphrase is the common case, since the docs were written at different times by different hands. The same defect runs inside a single doc, where one rule restated three sections apart reads as three rules. Include each checked-in doc against its local counterpart. Duplication pays its token cost twice today and is a contradiction waiting for the day only one copy gets edited; prefer one canonical doc plus a pointer or import over a second copy, and place the survivor at the narrowest scope that still covers everywhere the guidance applies. Where a restatement is really one idea circled three times, the repair is often a single word the model already carries priors for, repeated as a term rather than re-explained as a sentence.
 - **No-ops** — an instruction the model already follows by default changes nothing and still costs context every session: "write clean code", "follow best practices", "be careful when editing files", "think before you change things". Steering docs accumulate these because adding a line feels free. Test each sentence in isolation against one question — would an agent that never saw this doc behave differently? Judge sentence by sentence rather than section by section, since a live section carries dead sentences. When a sentence fails, delete the sentence rather than rewriting it tighter; a reworded no-op is still a no-op, and reaching for the rewrite is what leaves these docs long. Be aggressive here — this is usually the largest single cut available.
 - **Structural fit per harness** — once a token-budget or leanness finding calls for splitting or scoping a doc, judge the fix only against what its own format actually supports, per `references/steering-formats.md`: a nested `CLAUDE.md`, a glob-scoped `.mdc` rule, a Kiro `fileMatch` steering file. Where the harness has no such mechanism, don't recommend one it can't use — flag the bloat as a leanness finding instead. Also flag content that's actually a multi-step procedure rather than a standing fact: an always-loaded doc should hold what's true every session, not a workflow — that belongs in a skill, loaded on demand, or a path-scoped rule.
-- **Consistent terminology** — across the whole corpus, the same role, tool, or convention must carry the same name. Hunt synonym drift (`the agent`/`Claude`/`the assistant`, `skill`/`capability`/`workflow`, `worktree`/`workspace`) the way review-feature-suite hunts it across `.feature` files. A term used two ways inside a single doc is the same defect at smaller scale.
-- **Front-loading** — does each instruction open on its actionable verb or keyword instead of burying it after throat-clearing? This is review-skill's triggering check, generalized past `description` fields: a bullet, a header, or a frontmatter `description` that leads with context before the directive makes a skimming agent, or the harness's own retrieval match, miss the point. Keep this separate from a *leading word* in the Leitwort sense — a compact pretrained concept the agent thinks with — which belongs to the duplication repair above.
+- **Consistent terminology** — across the whole corpus, the same role, tool, or convention must carry the same name. Hunt synonym drift (`the agent`/`Claude`/`the assistant`, `skill`/`capability`/`workflow`, `worktree`/`workspace`). A term used two ways inside a single doc is the same defect at smaller scale.
+- **Front-loading** — does each instruction open on its actionable verb or keyword instead of burying it after throat-clearing? The check reaches past `description` fields: a bullet, a header, or a frontmatter `description` that leads with context before the directive makes a skimming agent, or the harness's own retrieval match, miss the point. Keep this separate from a *leading word* in the Leitwort sense — a compact pretrained concept the agent thinks with — which belongs to the duplication repair above.
 - **Degrees of freedom** — match each instruction's specificity to how fragile the thing it governs actually is. A judgment call dressed up as an exact, low-freedom script constrains an agent that should be reasoning; an exact, must-follow-in-order operation left as loose, high-freedom prose invites improvisation where none belongs.
 - **Negation** — a prohibition names the behavior it bans into the agent's context, where it competes with the ban. A doc built from `never`/`do not`/`MUST NOT` walls should state the behavior it wants instead; keep a prohibition for a guardrail that has no positive phrasing, and pair even that one with what to do in its place.
 - **Leanness and staleness** — cut what the agent can already derive by reading the codebase itself — directory layouts, dependency lists, architecture overviews — and keep what it can't derive: pitfalls, rationale, and conventions that differ from the tool's defaults. This is a different cut from the no-op check: a derivable fact is true but free to look up, where a no-op is behavior the model already has. Flag time-boxed conditionals ("until the migration finishes, do X") that will silently go stale; a dated fold or an old-patterns section ages better than a live-sounding conditional.

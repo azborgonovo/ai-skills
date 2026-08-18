@@ -1,7 +1,7 @@
 ---
 name: work-item
 description: >
-  Drafts well-formed work items with testable acceptance criteria, then creates them in whatever tracker is connected if the user explicitly asks for that. Also applies the same standard to tighten up an existing work item. TRIGGER when: the user invokes /work-item; OR asks to draft, write up, create, or fix up a ticket, issue, task, story, bug report, or sub-task — for Jira, GitHub, Azure DevOps, Linear, or any other tracker — even when they don't name a tracker or use the word "ticket" explicitly, e.g. "log a bug for...", "file an issue about...", "write up a task for...", "can you create a story for...", "this ticket has no acceptance criteria, can you add some". Do NOT use for general prose writing, PR descriptions, or commit messages — those follow different conventions.
+  Drafts well-formed work items with testable acceptance criteria, then creates them in whatever tracker is connected if the user explicitly asks for that. Also applies the same standard to tighten up an existing work item. Use when the user invokes /work-item, or asks to draft, write up, create, or fix up a ticket, issue, task, story, bug report, or sub-task — for Jira, GitHub, Azure DevOps, Linear, or any other tracker — even when they don't name a tracker or use the word "ticket" explicitly, e.g. "log a bug for...", "file an issue about...", "write up a task for...", "can you create a story for...", "this ticket has no acceptance criteria, can you add some". Do NOT use for general prose writing, PR descriptions, or commit messages — those follow different conventions.
 argument-hint: "[one-line description of the work]"
 ---
 

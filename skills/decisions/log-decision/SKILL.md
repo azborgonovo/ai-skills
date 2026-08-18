@@ -1,10 +1,10 @@
 ---
 name: log-decision
 description: >
-  Draft a structured document (DR) capturing the reasoning for a significant decision. TRIGGER when:
-  the user invokes /log-decision; OR the conversation involves a decision that has been reached about
-  architectural trade-offs, technology choices, or anything the user describes as "hard to reverse",
-  "locked in", or "a big commitment" — in those cases, proactively suggest logging a DR.
+  Drafts a structured document (DR) capturing the reasoning for a significant decision. Use when the
+  user invokes /log-decision, or when the conversation reaches a decision about architectural
+  trade-offs, technology choices, or anything the user describes as "hard to reverse", "locked in",
+  or "a big commitment" — in those cases, proactively suggest logging a DR.
 argument-hint: "[decision title]"
 allowed-tools: [Read, Glob, Edit, Write, AskUserQuestion]
 ---
