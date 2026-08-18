@@ -83,7 +83,7 @@
       "assertions": [
         {"text": "Recognizes the request as creating a new work item rather than triaging an existing issue", "class": "triggering"},
         {"text": "Does not run the triage investigate-verify-post workflow or investigate a codebase for root cause", "class": "triggering"},
-        {"text": "Drafts a new ticket (routing to the work-item concern), rather than posting a root-cause analysis to an existing issue", "class": "behavior"}
+        {"text": "Drafts a new work item (routing to the work-item concern), rather than posting a root-cause analysis to an existing issue", "class": "behavior"}
       ]
     },
     {

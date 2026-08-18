@@ -1,8 +1,8 @@
 # Work item template
 
-Section headers are bold text, not markdown `##`/`###` — this matches how well-formed tickets are
+Section headers are bold text, not markdown `##`/`###` — this matches how well-formed work items are
 actually written in the tools they end up in (Jira, GitHub, Azure DevOps, Linear all render plain
-bold fine; markdown headers often look oversized or don't render at all in narrow ticket panes).
+bold fine; markdown headers often look oversized or don't render at all in narrow tracker panes).
 
 ## Skeleton
 
@@ -26,7 +26,7 @@ bold fine; markdown headers often look oversized or don't render at all in narro
 
 **Out of Scope** (optional — only when there's real ambiguity worth ruling out)
 
-- <thing deliberately not covered by this ticket>
+- <thing deliberately not covered by this work item>
 ```
 
 Write Acceptance criteria bullets as testable, observable outcomes: "X no longer happens", "Y is logged", "Z test verifies..." — not vague statements like "works correctly" or "is fixed."
@@ -121,4 +121,4 @@ overall Acceptance criteria covering the whole feature). This child item is one 
 item under that parent — it has no independent "done" state of its own, so it doesn't need its own
 framing or acceptance criteria.
 
-(No content beyond the title — the parent ticket's acceptance criteria already covers this.)
+(No content beyond the title — the parent work item's acceptance criteria already covers this.)

@@ -30,7 +30,7 @@ Use `AskUserQuestion` for each question — ask one topic area at a time. Do not
 | Field | Guidance |
 |---|---|
 | **Title** | Short phrase representing the problem and solution, e.g., "Use PostgreSQL as primary datastore" |
-| **Context and Problem Statement** | What situation led to this decision? What problem are you solving? If there are relevant code locations, issues, or tickets that provide context, note them. |
+| **Context and Problem Statement** | What situation led to this decision? What problem are you solving? If there are relevant code locations or work items that provide context, note them. |
 | **Considered Options** | What alternatives were evaluated? Aim for at least two. For each: brief description, pros, and cons. Be objective — rejected options should be fairly represented. |
 | **Decision** | Which option was chosen and why? Prefer the **Y-Statement format**: _"In the context of [situation], facing [concern], we decided [option], to achieve [quality], accepting [downside]."_ Free-form prose is also fine. |
 

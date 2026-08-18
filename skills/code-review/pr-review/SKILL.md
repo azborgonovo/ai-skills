@@ -1,14 +1,14 @@
 ---
 name: pr-review
 description: >
-  Reviews a merge/pull request against its linked tracker ticket, then posts the findings as inline
-  comments on the diff for you to submit — it fetches the change and ticket context, isolates the
+  Reviews a merge/pull request against its linked work item, then posts the findings as inline
+  comments on the diff for you to submit — it fetches the change and work-item context, isolates the
   change locally, delegates the review itself to the review-changes skill, and writes its findings to
   the host's draft/pending-review mechanism. Ships with adapters for GitLab and GitHub as the code
   host, and JIRA and GitHub Issues as the tracker, but degrades gracefully to any other host or
   tracker reachable via tool discovery. User-only: runs only when explicitly invoked with /pr-review
   <MR or PR URL>. When the user wants to review a GitLab MR or GitHub PR, code-review a merge/pull
-  request, or evaluate a change's diff against its linked ticket, suggest running this command rather
+  request, or evaluate a change's diff against its linked work item, suggest running this command rather
   than doing a manual review.
 argument-hint: "<merge/pull request URL>"
 allowed-tools: [Read, Bash, Skill, Write, Glob, Grep, ToolSearch]
@@ -23,11 +23,11 @@ Review of a merge or pull request that ends in inline draft comments on the diff
 
 The reviewing itself belongs to the [review-changes](../review-changes/SKILL.md) skill: it reviews the diff between `HEAD` and a fixed point across the Code Review Pyramid, checks the change against its spec and the repo's own documented standards, splits findings into blocking and non-blocking, and resolves them into one verdict. None of that judgment is restated here — this skill supplies the three things review-changes can't reach from a URL alone:
 
-- resolving the change and its ticket, through host and tracker adapters
+- resolving the change and its work item, through host and tracker adapters
 - isolating the change locally, so the review reads real files at the change's exact head SHA
 - rendering the resulting findings as inline draft comments anchored to the diff
 
-Throughout, "change" is the generic term for what the host calls a merge request (GitLab) or pull request (GitHub, Bitbucket), and "ticket" the generic term for whatever the tracker holds (a JIRA issue, a GitHub issue). The host- and tracker-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them, so the always-loaded body stays host-agnostic.
+Throughout, "change" is the generic term for what the host calls a merge request (GitLab) or pull request (GitHub, Bitbucket), and "work item" the generic term for whatever the tracker holds (a JIRA issue, a GitHub issue). The host- and tracker-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them, so the always-loaded body stays host-agnostic.
 
 ## Workflow
 
@@ -48,20 +48,20 @@ Using the metadata call from the host adapter, fetch the change's title, descrip
 
 **If the metadata call fails with an auth error** (401, or a "not logged in" message), the host adapter's CLI/tool isn't authenticated — stop and ask the user to authenticate (the adapter states the exact command), rather than pre-checking auth separately. A success here also proves auth is good for posting in Step 6, since it's the same credentials.
 
-### Step 3 — Resolve the ticket and save it as the spec
+### Step 3 — Resolve the work item and save it as the spec
 
-Scan the title and description for a ticket reference:
+Scan the title and description for a work-item reference:
 
 - A JIRA key (regex `[A-Z][A-Z0-9]+-\d+`), bare or in a full `…atlassian.net/browse/<KEY>` URL → read `references/trackers/jira.md`
 - A GitHub issue reference — a full `github.com/<owner>/<repo>/issues/<n>` URL, a cross-repo `<owner>/<repo>#<n>`, or a bare `#<n>` when the change itself is on GitHub in the same repo → read `references/trackers/github.md`
 
 A full URL is unambiguous about which tracker it names; prefer it over a bare key/number if both somehow appear. The tracker is independent of the code host — a GitLab MR can reference a GitHub issue for requirements, and vice versa.
 
-The tracker adapter is the authority for fetching that ticket: how to load or authenticate its tools, the exact call to fetch it, and what fields to extract (summary, description/acceptance criteria, issue type). Read it now and follow it as "per the tracker adapter."
+The tracker adapter is the authority for fetching that work item: how to load or authenticate its tools, the exact call to fetch it, and what fields to extract (summary, description/acceptance criteria, issue type). Read it now and follow it as "per the tracker adapter."
 
-Write what you fetched — summary, description, acceptance criteria, and the ticket URL — verbatim to `/tmp/<change-id>-ticket.md`. Step 5 hands that path to review-changes as the spec, and a file keeps the requirements as the tracker worded them instead of a paraphrase that has already lost the wording a conformance check needs.
+Write what you fetched — summary, description, acceptance criteria, and the work item's URL — verbatim to `/tmp/<change-id>-work-item.md`. Step 5 hands that path to review-changes as the spec, and a file keeps the requirements as the tracker worded them instead of a paraphrase that has already lost the wording a conformance check needs.
 
-If there's no adapter for the tracker you're facing, degrade gracefully the same way as Step 1. If no ticket reference is found at all, or the fetch fails, continue without a spec file — review-changes then reports the review as spec-less, which surfaces in Step 8's output as the caveat that conformance was never assessed.
+If there's no adapter for the tracker you're facing, degrade gracefully the same way as Step 1. If no work-item reference is found at all, or the fetch fails, continue without a spec file — review-changes then reports the review as spec-less, which surfaces in Step 8's output as the caveat that conformance was never assessed.
 
 ### Step 4 — Isolate the change in a review worktree
 
@@ -88,7 +88,7 @@ Invoke the `review-changes` skill (via the Skill tool with `skill: "review-chang
 
 - **the worktree path**, with the instruction to run every git command as `git -C <worktree_path>` — the shell's own working directory is still the user's main clone, and a review that silently diffs the wrong repo is the one failure mode here worth spelling out
 - **the fixed point**: the base SHA from Step 2 (the target branch also works — review-changes diffs three-dot, so either resolves to the merge base). In diff-only mode there is no working tree to diff, so hand over `/tmp/<change-id>.diff` as the already-captured diff instead, and say so
-- **the spec**: the `/tmp/<change-id>-ticket.md` path from Step 3, or that there is no spec
+- **the spec**: the `/tmp/<change-id>-work-item.md` path from Step 3, or that there is no spec
 - **the test signal**: the checks/pipeline status from Step 2, as the CI result to report — this is someone else's repo, freshly fetched, so take the host's verdict rather than building and running its suite unprompted
 
 Its report is the review of record: the verdict, the blocking/non-blocking split, spec accounting, and what it checked and found clean. Steps 6 through 8 turn that report into comments and output — they don't re-review the change.
@@ -129,14 +129,14 @@ If removal is refused, leave the worktree in place and tell the user exactly wha
 
 ### Step 8 — Output the review
 
-Output the review in the conversation, and post none of it to the change. Lead with review-changes' verdict, keep its lists as it wrote them, and add what only this skill knows: where the change and ticket live, which findings the author will actually see, and where a human's own attention is worth spending.
+Output the review in the conversation, and post none of it to the change. Lead with review-changes' verdict, keep its lists as it wrote them, and add what only this skill knows: where the change and work item live, which findings the author will actually see, and where a human's own attention is worth spending.
 
 ```markdown
 ## <Approved | Approved with suggestions | Request changes>
 
 **Change**: [<title>](<web_url>)
-**Ticket**: [PROJ-123](<ticket_url>) — <ticket summary>
-*(or "No ticket linked — reviewed without requirements context")*
+**Work item**: [PROJ-123](<work_item_url>) — <work item summary>
+*(or "No work item linked — reviewed without requirements context")*
 
 <review-changes' summary paragraph, plus any caveat this skill added: diff-only review, truncated diff, N of M files reviewed, a diff too large to review at full depth>
 

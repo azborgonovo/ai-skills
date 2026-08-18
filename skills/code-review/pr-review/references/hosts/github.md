@@ -15,7 +15,7 @@ gh pr view <url> --json title,body,baseRefName,headRefName,baseRefOid,headRefOid
 ```
 
 Extract:
-- `title`, `body` — scan both for a ticket reference (Step 3)
+- `title`, `body` — scan both for a work-item reference (Step 3)
 - `baseRefName`, `headRefName`
 - `baseRefOid`, `headRefOid` — these are the `base_sha`/`head_sha` equivalents used for inline comment positions
 - `statusCheckRollup` — the CI signal handed to review-changes, so the review reports test status from GitHub's own checks rather than building the PR locally
@@ -80,6 +80,6 @@ python3 <skill_dir>/scripts/post_review_notes_github.py \
 
 A pending review has been created. Open the PR on GitHub, go to **Files changed → Review changes**, confirm the draft comments, then submit the review to publish it.
 
-## Markup dialect (Step 6, when quoting a ticket in a comment)
+## Markup dialect (Step 6, when quoting a work item in a comment)
 
 GitHub-flavored Markdown. Fenced code blocks, headings, and `#`/`@` autolinks all render. Emoji shortcodes (`:robot:`) render.

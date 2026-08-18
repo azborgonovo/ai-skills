@@ -7,9 +7,9 @@ argument-hint: "[one-line description of the work]"
 
 # Work Item
 
-Draft a work item using the shape that already dominates well-formed real tickets: bold-text section headers (not markdown `##`), a framing section chosen by the ticket's nature, and acceptance criteria written as testable, observable outcomes rather than vague statements like "works correctly." The same standard applies whether you're drafting a new ticket from scratch or fixing up an existing one that's missing a piece (most often acceptance criteria) — treat both as the same content problem.
+Draft a work item using the shape that already dominates well-formed real work items: bold-text section headers (not markdown `##`), a framing section chosen by the work item's nature, and acceptance criteria written as testable, observable outcomes rather than vague statements like "works correctly." The same standard applies whether you're drafting a new work item from scratch or fixing up an existing one that's missing a piece (most often acceptance criteria) — treat both as the same content problem.
 
-This skill defines content only — it has no opinion on which tracker or tool creates or updates the ticket. Tool selection (a Jira MCP tool, `gh issue create`, an Azure DevOps or Linear API, etc.) is a runtime decision made at the point of creation, based on whatever is connected in the current session.
+This skill defines content only — it has no opinion on which tracker or tool creates or updates the work item. Tool selection (a Jira MCP tool, `gh issue create`, an Azure DevOps or Linear API, etc.) is a runtime decision made at the point of creation, based on whatever is connected in the current session.
 
 If invoked via `/work-item`, treat `$ARGUMENTS` as a one-line description of the work; ask follow-up questions to fill any gaps. If triggered by conversation, use the context already established rather than re-asking for things already said.
 
@@ -17,9 +17,9 @@ If invoked via `/work-item`, treat `$ARGUMENTS` as a one-line description of the
 
 1. Determine the work's nature: is it reporting a defect (something broken) or describing new/changed work? This decides the framing section — see `assets/work-item-template.md`.
 2. Determine whether it's a standalone item or a child of a larger parent item — see "Applies to" below for the test. This decides whether Acceptance criteria is mandatory.
-3. Draft the content following `assets/work-item-template.md`. Read that file for the full template and worked examples before writing — don't rely on a remembered shape, since the exact section names and casing matter (e.g. "Acceptance criteria" is lowercase-c, bold, no colon). When fixing up an existing ticket, keep what's already there and only add or rewrite the pieces that are missing or vague.
-4. If the user asked to draft or write up the ticket (not create or update it), present the drafted content for review and stop there.
-5. If the user explicitly asked to create or update the ticket, proceed directly: pick whichever tool fits the destination tracker at that moment and apply the change. The request itself is the go-ahead — no extra confirmation gate is needed once content is drafted.
+3. Draft the content following `assets/work-item-template.md`. Read that file for the full template and worked examples before writing — don't rely on a remembered shape, since the exact section names and casing matter (e.g. "Acceptance criteria" is lowercase-c, bold, no colon). When fixing up an existing work item, keep what's already there and only add or rewrite the pieces that are missing or vague.
+4. If the user asked to draft or write up the work item (not create or update it), present the drafted content for review and stop there.
+5. If the user explicitly asked to create or update the work item, proceed directly: pick whichever tool fits the destination tracker at that moment and apply the change. The request itself is the go-ahead — no extra confirmation gate is needed once content is drafted.
 
 ## Applies to
 

@@ -30,7 +30,7 @@ GET projects/<project_path_encoded>/merge_requests/<mr_iid>
 ```
 
 Extract:
-- `title`, `description` — scan both for a ticket reference (Step 3)
+- `title`, `description` — scan both for a work-item reference (Step 3)
 - `source_branch`, `target_branch`
 - `diff_refs.base_sha`, `diff_refs.start_sha`, `diff_refs.head_sha` — needed for inline comment positions
 - `head_pipeline.status` (or `pipeline.status`) — the CI signal handed to review-changes, so the review reports test status from GitLab's own run rather than building the MR locally
@@ -96,6 +96,6 @@ python3 <skill_dir>/scripts/post_review_notes_gitlab.py \
 
 Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish.
 
-## Markup dialect (Step 6, when quoting a ticket in a comment)
+## Markup dialect (Step 6, when quoting a work item in a comment)
 
 GitLab-flavored Markdown. Fenced code blocks, headings, and links render. Emoji shortcodes (`:robot:`) render.

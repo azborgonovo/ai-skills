@@ -20,7 +20,7 @@ Gherkin describes what a system does for a user in problem-domain terminology �
 
 ## Discover before you formulate
 
-Good scenarios come out of a conversation, not a lone author. Real BDD discovery is a workshop where three perspectives meet — the Product Owner (scope: what's in and out), the Tester (edge cases and ways it breaks), and the Developer (the details each rule implies). You will often be working solo from a ticket, so deliberately play all three roles, and map what the user gave you — a ticket, user story, prose, existing `.feature` files, or related code — the way Example Mapping does:
+Good scenarios come out of a conversation, not a lone author. Real BDD discovery is a workshop where three perspectives meet — the Product Owner (scope: what's in and out), the Tester (edge cases and ways it breaks), and the Developer (the details each rule implies). You will often be working solo from a work item, so deliberately play all three roles, and map what the user gave you — a work item, user story, prose, existing `.feature` files, or related code — the way Example Mapping does:
 
 - **Rules** — the business rules and acceptance criteria the behavior must satisfy. Each rule anchors one or more scenarios (and can group them under a Gherkin `Rule:` where the tool supports it).
 - **Examples** — one concrete, believable case illustrating each rule; each becomes a scenario. Cover the unhappy paths, not just the happy one — missing edge cases are the most common gap.
