@@ -48,6 +48,7 @@
         "gitlab",
         "merge-request",
         "jira",
+      "twg",
         "review-pyramid"
       ],
       "license": "MIT"
