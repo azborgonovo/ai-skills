@@ -4,7 +4,7 @@ How each recognized AI-steering format is structured, scoped, and sized, sourced
 
 ## General principles that hold across every format
 
-Drawn from [Anthropic's Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices), which frames these as Skill guidance but states them at a level that applies to any markdown an agent reads as instruction:
+Drawn mainly from [Anthropic's Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices), which frames these as Skill guidance but states them at a level that applies to any markdown an agent reads as instruction:
 
 - **Consistent terminology** — pick one term per concept and use it everywhere in the doc; mixing "API endpoint"/"URL"/"route" for the same thing costs the agent parsing effort for no benefit.
 - **Concrete examples over abstract description** — an input/output pair or a code snippet conveys the intended style more reliably than a paragraph describing it.
@@ -13,6 +13,8 @@ Drawn from [Anthropic's Skill authoring best practices](https://platform.claude.
 - **Don't offer more options than the agent needs** — state the default and, only if it matters, the one alternative and when to reach for it; a wall of equally-weighted choices reads as indecision.
 - **References stay one level deep** — link every supporting file directly from the entry-point doc; a reference that itself links to another reference risks a partial read.
 - **A reference file past roughly 100 lines gets a table of contents** at the top, so a partial read still shows the full scope of what's available.
+- **State the target behavior rather than the prohibition** — a "never do X" line puts X in the agent's context with nothing to replace it, so the ban competes with the behavior it just named. Reserve a prohibition for a guardrail that has no positive phrasing, and pair even that one with what to do instead. (This one comes from the skill-writing conventions this repo follows rather than from Anthropic's page above.)
+- **Cut instructions the model already follows** — a line that changes no behavior against the plain model pays context for nothing. The test is whether an agent that never read the line would have acted differently.
 
 ## Claude Code — `CLAUDE.md`, `AGENTS.md`, `.claude/rules/`
 

@@ -42,6 +42,24 @@
         "Flags verbatim duplication of the reversible-migrations rule between CLAUDE.md and .windsurfrules",
         "Findings discuss the content of the other files, not just their existence"
       ]
+    },
+    {
+      "id": 4,
+      "eval_name": "paraphrased-duplication-and-no-ops",
+      "prompt": "our CLAUDE.md and AGENTS.md have both grown and I can't tell what in them is actually doing any work any more -- can you go through both and cut what isn't? repo root has CLAUDE.md and AGENTS.md",
+      "expected_output": "Fixture: a root CLAUDE.md and AGENTS.md, both under their size ceilings, where the waste is meaning rather than length. Paraphrased cross-doc duplication, no two wordings matching verbatim: CLAUDE.md 'Run the full suite with `pytest -q` before opening a pull request' against AGENTS.md 'No PR goes up until `pytest -q` passes locally'; CLAUDE.md 'Every database migration must be reversible -- always write the down step' against AGENTS.md 'Migrations need a rollback path; don't ship one you can't undo'. Within-doc restatement: CLAUDE.md states the Conventional Commits rule once under a 'Commits' heading and again in a 'Before you push' checklist. No-ops: 'Write clean, readable code', 'Follow industry best practices', 'Think carefully before making changes', 'Be careful when editing files', 'Add comments where appropriate'. A prohibition wall in AGENTS.md: 'Never use `print` for logging. Never commit secrets. Never edit files under `generated/`' -- the last of which has an obvious positive target, regenerating via `make codegen`. Keepers the agent cannot derive or already know: the `orders_v2` `status` Postgres enum needing its own migration outside a transaction, and `make seed` being required before the integration tests or the fixture tenant is missing. Findings-first review that flags the two paraphrase pairs as duplication despite the differing wording, the Conventional Commits rule as duplicated within one doc, and the no-op lines as changing no behavior -- then deletes the no-ops outright rather than tightening their prose, rewrites the `generated/` rule around its positive target, keeps both pitfalls, and does not treat the docs as clean merely because both sit under their size ceilings.",
+      "files": [],
+      "expectations": [
+        "Flags the pytest-before-PR rule as duplicated between CLAUDE.md and AGENTS.md even though the two wordings do not match verbatim",
+        "Flags the reversible-migration rule as duplicated between CLAUDE.md and AGENTS.md even though the two wordings do not match verbatim",
+        "Flags the Conventional Commits rule as restated twice within CLAUDE.md alone, not only across the two docs",
+        "Flags at least three of the no-op lines ('Write clean, readable code', 'Follow industry best practices', 'Think carefully before making changes', 'Be careful when editing files', 'Add comments where appropriate') as changing no behavior versus the plain model",
+        "Deletes the no-op lines outright rather than rewording, tightening, or merging them into other sections",
+        "Rewrites the 'never edit files under generated/' prohibition around its positive target (regenerate via `make codegen`) instead of leaving a bare prohibition",
+        "Preserves the two project-specific pitfalls (the orders_v2 enum migration outside a transaction, and `make seed` before the integration tests)",
+        "Does not report the docs as sound on the grounds that both are under their format's size ceiling",
+        "Presents findings before applying edits"
+      ]
     }
   ]
 }
