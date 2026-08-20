@@ -3,8 +3,8 @@ name: triage-work-item
 description: >
   Triages a tracker work item — a bug, task, or story — end-to-end against the codebase: reads the
   item with its full comment thread, links, and parent epic, cross-references related items,
-  investigates the codebase(s) implementing the affected feature, optionally corroborates with
-  observability data, then posts a verified analysis comment — root cause for a bug, or
+  investigates the codebase(s) implementing the affected feature, corroborates with attached
+  evidence and observability data, then posts a verified analysis comment — root cause for a bug, or
   current-behavior/approach/effort for a change request — back to the item. Ships with Jira and
   GitHub Issues tracker adapters and Grafana and CloudWatch observability adapters, degrading
   gracefully to any other platform reachable via tool discovery. Use when the user gives a work-item
@@ -48,6 +48,10 @@ If there's no adapter file for the tracker you're facing, degrade gracefully rat
 Using the fetch call from the tracker adapter, retrieve the issue with its **entire** comment/discussion thread, in order — not just the description. Later comments frequently change the picture: an issue gets reassigned between teams, refinement discussions narrow down a fix approach, or a "let's investigate X" comment gets superseded by "actually it's Y" a few comments later. The most recent comments carry the most current understanding; don't anchor only on the original report.
 
 Note the parent epic/tracking issue and any linked issues (duplicates, relates-to, blocks) — you'll check these in Step 6, but don't chase them yet.
+
+**List the attachments in the same pass**, even when nothing in the thread points at one: filename, type, size, and upload date. Attachments are first-party captures of the actual incident — a HAR, a log export, a crash dump, a screen recording, a failing input file — and they routinely settle in one read what a code investigation can only narrow down. A default fetch often leaves them out entirely — some trackers hold them in a field you have to request by name, others only as links inside the body text — so a response with no attachment data is not evidence there are none. The tracker adapter covers how to list and download them.
+
+**Trust the file list over what the thread says about it.** Prose goes stale and the attachment list does not. A description reading "waiting on the HAR file" describes the day it was written; the file may have landed an hour later with no edit to the description and no comment announcing it. Read upload dates against the thread's dates rather than believing either alone — an attachment that predates the discussion still asking for it is a common case, not a contradiction.
 
 ## Step 3 — Classify the item and establish the comment template
 
@@ -112,9 +116,15 @@ What you want back, concretely:
 
 If the feature spans a backend and a frontend (or multiple services), it's fine to run one agent per codebase in parallel — just make sure each one gets enough of the user-facing symptom to search usefully; don't just hand them a file path and hope.
 
-## Step 8 — Corroborate with observability data, if it's actually going to help
+## Step 8 — Corroborate with runtime evidence
 
-If no observability platform is configured or reachable, skip this step — the code investigation stands on its own. When one is available, its mechanics (which tools/CLI, how to pick a datasource, the query languages for logs/metrics/traces) live in an observability adapter: read `references/observability/grafana.md`, `references/observability/cloudwatch.md`, or the file matching your platform. If there's no adapter for your platform, discover the tools with `ToolSearch` and proceed best-effort, same as Step 1.
+Two sources, with opposite aging characteristics: files attached to the issue, and whatever the observability platform still retains.
+
+**Take the attachments first.** Anything Step 2 listed is a recording of the incident as it actually happened, and unlike a log backend it never ages out — so for an issue reported months ago it is often the only runtime evidence left, and it frequently answers the question a code read can only narrow. Mine it before or alongside Step 7 rather than after: a decisive attachment reshapes the hypothesis the code investigation is meant to test, and reading it late means re-doing work you had already reasoned your way around. `references/attached-evidence.md` covers getting these files without blowing up your context, and which fields carry the answer in the common formats.
+
+### Observability data, if it's actually going to help
+
+If no observability platform is configured or reachable, skip this part — the code investigation stands on its own. When one is available, its mechanics (which tools/CLI, how to pick a datasource, the query languages for logs/metrics/traces) live in an observability adapter: read `references/observability/grafana.md`, `references/observability/cloudwatch.md`, or the file matching your platform. If there's no adapter for your platform, discover the tools with `ToolSearch` and proceed best-effort, same as Step 1.
 
 Before querying anything, check the issue's age against your log/trace retention window (commonly somewhere in the 14–30 day range for hosted logging/tracing backends — the adapter notes the platform's default if known). If the reported incident is older than that, log lookups will almost certainly come back empty — skip and don't waste a round trip. It's only worth doing for still-relevant or recurring issues where current data could confirm or refute a hypothesis (e.g. an ongoing elevated error rate, a currently-slow endpoint you can trace).
 
@@ -156,8 +166,14 @@ A thorough investigation and a long comment aren't the same thing — the lists 
 - **Name each file/line once.** If Root cause or How it works today already named the files involved, a closing list of "files touched" is telling the reader something they already have.
 - **Match depth to merit, not to symmetry.** When one option is clearly the pick, give it the fuller explanation and dispatch a weaker alternative in one clause — don't mirror the winner's depth just because it's "Option B."
 - **Show one snippet for a repeated gap.** When the same issue shows up in more than one file (e.g. the same missing check duplicated across backend and frontend), verify and quote one, and cite the other by file:line — the reader can open it themselves.
+- **Quote the shortest excerpt that carries the argument.** Trim a log trace, a request timeline, or a payload to the fields doing the work and drop the rows that don't participate. Six annotated lines showing a duplicated call and a dead redirect prove the point; the raw capture pasted in leaves the reader to re-derive it.
+- **Describe an artifact or show it, not both.** Once a sentence has stated what the error payload contains and how it's classified, pasting the payload underneath adds length rather than proof. Include the artifact only when its shape is what the reader needs — when they have to recognize it, match on it, or act on its exact contents.
 
-It's fine for a section to run long when the substance genuinely needs it — a root cause with several interacting factors, a proposed approach with a real architectural fork — but keep it one tight paragraph even then, not a bulleted sub-breakdown. Aim for a comment the reader can act on in the time it takes to read once, not a transcript of the investigation that produced it.
+It's fine for a section to run long when the substance genuinely needs it — a root cause with several interacting factors, a proposed approach with a real architectural fork — but keep it one tight paragraph even then, not a bulleted sub-breakdown.
+
+**The test before posting**: read the draft as the single message you'd send one colleague who has to act on this today, and cut every sentence that wouldn't change what they do. The summary you are about to give the user in conversation is a good calibration — that version gets written for someone who wants the point, and it is usually the right length and the right shape. When the ticket comment runs markedly longer than that summary, the excess is nearly always transcript rather than substance: evidence quoted twice, a conclusion restated as its own section, or the reasoning that got you there rather than the finding itself. Post the version you'd want to read six months from now, not the one that shows how much work it took.
+
+**Posting a follow-up comment**: link or name the earlier one and give only what changed — the new evidence, and which of your earlier conclusions it confirms, sharpens, or kills. Re-explaining the parts that still hold makes anyone who read the first comment pay twice, and makes the delta harder to find. This is separate from a correction, where the point *is* to be explicit about what was wrong (Step 11).
 
 ## Step 11 — Post (or hold, for dry-run)
 

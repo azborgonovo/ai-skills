@@ -18,6 +18,15 @@ gh issue view <url> --comments --json title,body,comments,labels,milestone,url
 
 `--comments` (or the `comments` JSON field) pulls the full discussion thread. GitHub has no first-class "parent epic"; the nearest equivalents are the milestone, labels, and any issues referenced in the body or timeline — note cross-references for Step 6.
 
+**Attachments have no field of their own here** — GitHub inlines them as Markdown links in the body and comment text, so Step 2's attachment pass means scanning that text for upload URLs rather than reading a list. Pull them out of the JSON you already fetched:
+
+```
+gh issue view <url> --comments --json body,comments \
+  | grep -oE 'https://(github\.com/user-attachments/[^)" ]+|[^)" ]*githubusercontent\.com/[^)" ]+)' | sort -u
+```
+
+The filename in the URL is usually the only type hint you get, and there is no size until you request it. Download with `gh api <path>` for a private repo, or `curl -L` for a public one, redirecting to the scratchpad rather than into your context. `references/attached-evidence.md` covers what to do with the file.
+
 ## Search related issues (Step 6)
 
 ```

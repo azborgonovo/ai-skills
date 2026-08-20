@@ -18,7 +18,7 @@ Check for Atlassian's Teamwork Graph CLI first: `command -v twg`, then `$HOME/.l
 ### Fetch the issue (Step 2)
 
 ```
-twg jira workitem bulk-get <KEY> --fields summary,status,issuetype,parent,issuelinks,description,comment --expand renderedFields -o json --output-summary stats
+twg jira workitem bulk-get <KEY> --fields summary,status,issuetype,parent,issuelinks,description,comment,attachment --expand renderedFields -o json --output-summary stats
 ```
 
 **`--expand renderedFields` is what makes this readable.** Without it, `description` and every comment body come back as raw ADF (`{"type":"doc","content":[...]}`) and you burn context reassembling prose from a node tree. With it, the same fields also appear as clean HTML under `renderedFields`, which is what you want to actually read.
@@ -30,11 +30,24 @@ OUT=<output_files.stdout>
 jq -r '.data.items[0].data | {key, summary, type: .issuetype.name, status: .status.name, parent: .parent.key, links: [.issuelinks[]?]}' "$OUT"
 jq -r '.data.items[0].data.renderedFields.description' "$OUT"
 jq -r '.data.items[0].data.renderedFields.comment.comments[] | "\n--- \(.created) — \(.author.displayName) ---\n\(.body)"' "$OUT"
+jq -r '.data.items[0].data.attachment[]? | "\(.id) | \(.filename) | \(.created) | \(.size) bytes | \(.mimeType)"' "$OUT"
 ```
 
-That last projection is Step 2's requirement in one call: the whole thread, in order. The parent epic key is `.parent.key`; linked issues are under `.issuelinks`.
+The comment projection is Step 2's requirement in one call: the whole thread, in order. The parent epic key is `.parent.key`; linked issues are under `.issuelinks`.
+
+`attachment` is not among the fields `bulk-get` returns by default, which is why it is listed explicitly above — omit it and the response gives no hint that the issue has files at all. Note the `.created` date on each one: it is what tells you an attachment landed long before the comment still asking for it.
 
 `bulk-get` takes several keys at once, so use it to hydrate a batch of related issues in one round trip rather than looping `get`.
+
+### Download an attachment (Step 8)
+
+There is no `twg jira attachment` command. Use the CLI's authenticated REST passthrough with the attachment `id` from the projection above:
+
+```
+twg api "jira:/rest/api/3/attachment/content/<id>" > "$SCRATCH/<filename>"
+```
+
+`twg api` signs the request with the credentials already in `~/.config/twg/auth.conf`, so this needs no token of your own — **don't** read that file to hand-build a `curl`. Redirect to a file rather than letting the body land in your context; these are routinely megabytes. `references/attached-evidence.md` covers what to do with it next.
 
 ### Search related issues (Step 6)
 
@@ -79,7 +92,9 @@ If ToolSearch only surfaces `mcp__claude_ai_Atlassian__authenticate`, the connec
 
 Call `getJiraIssue` with `fields: ["*all", "comment"]` and `responseContentFormat: "markdown"`. This returns the description plus the full comment thread; read the whole thread in order.
 
-The parent epic key is on the issue's fields; linked issues (duplicates, relates-to, blocks) are under `issuelinks`.
+The parent epic key is on the issue's fields; linked issues (duplicates, relates-to, blocks) are under `issuelinks`. `*all` also brings back `attachment` — read its `filename`/`created`/`size`/`mimeType` entries as Step 2 asks, and keep the `content` URL for each one.
+
+Downloading an attachment is the gap in this backend: `mcp__claude_ai_Atlassian__fetch` resolves an issue or page ARI, not an attachment binary, and there is no MCP tool that returns file bytes. If `twg` is installed, borrow Backend A's `twg api` call for the download alone; otherwise ask the user to fetch the file and give you the local path, and say why you're asking. Guessing at an authenticated `curl` wastes a round trip and risks putting a token where it doesn't belong.
 
 ### Search related issues (Step 6)
 
