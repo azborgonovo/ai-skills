@@ -1,33 +1,19 @@
 # Code Comments
 
-Every piece of explanation has exactly one home. Pick it by what kind of explanation it is.
+The default is no comment. Write one only when the code cannot carry the meaning and a reader would otherwise get it
+wrong.
 
-## Route the explanation
-
-- **Why this change was made** — the approach chosen, the alternatives rejected, the performance win, the constraint
-  that forced it: write it in the commit message body and the PR description.
-- **What a member does, and how it behaves** — write it as documentation on the declaration, in the language's own
-  documentation-comment format.
-- **A fact the reader needs at this exact line and cannot get from the code** — a magic value's origin, a workaround for
-  an external bug: write a one- or two-line comment right there.
-- **Everything else** — express it in the code: name the constant, extract the local, extract the method, tighten the
-  type. Reach for a name before reaching for a comment.
-
-Explain a member once, at its declaration. Leave call sites to read as plain code, and trust the reader to follow the
-name or hover the declaration when they want the detail.
-
-## Match the file you are editing
-
-Read the file's existing comments before writing one, and land within the same density and depth. A file that explains
-itself in five lines across three hundred gets the same treatment for the code you add.
-
-Document a new member when its siblings are documented. In a type whose members carry no documentation, add the member
-bare and put what you would have documented into the PR description instead.
-
-## Size
-
-Keep an inline comment to three lines or fewer. When the explanation needs more room, move it onto the nearest
-declaration's documentation comment, or introduce named code that carries the meaning.
-
-When you have designed something and want to show your reasoning, put it in your reply to the user and in the commit
-message. Let the code carry only what a reader needs a year from now with no access to the diff.
+- Comment the non-obvious *why*, never the *what*. If the line already says it, say nothing.
+- A better name or a test beats a comment whenever either will do.
+- Put the comment on the line that is easy to get wrong, not at the top of the function. Its job is to stop a plausible
+  refactor from breaking something.
+- Documentation comments go on public API only, in the language's own format, so a caller can skip the implementation.
+  Follow the file you are editing: in a type whose members carry none, add the member bare.
+- Rationale for a change — the approach chosen, the alternatives rejected, the constraint that forced it — goes in the
+  commit message and the MR description, never in the code.
+- Write for someone reading in ten months. Describe the constraint, not today's task: no "new", "for now", "temporary",
+  "recently changed", no sprint or migration status, no dates.
+- Do not name tickets or MRs by default — only when the ticket holds context that will not fit in one line and will
+  still matter later. Do not open a ticket just because a comment names one; only if the current task needs it.
+- Plain English, one or two lines. If it needs a paragraph, the code or the test is the wrong shape.
+- While editing code, delete or fix any nearby comment you cannot verify.

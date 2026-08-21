@@ -77,11 +77,12 @@ be in context *before* the first line is written, so waiting for the model to re
 
 Rules scoped with `paths` frontmatter load only when the harness touches a matching file.
 
-- **[`code-comments.md`](rules/code-comments.md)** — Routes each kind of explanation to one home: change rationale to
-  the commit message, member behavior to its documentation comment, line-local facts to a short inline comment,
-  everything else into a name. Matches the comment density of the file being edited. *All files*
-- **[`csharp-xml-docs.md`](rules/csharp-xml-docs.md)** — `<summary>` always, written to stand alone in IntelliSense;
-  `<remarks>` for the implementation semantics that would otherwise bury it or leak into call sites. *`**/*.cs`*
+- **[`code-comments.md`](rules/code-comments.md)** — Defaults to no comment, and admits one only for the non-obvious
+  *why*, on the line that is easy to get wrong. Documentation comments on public API only, change rationale to the
+  commit message, and no temporal or ticket references. *All files*
+- **[`csharp-xml-docs.md`](rules/csharp-xml-docs.md)** — Points at Microsoft's recommended tags, then scopes
+  `<summary>` to public and protected members, prefers `<inheritdoc/>` over restating an interface, and narrows
+  `<remarks>` to contract detail. *`**/*.cs`*
 
 ## Tools
 
