@@ -78,11 +78,12 @@ be in context *before* the first line is written, so waiting for the model to re
 Rules scoped with `paths` frontmatter load only when the harness touches a matching file.
 
 - **[`code-comments.md`](rules/code-comments.md)** — Defaults to no comment, and admits one only for the non-obvious
-  *why*, on the line that is easy to get wrong. Documentation comments on public API only, change rationale to the
-  commit message, and no temporal or ticket references. *All files*
-- **[`csharp-xml-docs.md`](rules/csharp-xml-docs.md)** — Points at Microsoft's recommended tags, then scopes
-  `<summary>` to public and protected members, prefers `<inheritdoc/>` over restating an interface, and narrows
-  `<remarks>` to contract detail. *`**/*.cs`*
+  *why*, on the line that is easy to get wrong. Owns scope and volume: documentation comments on public API only, none
+  at all on tests, the constraint rather than the reasoning that reached it, a one-or-two-line cap, and a density
+  ceiling set by the surrounding code. *All files*
+- **[`csharp-xml-docs.md`](rules/csharp-xml-docs.md)** — C# mechanics only, for a documentation comment the comments
+  rule has already admitted: Microsoft's recommended tags, opening at `<summary>`, `<inheritdoc/>` over restating an
+  interface, and `<remarks>` held to contract detail. *`**/*.cs`*
 
 ## Tools
 
