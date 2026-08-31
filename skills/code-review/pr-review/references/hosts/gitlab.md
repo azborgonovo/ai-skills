@@ -107,6 +107,21 @@ python3 ...
 - In direct mode the script reads the MR's existing discussions first and skips a finding this account already published — matched by the same `new_path`/`new_line`, or by identical text anywhere on the MR. It never deletes a published comment, so a thread the author replied to stays intact.
 - **Prefer `+` lines as anchors**: pick a `new_line` that appears with a `+` prefix in the diff (added in this MR) — GitLab resolves those reliably. **Context lines (unchanged lines) are unreliable anchors even when they appear inside the hunk** — GitLab often fails to set `line_code` for them. If your finding is on an unchanged line, anchor to the nearest `+` line nearby, or mark it `general` from the start.
 
+## Suggested changes (Step 6)
+
+GitLab renders a fenced `suggestion` block inside a **diff note** as an applicable patch: the author clicks **Apply suggestion** and GitLab commits it. A finding whose fix is an exact replacement of the lines its note anchors to is worth carrying that way — one click instead of retyping the fix.
+
+````
+```suggestion:-0+0
+        Status = record.GetEnum<OrgSetupStatus>("statusId"),
+```
+````
+
+- The offsets extend the replaced range around the anchored line: `-0+0` (the default, and what a bare ` ```suggestion ` means) is that line alone; `-2+1` replaces the two lines above it, the line itself, and the one below. GitLab caps the range at 100 lines above and 100 below. The block's own contents may be any number of lines, so replacing one line with three needs no offsets at all.
+- The block replaces those lines **whole**: full original indentation, no leading `+`, and nothing left for the author to fill in. Read the exact current text out of the worktree — `sed -n '<start>,<end>p' <worktree_path>/<file>` — rather than reconstructing it from the diff, since a diff line carries a `+` the file doesn't.
+- Only a positioned note can carry one. In a `"general": true` note, or one GitLab couldn't anchor and the script re-posted positionless, the block renders as inert code — the script warns on that line of its tally, and Step 8 reports the finding as posted without its suggestion.
+- One note may carry several blocks, and the author can add each to a batch to apply them in a single commit.
+
 ## Closing lines (Step 8)
 
 - **Draft mode**: "Draft comments have been posted. Open the MR in GitLab, review the inline notes, then hit **Submit review** to publish."

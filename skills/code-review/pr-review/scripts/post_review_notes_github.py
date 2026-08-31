@@ -11,7 +11,8 @@ Notes file format (JSON array) — same shape as the GitLab script's:
 Only lines that appear with a '+' prefix in the PR's own diff are valid anchors, so
 this script fetches that diff and validates every anchor locally before posting.
 
-Every comment is marked with a trailing robot emoji. That marker is what --purge
+Every comment is marked with a robot emoji — trailing, or on its own line when the
+comment ends in a code fence. That marker is what --purge
 keys on, so a rerun only ever deletes a pending review this skill created (a human's
 own in-progress review doesn't carry it), and what --mode direct keys on to skip a
 finding already published on the PR.
@@ -46,12 +47,25 @@ import subprocess
 import sys
 
 MARKER = "🤖"
+CLOSING_FENCE = re.compile(r"^\s{0,3}(?:`{3,}|~{3,})\s*$")
+SUGGESTION_FENCE = re.compile(r"^\s{0,3}(?:`{3,}|~{3,})suggestion", re.M)
 
 
 def with_marker(text):
     """Mark a comment as this skill's, unless it already ends with the marker."""
     text = text.rstrip()
-    return text if text.endswith(MARKER) else f"{text} {MARKER}"
+    if text.endswith(MARKER):
+        return text
+    # A closing fence only closes its block when nothing else shares the line, so a note
+    # ending in a suggestion block takes the marker on a line of its own.
+    if CLOSING_FENCE.match(text.rsplit("\n", 1)[-1]):
+        return f"{text}\n\n{MARKER}"
+    return f"{text} {MARKER}"
+
+
+def has_suggestion(text):
+    """True when the comment carries a suggestion block, which only applies on an inline comment."""
+    return SUGGESTION_FENCE.search(text) is not None
 
 
 def normalize(text):
@@ -298,6 +312,8 @@ def main():
                 "body": with_marker(text),
             })
         else:
+            if has_suggestion(text):
+                print(f"  {item.get('new_path', 'general')}: no inline anchor — its suggestion block will be inert")
             general_notes.append(text)
 
     if args.mode == "draft":
@@ -313,7 +329,8 @@ def main():
             dry_run=args.dry_run,
         )
         if err:
-            print(f"  {c['path']}:{c['line']} inline post failed ({err}) — falling back to a conversation comment")
+            inert = " (its suggestion block will be inert)" if has_suggestion(c["body"]) else ""
+            print(f"  {c['path']}:{c['line']} inline post failed ({err}) — falling back to a conversation comment{inert}")
             general_notes.append(c["body"])
             continue
         posted_inline += 1

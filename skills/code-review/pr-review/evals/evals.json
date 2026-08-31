@@ -11,7 +11,7 @@
         "The review itself is delegated to the review-changes skill (invoked via the Skill tool), handed the worktree path, the base SHA as the fixed point, the saved work item file as the spec, and the host's checks status as the test signal — the skill does not re-derive the pyramid layers, severity split, or verdict itself",
         "The isolated review worktree is created with the shared address-pr-comments/scripts/setup_worktree.py using --purpose review and --detach-sha <head_sha>, never by checking out the branch in the user's main clone",
         "With no mode word after the URL, comments are published directly (--mode direct) rather than left as drafts",
-        "Comments are posted via scripts/post_review_notes_gitlab.py rather than hand-written glab api calls, and each one ends with a trailing 🤖",
+        "Comments are posted via scripts/post_review_notes_gitlab.py rather than hand-written glab api calls, and each one is marked with a 🤖 the script appends",
         "No note attributing the review to a model is posted — the reviewing model's name and effort level appear nowhere on the MR",
         "The verdict is acted on after the comments are published, never before: Approved or Approved with suggestions calls approve, Request changes does not",
         "Approving passes sha=<head_sha> so a head that moved mid-review returns 409 and aborts the approval rather than approving a stale review",
@@ -22,7 +22,8 @@
         "If a work item is found in the MR, it is saved to a file, handed to review-changes as the spec, and referenced in the output",
         "review-changes' report is written to a file and not printed in the conversation — the only review the user reads is the skill's own final output",
         "The run continues from the review straight into posting within the same turn: the comments and verdict land without the user having to ask whether they were published",
-        "Each comment is review-changes' report entry verbatim — layer tag and file:line citation included, only the list number stripped — never re-drafted, expanded, or re-explained for the MR; the citation is kept because a finding the host cannot anchor is re-posted positionless with the same text, and would otherwise name no location at all"
+        "Each comment is review-changes' report entry verbatim — layer tag and file:line citation included, only the list number stripped — never re-drafted, expanded, or re-explained for the MR; the citation is kept because a finding the host cannot anchor is re-posted positionless with the same text, and would otherwise name no location at all",
+        "A finding whose fix is an exact replacement of the line it anchors to carries a ```suggestion block in the note text, with the line's original indentation read from the worktree and no leading '+', so the author can apply it in one click — and no suggestion block is put on a general (unanchored) note"
       ]
     },
     {
@@ -34,7 +35,7 @@
         "The output states no work item was found and carries the spec-less caveat that conformance was not assessed",
         "review-changes is invoked with no spec rather than the skill halting to ask for a work item",
         "Comments are still published (review proceeds without work-item context) and the verdict is still recorded",
-        "Each comment ends with a trailing 🤖 and no model-attribution note is posted",
+        "Each comment carries the 🤖 marker the script appends and no model-attribution note is posted",
         "The skill attempts to locate a local clone and create an isolated review worktree, or notes the diff-only limitation as a caveat"
       ]
     },
@@ -59,12 +60,13 @@
       "expectations": [
         "Skill identifies GitHub as the host from the URL shape and reads references/hosts/github.md before fetching anything",
         "The review itself is delegated to the review-changes skill (invoked via the Skill tool), handed the worktree path, the base SHA as the fixed point, the saved work item file as the spec, and the host's checks status as the test signal — the skill does not re-derive the pyramid layers, severity split, or verdict itself",
-        "Comments are posted via scripts/post_review_notes_github.py rather than hand-written gh api calls, and each one ends with a trailing 🤖",
+        "Comments are posted via scripts/post_review_notes_github.py rather than hand-written gh api calls, and each one is marked with a 🤖 the script appends",
         "No model-attribution text is posted — neither as a review body nor as a comment",
         "A finding with no valid anchor is posted as a conversation comment on the PR rather than being dropped or pinned to an arbitrary line",
         "The verdict is recorded after the comments are published: APPROVE carries no body, REQUEST_CHANGES carries the summary file GitHub requires for that event",
         "The skill locates the clone by searching common roots and remote URL (never assuming one hardcoded clone root) and creates the review worktree beside it, or notes the diff-only limitation",
-        "The output's 'On the change' section names the verdict recorded and how to reverse it, referencing GitHub's own mechanics"
+        "The output's 'On the change' section names the verdict recorded and how to reverse it, referencing GitHub's own mechanics",
+        "A finding whose fix is an exact replacement of the line it anchors to carries a ```suggestion block in the inline comment, and a fix rewriting several existing lines is described in prose instead, since the bundled script anchors one line per comment"
       ]
     },
     {

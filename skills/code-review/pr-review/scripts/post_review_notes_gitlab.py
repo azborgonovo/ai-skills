@@ -14,7 +14,8 @@ Notes file format (JSON array):
   - old_path defaults to new_path (correct for new/unmodified files).
   - "general": true posts a positionless note (a plain discussion comment).
 
-Every note is marked with a trailing robot emoji. That marker is what --purge
+Every note is marked with a robot emoji — trailing, or on its own line when the
+note ends in a code fence. That marker is what --purge
 keys on, so a rerun only ever deletes drafts this skill created (a human's own
 drafts don't carry it), and what --mode direct keys on to skip a finding already
 published on the MR.
@@ -44,12 +45,25 @@ import subprocess
 import sys
 
 MARKER = "🤖"
+CLOSING_FENCE = re.compile(r"^\s{0,3}(?:`{3,}|~{3,})\s*$")
+SUGGESTION_FENCE = re.compile(r"^\s{0,3}(?:`{3,}|~{3,})suggestion", re.M)
 
 
 def with_marker(text):
     """Mark a note as this skill's, unless it already ends with the marker."""
     text = text.rstrip()
-    return text if text.endswith(MARKER) else f"{text} {MARKER}"
+    if text.endswith(MARKER):
+        return text
+    # A closing fence only closes its block when nothing else shares the line, so a note
+    # ending in a suggestion block takes the marker on a line of its own.
+    if CLOSING_FENCE.match(text.rsplit("\n", 1)[-1]):
+        return f"{text}\n\n{MARKER}"
+    return f"{text} {MARKER}"
+
+
+def has_suggestion(text):
+    """True when the note carries a suggestion block, which only applies on a diff note."""
+    return SUGGESTION_FENCE.search(text) is not None
 
 
 def normalize(text):
@@ -270,6 +284,8 @@ def main():
             state = "resolved=True"
         else:
             state = "resolved=False -> reposted positionless"
+        if resolved is not True and has_suggestion(text):
+            state += " (suggestion block inert off the diff)"
         if args.mode == "direct":
             if draft_id is None:
                 print(f"note {i}: FAILED — no draft id returned, nothing published ({where})")

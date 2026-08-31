@@ -116,7 +116,7 @@ If `review-changes` isn't among the available skills, fall back to the `code-rev
 
 ### Step 6 — Post the findings per the host adapter
 
-Every finding review-changes reported becomes one note object, and its text is **the entry as review-changes wrote it, verbatim** — layer tag, `file:line` citation and all. Don't re-draft, expand, re-explain or trim it: the report and the change should say the same thing, and a rewrite here reliably comes out longer than the entry it replaced. Strip only the list number, which belongs to the report's ordering and means nothing on a standalone comment.
+Every finding review-changes reported becomes one note object, and its text is **the entry as review-changes wrote it, verbatim** — layer tag, `file:line` citation and all. Don't re-draft, expand, re-explain or trim it: the report and the change should say the same thing, and a rewrite here reliably comes out longer than the entry it replaced. Strip only the list number, which belongs to the report's ordering and means nothing on a standalone comment, and promote a fenced code block into the host's suggestion syntax where the rules below allow it.
 
 The citation stays even though the anchor points at the same line, because the anchor is not guaranteed to survive: when a host can't resolve a position it re-posts the same text positionless (GitLab's `line_code` path, below), and a comment that lost its anchor is exactly the one that needs to name its own file and line.
 
@@ -135,6 +135,8 @@ posts as
 An entry too long to read as an inline comment is an entry to shorten in *both* places — go back and tighten it in the report rather than posting one length and reporting another.
 
 **Anchors**: a finding cited as `file:line` becomes an inline note (`new_path` plus `new_line`); a cross-cutting one with no single site becomes `"general": true` rather than being pinned to a misleading line. `new_line` must be a line added in this change — find it with `grep -n '<snippet>' <worktree_path>/<file>` rather than counting diff lines, and confirm it carries a `+` in `git -C <worktree_path> diff <base_sha>...HEAD -- <file>`. A finding that lands on an unchanged line anchors to the nearest added line or goes general; both host scripts reject or downgrade an anchor the diff doesn't contain.
+
+**Suggested changes**: both hosts render a fenced `suggestion` block inside an inline comment as a patch the author applies in one click, and a finding whose fix is an exact replacement of the lines its comment anchors to belongs in one — the adapter gives the host's syntax. What goes in the block is the whole replacement: the original indentation, valid code on its own, nothing left for the author to fill in, and read verbatim out of the worktree rather than reconstructed from the diff. Prose stays the right answer for a fix spanning several files or non-contiguous lines, for a finding the author has a genuine choice about, for anything landing as a general comment (the block is inert outside the diff), and in diff-only mode, where there's no worktree to read the current line from.
 
 **What stays out of the comments**: the summary paragraph, the "checked and clean" list, and the path to merge all belong to Step 8's output in the conversation. Skip a suggestion no author would act on — a style nit that automation should be catching — and where the same finding recurs across files, post the clearest occurrence once.
 

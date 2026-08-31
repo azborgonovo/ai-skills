@@ -93,6 +93,20 @@ python3 ... --purge
 - In direct mode the script reads the PR's existing review and conversation comments first and skips a finding this account already published — matched by the same `path`/`line`, or by identical text anywhere on the PR. It never deletes a published comment, so a thread the author replied to stays intact.
 - `--purge` applies to draft mode only, where the target is an unpublished pending review. It finds its own by the 🤖 marker in the review body *or* in any of its inline comments, so a pending review whose findings all anchored (leaving the body empty) is still recognized.
 
+## Suggested changes (Step 6)
+
+GitHub renders a fenced `suggestion` block inside an inline review comment as a committable patch: the author clicks **Commit suggestion**, or adds several to a batch to commit them together. Same fence as GitLab's, without the offset syntax:
+
+````
+```suggestion
+	status := record.Status
+```
+````
+
+- The block replaces **the commented line, whole**: full original indentation, no leading `+`. Read the exact current text out of the worktree — `sed -n '<line>p' <worktree_path>/<file>` — rather than reconstructing it from the diff.
+- The block's contents may span several lines, so one line can be expanded into three. Replacing more than one *existing* line needs the comment itself to span a line range (`start_line` plus `line`), which the bundled script doesn't send — it anchors one line per comment — so a fix that rewrites a block of existing lines goes in prose instead.
+- Only an inline review comment can carry one. A finding the script couldn't anchor lands as a conversation comment, where the block renders as inert code — the script warns when that happens, and Step 8 reports the finding as posted without its suggestion.
+
 ## Closing lines (Step 8)
 
 - **Draft mode**: "A pending review has been created. Open the PR on GitHub, go to **Files changed → Review changes**, confirm the draft comments, then submit the review to publish it."
