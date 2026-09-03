@@ -1,14 +1,14 @@
 ---
 name: address-pr-comments
 description: >
-  Triages every open review thread on a merge/pull request, then does something about each one:
-  implements a tested fix, replies in-thread with the fixing commit, and resolves it — or, for a
-  thread you disagree with, replies with your reasoning and leaves it open for the human reviewer to
-  close. Ships with adapters for GitLab and GitHub as the code host, but degrades gracefully to any
-  other host reachable via tool discovery. User-only: runs only when explicitly invoked with
-  /address-pr-comments <MR or PR URL>. When the user wants to work through reviewer feedback on a
-  GitLab MR or GitHub PR, resolve review comments, or address a round of code review, suggest running
-  this command rather than triaging threads by hand.
+  Triages every open review thread on a merge request or pull request, then acts on each one. For a
+  thread you agree with, it implements a tested fix, replies in-thread with the fixing commit, and
+  resolves the thread. For a thread you disagree with, it replies with your reasoning and leaves the
+  thread open for the human reviewer to close. It ships with adapters for GitLab and GitHub as the
+  code host, and it degrades to any other host that tool discovery can reach. This skill is
+  user-only: it runs only when the user invokes /address-pr-comments <MR or PR URL>. When the user
+  wants to work through reviewer feedback on a GitLab MR or a GitHub PR, resolve review comments, or
+  address a round of code review, suggest this command instead of triaging threads by hand.
 argument-hint: "<merge/pull request URL>"
 allowed-tools: [Read, Bash, ToolSearch]
 disable-model-invocation: true
@@ -16,112 +16,112 @@ disable-model-invocation: true
 
 # Address PR/MR Comments
 
-Works through every open review thread on a merge or pull request: fixes what needs fixing, then replies and resolves.
+Work through every open review thread on a merge request or pull request. Fix what needs fixing, then reply and resolve.
 
-Throughout this skill "change" is the generic term for what the host calls a merge request (GitLab) or pull request (GitHub) — the host adapter keeps that host's own word when naming the concrete API object or CLI call. "Thread" is the generic term for a GitLab discussion or a GitHub review thread: a root comment plus its replies, resolvable independently of the rest of the change.
+Two generic terms run through this skill. A "change" is what the host calls a merge request on GitLab, or a pull request on GitHub. The host adapter keeps the word of that host when it names a concrete API object or CLI call. A "thread" is a GitLab discussion or a GitHub review thread. It is a root comment plus its replies, and it resolves independently of the rest of the change.
 
-The workflow is host-agnostic; the host-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them. This keeps the always-loaded body focused on judgment — classifying each thread and fixing the code, which is the same regardless of where the change lives.
+The workflow is host-agnostic. The host-specific mechanics live in adapter files under `references/`, and each one loads only when you reach the step that needs it. That keeps the always-loaded body focused on judgment, which is the classification of each thread and the fix to the code. Both stay the same wherever the change lives.
 
-This isn't a code review — it only acts on threads reviewers have already raised, and doesn't evaluate the change on its own merits. For a first-pass review that surfaces new findings, use `/pr-review` instead.
+This skill is not a code review. It acts only on threads that reviewers already raised, and it does not evaluate the change on its own merits. For a first-pass review that surfaces new findings, use `/pr-review` instead.
 
 ## Workflow
 
-Work through steps in order.
+Work through the steps in order.
 
-### Step 1 — Identify the host and load its adapter
+### Step 1: Identify the host and load its adapter
 
-Determine which host the change lives on, primarily from the URL shape:
+Determine which host holds the change, mainly from the shape of the URL:
 
-- `…/-/merge_requests/<n>` → GitLab → read `references/hosts/gitlab.md`
-- `github.com/<owner>/<repo>/pull/<n>` → GitHub → read `references/hosts/github.md`
+- A URL that contains `…/-/merge_requests/<n>` is GitLab. Read `references/hosts/gitlab.md`.
+- A URL that matches `github.com/<owner>/<repo>/pull/<n>` is GitHub. Read `references/hosts/github.md`.
 
-The adapter file is the authority for that host's mechanics: URL parsing, auth check, the exact calls to list threads and fetch metadata, the local-clone path convention, and how to reply to and resolve a thread with that host's own gotchas. Read it now and follow it wherever a later step says "per the host adapter."
+The adapter file is the authority for the mechanics of that host. It covers URL parsing, the auth check, and the exact calls that list threads and fetch metadata. It covers the local-clone path convention, and how to reply to and resolve a thread. It also covers the gotchas of that host. Read it now, and follow it wherever a later step says "per the host adapter".
 
-If there's no adapter file for the host you're facing, degrade gracefully rather than stopping: discover the relevant tools with a keyword `ToolSearch` (or the platform's own CLI/API), confirm the fetch-metadata/list-threads/reply/resolve operations you need exist, and proceed. Tell the user you're running without a dedicated adapter so they know host-specific behavior is best-effort.
+When no adapter file exists for the host in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the CLI or API of the platform. Make sure that the fetch-metadata, list-threads, reply, and resolve operations you need exist, then proceed. Tell the user that you are running without a dedicated adapter, so they know that host-specific behavior is best-effort.
 
-### Step 2 — Fetch change metadata and open threads
+### Step 2: Fetch change metadata and open threads
 
-Using the metadata call from the host adapter, fetch the change's title, source branch, and web URL — Step 10's summary needs all three, and the source branch drives the worktree in Step 3.
+Use the metadata call from the host adapter. Fetch the title, the source branch, and the web URL of the change. The summary in Step 10 needs all three, and the source branch drives the worktree in Step 3.
 
-**If the metadata call fails with an auth error** (401, or a "not logged in" message), the host adapter's CLI/tool isn't authenticated — stop and ask the user to authenticate (the adapter states the exact command).
+**If the metadata call fails with an auth error**, the CLI or tool of the host adapter is not authenticated. An auth error is a 401, or a "not logged in" message. Stop and ask the user to authenticate, and quote the exact command from the adapter.
 
-Using the list-threads call from the host adapter, fetch every thread, then keep only the ones still open (unresolved). For each open thread, capture: its ID (needed to reply and resolve), the file/line it's anchored to if inline, and the full body of every comment in it — you need the whole exchange, not just the first comment, since a reviewer's later reply often narrows or changes the ask.
+Use the list-threads call from the host adapter. Fetch every thread, then keep only the threads that are still open, which means unresolved. For each open thread, capture three things. Capture its ID, which you need to reply and to resolve. Capture the file and line it anchors to, when it is inline. Capture the full body of every comment in it. You need the whole exchange, not the first comment alone, because a later reply from a reviewer often narrows or changes the ask.
 
-If there are no open threads, skip straight to Step 10 and report there's nothing to address — no worktree needed.
+When there are no open threads, skip to Step 10 and report that there is nothing to address. No worktree is needed.
 
-### Step 3 — Create a fix worktree
+### Step 3: Create a fix worktree
 
-Checking out the branch in the user's main clone would switch what's checked out from under them. Unlike a read-only review, this worktree also needs to hold real commits pushed back to the change's own source branch — so it's checked out on that branch, not detached at a SHA.
+A checkout of the branch in the main clone of the user switches what is checked out under them. This worktree also holds real commits that get pushed back to the source branch of the change, which a read-only review never does. So check the worktree out on that branch, and do not detach it at a SHA.
 
-Locating the clone, fetching, and refusing to build on a leftover or colliding worktree is deterministic and identical every run, so it's a bundled script rather than inline bash — that also sidesteps writing shell that has to work on both POSIX shells and PowerShell:
+Locating the clone, fetching, and refusing to build on a leftover or colliding worktree is deterministic and identical on every run. So a bundled script does it, instead of inline bash. The script also sidesteps shell code that has to work on both POSIX shells and PowerShell:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "<skill_dir>/SKILL.md")")")}"
 python3 "$PLUGIN_ROOT/scripts/setup_worktree.py" --repo-path <repo_path> --source-branch <source_branch> --change-id <id>
 ```
 
-(use `python` instead of `python3` if that's not on `PATH` — some native Windows installs only have the latter)
+Use `python` in place of `python3` when `python3` is not on `PATH`. Some native Windows installs carry only one of the two.
 
-That first line resolves the shared helper at the plugin root in either install mode.
+The first line resolves the shared helper at the plugin root, in either install mode.
 
-`<repo_path>` is the relative shape the host adapter states (e.g. GitLab's namespace or GitHub's `owner/repo`) — the script searches common project roots and, failing that, by remote URL, since there's no one standard clone location to assume. On success it prints `WORKTREE_PATH: <path>`; on any refusal (dirty/unpushed leftover worktree, or the branch checked out elsewhere) it prints `STOP: <reason>` and exits non-zero — stop and tell the user rather than working around it.
+`<repo_path>` is the relative shape that the host adapter states, such as the namespace for GitLab or `owner/repo` for GitHub. The script searches common project roots, and then searches by remote URL, because no single clone location is standard enough to assume. On success it prints `WORKTREE_PATH: <path>`. On a refusal it prints `STOP: <reason>` and exits non-zero. A refusal happens when a leftover worktree is dirty or unpushed, or when the branch is checked out somewhere else. Stop and tell the user, instead of working around it.
 
-If it can't locate the repo at all, ask the user for the local clone path and re-run with `--repo-root <path>` in place of `--repo-path`.
+When the script cannot locate the repo at all, ask the user for the local clone path, and re-run with `--repo-root <path>` in place of `--repo-path`.
 
-Use the printed worktree path for every read, edit, and commit from here on.
+Use the printed worktree path for every read, every edit, and every commit from here on.
 
-### Step 4 — Classify each thread
+### Step 4: Classify each thread
 
-For each open thread, read every comment in it and classify:
+For each open thread, read every comment in it, and put the thread in one of three classes:
 
-- **Already fixed** — the code already does what the thread asks, likely from a later commit in the same change. Reply explaining where/how, then resolve — no code change needed.
-- **Needs fix** — the ask is actionable and you agree with it. Implement it in Step 5.
-- **Disagree** — the ask is arguably wrong, out of scope for this change, or based on a misunderstanding. Reply explaining your reasoning, but leave the thread open (Step 8) — closing a thread the reviewer raised is the reviewer's call, not something to decide unilaterally on their behalf.
+- **Already fixed**: the code already does what the thread asks, probably through a later commit in the same change. Reply and explain where and how, then resolve the thread. No code change is needed.
+- **Needs fix**: the ask is actionable and you agree with it. Implement it in Step 5.
+- **Disagree**: the ask is arguably wrong, out of scope for this change, or based on a misunderstanding. Reply and explain your reasoning, and leave the thread open, as Step 8 describes. Closing a thread that the reviewer raised is the call of the reviewer, and you cannot make that decision on their behalf.
 
-### Step 5 — Implement fixes
+### Step 5: Implement fixes
 
-For each thread classified **needs fix**, implement it with a test that would have failed before the fix, as one atomic commit per thread. Keep each thread's fix isolated in its own commit — it's what lets you cite a single commit SHA when replying in Step 8, and lets the reviewer verify one thread's fix without reading through another's.
+For each thread classified as **needs fix**, implement the fix with a test that fails before the fix. Land each thread as one atomic commit. Keep the fix for each thread isolated in its own commit. That isolation lets you cite a single commit SHA when you reply in Step 8. It also lets the reviewer verify the fix for one thread without reading through another.
 
-### Step 6 — Run the test suite
+### Step 6: Run the test suite
 
-Run the full build plus unit and integration suites. Report the counts (passed/failed/skipped) — this is what tells you the fixes are safe to push, and it goes in the summary either way.
+Run the full build, plus the unit and integration suites. Report the counts of passed, failed, and skipped tests. That result is what tells you that the fixes are safe to push, and it goes in the summary either way.
 
-If anything fails, stop and fix it before moving on — don't push or resolve threads against a red suite.
+If anything fails, stop and fix it before you move on. Never push, and never resolve a thread, against a red suite.
 
-### Step 7 — Push the branch
+### Step 7: Push the branch
 
 ```bash
 git -C <worktree_path> push origin <source_branch>
 ```
 
-Push only after Step 6 is green, and only ever to the change's own source branch — never anywhere else. If the push is rejected (e.g. non-fast-forward because someone else pushed to the branch meanwhile), stop and tell the user what git reported rather than force-pushing; force-pushing someone else's branch can silently discard their work.
+Push only after Step 6 is green, and only ever to the source branch of the change. Push nowhere else. When git rejects the push, stop and tell the user what git reported. A rejection happens when the push is non-fast-forward, because someone else pushed to the branch meanwhile. Never force-push, because a force-push over the branch of someone else can discard their work in silence.
 
-### Step 8 — Reply and resolve, per the host adapter
+### Step 8: Reply and resolve, per the host adapter
 
-For each thread classified **needs fix** or **already fixed**: reply with the commit SHA and a short description of what changed (or, for already-fixed, where the existing code already covers it), then resolve the thread. The host adapter states the exact reply/resolve calls — always a true threaded reply tied to the thread's ID, never a new standalone/general comment.
+For each thread classified as **needs fix** or **already fixed**, reply with the commit SHA and a short description of what changed. For an already-fixed thread, say where the existing code already covers the ask. Then resolve the thread. The host adapter states the exact reply and resolve calls. Always post a true threaded reply, tied to the ID of the thread. Never post a new standalone or general comment.
 
-For each thread classified **disagree**: reply with your reasoning. Do not resolve it.
+For each thread classified as **disagree**, reply with your reasoning, and leave the thread unresolved.
 
-### Step 9 — Remove the worktree
+### Step 9: Remove the worktree
 
-If a worktree was created in Step 3, remove it now — even if an earlier step failed partway through. If Step 3 stopped before printing a worktree path, this run never created one — don't remove anything here either:
+When Step 3 created a worktree, remove it now, even when an earlier step failed partway through. When Step 3 stopped before it printed a worktree path, this run created no worktree, so remove nothing here:
 
 ```bash
 git -C <repo_path> worktree remove <worktree_path>
 ```
 
-(the same `<repo_path>` and `<worktree_path>` Step 3 printed)
+Use the same `<repo_path>` and `<worktree_path>` that Step 3 printed.
 
-If removal is refused, leave the worktree in place and tell the user exactly what git reported.
+If git refuses the removal, leave the worktree in place, and tell the user exactly what git reported.
 
-### Step 10 — Output the summary
+### Step 10: Output the summary
 
-Summarize directly in the conversation (not posted to the change): the change's title and link, the test results from Step 6, which threads were fixed and resolved (each with its commit SHA), which were already fixed and resolved (with where/how), which were left open with your reasoning, and how many commits were pushed to the source branch. Skip any category with nothing in it rather than noting its absence.
+Summarize directly in the conversation, and post nothing to the change. Give the title and link of the change, plus the test results from Step 6. List the threads that you fixed and resolved, with the commit SHA of each. List the threads that were already fixed and resolved, with where and how. List the threads that you left open, with your reasoning. Give the number of commits pushed to the source branch. Skip a category that holds nothing, instead of noting its absence.
 
 ## Hard constraints
 
-The steps above carry their own reasoning; these three are repeated because each one destroys work that isn't yours to destroy.
+The steps above carry their own reasoning. These three repeat because each one destroys work that is not yours to destroy.
 
-- **Never** force-push — if the push in Step 7 is rejected, stop and ask the user how to proceed
-- **Never** resolve a thread classified as disagree — reply, then leave it for the reviewer to close
-- **Never** check out the change's branch in the user's main clone — always work from the isolated worktree created in Step 3
+- **Never** force-push. When git rejects the push in Step 7, stop and ask the user how to proceed.
+- **Never** resolve a thread classified as disagree. Reply, then leave it for the reviewer to close.
+- **Never** check out the branch of the change in the main clone of the user. Always work from the isolated worktree that Step 3 created.

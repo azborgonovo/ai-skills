@@ -1,56 +1,65 @@
 ---
 name: review-skill
 description: >
-  Reviews and audits an existing skill, then tightens it — a fast, static, read-only audit of a
-  `SKILL.md`'s triggering, scope, structure, prose, and domain accuracy, with severity-ranked
-  findings applied on approval. Use whenever the user wants to review, critique, audit, lint, tighten, or improve a skill
-  they already have, fine-tune a skill they just drafted, or asks why a skill is too verbose,
-  won't trigger, or feels off — even when they just paste a SKILL.md and ask for feedback.
-  Reads rather than measures: the empirical loop — running evals, benchmarking, automated
-  description optimization, packaging — is out of scope.
+  Reviews, audits, and tightens a skill that already exists. Reads a `SKILL.md` for its
+  triggering, scope, structure, prose, and domain accuracy, ranks the findings by severity,
+  and applies them when the user approves. Use when the user wants to review, critique,
+  audit, lint, tighten, or improve a skill they already have, fine-tune a skill they just
+  drafted, or asks why a skill is too verbose, does not trigger, or feels wrong. Use it also
+  when the user pastes a SKILL.md and asks for feedback. This skill reads a skill. It does
+  not measure one: eval runs, benchmarks, automated description optimization, and packaging
+  are outside its scope.
 argument-hint: "[skill name or path to a SKILL.md]"
 allowed-tools: [Read, Glob, WebSearch, WebFetch, Bash, Edit, Write]
 ---
 
 # Review Skill
 
-Audit an existing skill against how good skills actually behave, then tighten it — a close reading that surfaces what undermines the skill and fixes it on the user's say-so. This is the static half: when the user wants measured triggering accuracy or eval-graded iteration, say that it needs an eval loop rather than building one here, and hand off to a skill-creation skill if one is available in the session.
+Audit a skill against the way good skills behave, then tighten it. Read it closely, name what weakens the skill, and fix those things when the user agrees.
 
-Work in two phases: **critique first, edit second.** Never rewrite the skill before the user has seen the findings and chosen what to apply.
+This skill is the static half of skill review. If the user wants a measured trigger rate or eval-graded iteration, say that the work needs an eval loop. Do not build one here. Hand off to a skill-creation skill when the session has one.
+
+Work in two phases: **critique first, edit second.** Never rewrite the skill before the user reads the findings and picks what to apply.
 
 ## Resolve the target
 
-Take the skill from `$ARGUMENTS` — a skill name (glob `skills/**/<name>/SKILL.md`, so a repo that groups its skills under plugin or category directories still resolves, then the installed `~/.claude/skills/<name>/SKILL.md`) or a direct path. With no argument, review the skill in progress: the `SKILL.md` most recently edited this session or showing in `git status`; if that's ambiguous, confirm which one before reviewing. Read the whole bundle, not just `SKILL.md` — note any `scripts/`, `references/`, `assets/`, and `evals/`, since their presence (or absence) is itself a finding.
+Take the skill from `$ARGUMENTS`. The argument is a skill name or a direct path. For a name, glob `skills/**/<name>/SKILL.md` first, so a repo that groups its skills under plugin or category directories still resolves. Then try the installed `~/.claude/skills/<name>/SKILL.md`.
+
+With no argument, review the skill in progress. That is the `SKILL.md` edited most recently in this session, or the one that shows in `git status`. If two or more files fit, ask the user which one to review.
+
+Read the whole bundle, not the `SKILL.md` alone. Note any `scripts/`, `references/`, `assets/`, and `evals/` directory. The presence of one, or its absence, is itself a finding.
 
 ## What to review
 
-**The standards** — before walking the dimensions, find the authoring conventions this skill is held to: a `CLAUDE.md`, `CONTRIBUTING.md`, a skill-authoring style guide, or an equivalent. A documented convention overrides a generic dimension below wherever the two disagree, and a convention the repo has settled is settled rather than a finding to raise.
+**The standards**: before you walk the dimensions, find the authoring conventions that govern this skill. Look for a `CLAUDE.md`, a `CONTRIBUTING.md`, a skill-authoring style guide, or an equivalent file. A documented convention overrides a generic dimension below wherever the two disagree. A convention the repo settled is settled, so do not raise it as a finding.
 
-Take them only from the repo the skill under review lives in. Resolve a path under `~/.claude/skills/` to its real target first (`readlink -f`) — an installed skill is often a symlink into a source repo, whose conventions do govern it. Only once the resolved path sits in no repo at all, review on the dimensions alone rather than holding the skill to the conventions of whatever repo your shell happens to be in, or to the user's global ones.
+Take the conventions only from the repo that holds the skill under review. Resolve a path under `~/.claude/skills/` to its real target first with `readlink -f`. An installed skill is often a symlink into a source repo, and that repo governs it. When the resolved path sits in no repo at all, review on the dimensions alone. Do not hold the skill to the conventions of the repo your shell happens to sit in. Do not hold it to the global conventions of the user either.
 
-Then walk these dimensions and collect concrete findings, each tied to specific lines:
+Then walk these dimensions and collect concrete findings. Tie each finding to specific lines.
 
-- **Triggering** — does the `description` front-load the skill's leading word and cover the real branches a user would actually phrase, without false-trigger overlap with neighboring skills? Flag both gaps and collisions. Static smell-test only — a measured trigger rate needs an eval run, which this skill does not do.
-- **Scope** — one clear responsibility, with an honest "do not use for…" boundary where it earns its place. Flag scope creep and overlap with skills that already exist.
-- **Domain fidelity** — covered below.
-- **Prose and leanness** — is the body objective, clear, and lean? Hunt *no-ops* sentence by sentence — a line the model already obeys by default, which costs context to say nothing; delete the sentence rather than rewriting it tighter, since a reworded no-op is still a no-op. Collapse restatements: the same meaning in two places costs tokens now and drifts into a contradiction the day one copy gets edited. Call out *sediment*, the stale layers that settle because adding feels safe and removing feels risky, and *sprawl*, length itself even where every line is live and unique. Recommend pushing deterministic or repetitive mechanics into `scripts/` and bulky reference into `references/` behind a pointer, so the always-loaded body stays legible.
-- **Structure and frontmatter** — `name`/`description`/`argument-hint`/`allowed-tools` valid and consistent; headers that earn their place; no contradictory instructions; completion criteria that are checkable rather than vague.
+- **Triggering**: the `description` must front-load the leading word of the skill and cover the branches a user will really phrase. Flag gaps, and flag overlap that will trigger this skill in place of a neighbor. This is a smell test that you read off the page. A measured trigger rate needs an eval run, and this skill does not do eval runs.
+- **Scope**: one clear responsibility, plus an honest "do not use for..." boundary where the boundary earns its place. Flag scope creep and overlap with skills that already exist.
+- **Domain fidelity**: covered in the next section.
+- **Prose and leanness**: the body must read as objective, clear, and lean. Hunt *no-ops* sentence by sentence. A no-op is a line the model already obeys by default, so it costs context and adds nothing. Delete the whole sentence, because a reworded no-op is still a no-op. Collapse restatements: the same meaning in two places costs tokens now, and it drifts into a contradiction the day one copy gets edited. Call out *sediment*, the stale layers that settle because adding feels safe and removing feels risky. Call out *sprawl*, which is length itself, even where every line is live and unique. Recommend that deterministic or repeated mechanics move into `scripts/`, and that bulky reference text moves into `references/` behind a pointer. The body loads on every run, so it must stay legible.
+- **Structure and frontmatter**: `name`, `description`, `argument-hint`, and `allowed-tools` must be valid and consistent with each other. Headers must earn their place. No two instructions can contradict each other. Completion criteria must be checkable, not vague.
 
 ## Domain fidelity
 
-First judge whether the skill is domain-specific — a framework, cloud service, methodology, or business domain — or a generic process skill. Research only when it's domain-specific, and route by the kind of domain:
+First decide whether the skill is domain-specific or a generic process skill. A domain-specific skill covers a framework, a cloud service, a methodology, or a business domain. Research only a domain-specific skill, and route the research by the kind of domain:
 
-- Libraries, frameworks, SDKs, CLIs, cloud services → fetch current docs with the `ctx7` CLI (`npx ctx7@latest library "<name>"`, then `npx ctx7@latest docs <id> "<question>"`).
-- Methodologies and business or domain concepts → `WebSearch` / `WebFetch` against reputable, primary sources.
+- For libraries, frameworks, SDKs, CLIs, and cloud services, fetch current documentation with the `ctx7` CLI. Run `npx ctx7@latest library "<name>"`, then `npx ctx7@latest docs <id> "<question>"`.
+- For methodologies and business or domain concepts, use `WebSearch` and `WebFetch` against reputable primary sources.
 
-Check the skill's terminology, definitions, and recommended patterns against what you find, and flag anything stale, misnamed, or contradicted by the source. Cite the source for every domain finding so the user can weigh its authority — don't correct domain wording from training data alone.
+Compare the terminology, the definitions, and the recommended patterns of the skill against what you find. Flag anything stale, misnamed, or contradicted by the source. Cite the source for every domain finding, so the user can weigh how authoritative it is. Never correct domain wording from training data alone.
 
 ## Present findings, then apply
 
-Open with a one-line verdict: is the skill sound, or does it need work? Then list findings ranked by severity, not grouped by dimension:
+Open with a one-line verdict. State whether the skill is sound or needs work. Then list the findings ranked by severity, not grouped by dimension:
 
-- **Blocking** — breaks triggering or correctness, or is contradicted by the domain sources.
-- **Should-fix** — real weaknesses: scope creep, sprawl, duplication, vague completion criteria, convention violations.
-- **Nit** — optional polish.
+- **Blocking**: the finding breaks triggering or correctness, or the domain sources contradict it.
+- **Important**: the finding is a real weakness, such as scope creep, sprawl, duplication, vague completion criteria, or a convention violation.
+- **Nit**: the finding is optional polish.
 
-Tag each finding with its dimension, and for domain findings include the source consulted. Then offer to apply — all blocking and should-fix, everything, or a subset the user picks — and edit the files directly, showing what changed. Empirical proof that it now triggers and passes evals is a separate, measured exercise; say so rather than implying the audit established it.
+Tag each finding with its dimension. For a domain finding, name the source you consulted.
+
+Then offer to apply the findings. Offer three choices: every blocking and important finding, everything, or a subset that the user picks. Edit the files directly and show what changed. Proof that the skill now triggers and passes evals is a separate exercise that measures the skill. Say so, and do not imply that this audit established it.

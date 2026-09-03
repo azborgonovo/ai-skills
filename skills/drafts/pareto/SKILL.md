@@ -1,61 +1,66 @@
 ---
 name: pareto
 description: >
-  Processes the user's request through the Pareto Principle: ranks the causes generating most of the outcome, then spends roughly a fifth of the effort on the interventions that address them and reports what that effort bought.
-  User-only: runs only when explicitly invoked with /pareto [request]. When the user wants the highest-leverage slice of a large task, asks "what matters most here", wants to cut scope to what actually moves the needle, or wants an 80/20 pass over analysis, planning, test coverage, refactoring, or cleanup, suggest running this command.
-  Not for work whose value depends on being complete — security fixes, compliance changes, migrations, or a specific reported bug.
+  Processes the request of the user through the Pareto Principle. It ranks the causes that generate
+  most of the outcome, spends roughly a fifth of the effort on the interventions that address them,
+  and reports what that effort bought. This skill is user-only: it runs only when the user invokes
+  /pareto [request]. When the user wants the highest-leverage slice of a large task, asks "what
+  matters most here", wants to cut scope to what moves the needle, or wants an 80/20 pass over
+  analysis, planning, test coverage, refactoring, or cleanup, suggest this command. Do not use it for
+  work whose value depends on being complete, such as a security fix, a compliance change, a
+  migration, or a specific reported bug.
 argument-hint: "[request to process]"
 disable-model-invocation: true
 ---
 
 # Pareto
 
-A small subset of causes produces most of the outcome. Find it, spend about a fifth of the effort against it, and show the cut so the user can argue with it.
+A small subset of causes produces most of the outcome. Find that subset, spend about a fifth of the effort against it, and show the cut, so the user can argue with it.
 
-Estimate roughly throughout. 80/20 is shorthand for "expect lumpiness," not a ratio to hit, and the two percentages needn't pair — a fifth of the effort might buy 95% of the outcome or 40%. A rough ranking that costs minutes beats a precise one that eats the budget it was meant to allocate.
+Estimate roughly throughout. "80/20" is shorthand for "expect lumpiness", and not a ratio to hit. The two percentages do not have to pair, so a fifth of the effort can buy 95% of the outcome, or 40%. A rough ranking that costs minutes beats a precise one that eats the budget it was meant to allocate.
 
 ## When this is the wrong tool
 
-Some work is only worth doing completely: security fixes, compliance changes, migrations, a specific reported bug. 80% of a data migration is a corrupted database. Say the request isn't a Pareto candidate, then do it in full or ask.
+Some work is worth doing only in full: a security fix, a compliance change, a migration, or a specific reported bug. 80% of a data migration is a corrupted database. Say that the request is not a Pareto candidate, then do the work in full, or ask the user.
 
-Declining the framing means declining its shape too. Give a checklist to finish rather than a ranked list the reader can stop partway down — on completeness-critical work the skipped item is the one that matters.
+When you decline the framing, decline its shape too. Give a checklist to finish, and not a ranked list that the reader can stop partway down. On completeness-critical work, the skipped item is the one that matters.
 
 Skip the ceremony entirely on anything small enough that ranking it costs more than it saves.
 
 ## Stage 1: rank the causes
 
-Rank causes, not tasks. Work items sorted by payoff are just a to-do list; asking "what is generating most of this?" is what finds the one confused module behind eight scattered bug reports. Weight by cost or severity rather than raw counts, so a rare catastrophe isn't buried under a constant nuisance.
+Rank causes, and not tasks. Work items sorted by payoff are only a to-do list. Asking "what is generating most of this?" is what finds the one confused module behind eight scattered bug reports. Weight the causes by cost or severity rather than by raw counts, so that a rare catastrophe does not sit buried under a constant nuisance.
 
-Rank on effect size alone — what a fix would cost plays no part yet. Letting "that's expensive" suppress a cause here buries the finding the user most needs. This produces a ranking, not a shortlist, so stage 2 can still reach into the tail.
+Rank on effect size alone. What a fix costs plays no part yet. When "that is expensive" suppresses a cause here, it buries the finding that the user most needs. This stage produces a ranking, and not a shortlist, so that stage 2 can still reach into the tail.
 
-Use whatever signal is already visible: error rates, coverage gaps, file churn, the shape of the request. When there's none, rank from priors and label it in a clause — an unlabeled guess reads as measurement.
+Use whatever signal is already visible: error rates, coverage gaps, file churn, or the shape of the request. When no signal exists, rank from priors, and label that in a clause. An unlabeled guess reads as measurement.
 
-**When the causes are evenly spread**, say so before spending anything. Five independent bug fixes are five bug fixes. Name the flatness and let the user choose between funding the whole job and taking an arbitrary slice.
+**When the causes are evenly spread**, say so before you spend anything. Five independent bug fixes are five bug fixes. Name the flatness, and let the user choose between funding the whole job and taking an arbitrary slice.
 
 ## Stage 2: spend a fifth of the effort
 
-Cost the interventions against the top causes, work down by outcome-per-effort until roughly a fifth of the full job's effort is spent, then stop. Effort is the budget; outcome is what you observe and report. The reverse rule — keep going until most of the outcome is covered — authorizes spending whatever it takes.
+Cost the interventions against the top causes. Work down by outcome per unit of effort, until you have spent roughly a fifth of the effort of the full job, then stop. Effort is the budget, and outcome is what you observe and report. The reverse rule, which is to keep going until most of the outcome is covered, authorizes spending whatever it takes.
 
-Both stages earn their place: ranking causes while ignoring cost recommends a rewrite every time, and ranking interventions without first finding causes drifts to cheap triviality — eight one-line fixes that leave the generator untouched.
+Both stages earn their place. Ranking causes while you ignore cost recommends a rewrite every time. Ranking interventions without first finding the causes drifts to cheap triviality, which is eight one-line fixes that leave the generator untouched.
 
-**Spend the budget on the work, not on deciding what the work is.** The deliverable is the change the user asked for. Buy measurement only when it is cheap and decisive — a check that redirects the whole effort, not a survey that produces a plan. When the honest answer is that the budget buys diagnosis and no improvement, say so plainly as a tradeoff rather than handing over an investigation as though it were the work.
+**Spend the budget on the work, and not on deciding what the work is.** The deliverable is the change that the user asked for. Buy measurement only when it is cheap and decisive. That means a check that redirects the whole effort, and not a survey that produces a plan. When the honest answer is that the budget buys diagnosis and no improvement, say so plainly as a trade-off. Do not hand over an investigation as though it were the work.
 
-**An unaffordable root cause is a finding, not a skip.** When the biggest cause needs work that swamps the budget, name it with its price. "Most of these failures trace to the retry logic, and fixing it properly is about three days" is the one thing the user cannot get from the diff.
+**An unaffordable root cause is a finding, and not a skip.** When the biggest cause needs work that swamps the budget, name it with its price. Write it as "Most of these failures trace to the retry logic, and fixing it properly is about three days". That is the one thing that the user cannot get from the diff.
 
-Sweep up near-free wins from the tail while you're in there, incidental to the vital few rather than becoming the work.
+Sweep up the near-free wins from the tail while you are in there. Keep them incidental to the vital few, and do not let them become the work.
 
-Correctness is not optional weight: a slice that leaves the build broken or a migration half-applied is negative value, so whatever keeps the work coherent belongs inside the budget.
+Correctness is not optional weight. A slice that leaves the build broken, or a migration half-applied, has negative value, so whatever keeps the work coherent belongs inside the budget.
 
 ## Two shapes of request
 
-**Analysis, planning, review** — the budget caps investigation depth. Lead with the top causes at full depth, compress the tail, and name what you didn't examine. An analysis that hides its own shallowness is worse than a slower one.
+**Analysis, planning, and review**: the budget caps the depth of the investigation. Lead with the top causes at full depth, compress the tail, and name what you did not examine. An analysis that hides its own shallowness is worse than a slower one.
 
-**Actual work — coverage, refactoring, cleanup, fixes** — the budget caps the changes made. Do the subset, leave the rest untouched rather than half-applied, and report the line you drew.
+**Actual work, such as coverage, refactoring, cleanup, and fixes**: the budget caps the changes you make. Do the subset, leave the rest untouched rather than half-applied, and report the line that you drew.
 
 ## Report the cut
 
-A few sentences, not a section per bullet:
+Write a few sentences, and not a section per bullet:
 
-- **The vital few causes** and how you ranked them.
-- **What the budget bought** — rough effort share spent against rough outcome share gained, as observations rather than the principle's prediction. Skip any number you can't estimate honestly.
-- **What's left**, grouped, separating minor from unaffordable. The second group is the user's next funding decision.
+- **The vital few causes**, and how you ranked them.
+- **What the budget bought**: the rough share of effort spent against the rough share of outcome gained, reported as observations rather than as the prediction of the principle. Skip any number that you cannot estimate honestly.
+- **What is left**, grouped, with minor items separated from unaffordable ones. The second group is the next funding decision of the user.

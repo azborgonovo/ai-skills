@@ -1,184 +1,184 @@
 ---
 name: triage-work-item
 description: >
-  Triages a tracker work item — a bug, task, or story — end-to-end against the codebase: reads the
-  item with its full comment thread, links, and parent epic, cross-references related items,
-  investigates the codebase(s) implementing the affected feature, corroborates with attached
-  evidence and observability data, then posts a verified analysis comment — root cause for a bug, or
-  current-behavior/approach/effort for a change request — back to the item. Ships with Jira and
-  GitHub Issues tracker adapters and Grafana and CloudWatch observability adapters, degrading
-  gracefully to any other platform reachable via tool discovery. Use when the user gives a work-item
-  URL or key — Jira (`…atlassian.net/browse/KEY`) or GitHub (`github.com/<o>/<r>/issues/<n>`) — and
-  asks to triage, investigate, diagnose, or root-cause it, even without the word "triage" (e.g.
-  "look into TICKET-123 and post what you find"). Do not use for reading or summarizing a work item
-  with no code investigation intended, or for writing new work items.
+  Triages a tracker work item, which is a bug, a task, or a story, end-to-end against the codebase.
+  It reads the item with its full comment thread, links, and parent epic, cross-references related
+  items, investigates the codebases behind the affected feature, corroborates with attached evidence
+  and observability data, then posts a verified analysis comment back to the item. That comment gives
+  the root cause for a bug, or the current behavior, the approach, and the effort for a change
+  request. Ships with Jira and GitHub Issues tracker adapters, plus Grafana and CloudWatch
+  observability adapters, and degrades to any reachable platform. Use when the user gives a
+  work-item URL or key, on Jira (`…atlassian.net/browse/KEY`) or GitHub
+  (`github.com/<o>/<r>/issues/<n>`), and asks to triage, investigate, diagnose, or root-cause it,
+  even without the word "triage", as in "look into TICKET-123 and post what you find". Do not use it
+  to read or summarize a work item with no code investigation, or to write new work items.
 argument-hint: "<work-item URL or key> [--dry-run]"
 allowed-tools: [Read, Grep, Bash, Agent, ToolSearch, AskUserQuestion, Write]
 ---
 
 # Triage a tracker work item against the codebase and observability data
 
-Throughout this skill "work item" is the generic term for whatever the tracker holds — a bug, task, or story (Jira and GitHub both call the object an "issue," and the steps below keep that word when naming the concrete object or an API/CLI call).
+In this skill, "work item" is the generic term for whatever the tracker holds, which is a bug, a task, or a story. Jira and GitHub both call the object an "issue". The steps below keep that word when they name the concrete object, an API call, or a CLI call.
 
-This is an investigation workflow, not a lookup. The value it adds over just reading the work item is a verified conclusion — a specific code path, config value, or data condition for a bug; a validated approach and effort estimate for a change request — that a future engineer can act on immediately, backed by evidence you actually checked rather than plausible-sounding guesses. Every step below exists to either gather that evidence or to guard against reporting something that sounds right but isn't.
+This is an investigation workflow, not a lookup. Its value over a plain read of the work item is a verified conclusion that a future engineer can act on immediately. Evidence that you checked backs that conclusion, and not a plausible-sounding guess. For a bug, that conclusion is a specific code path, configuration value, or data condition. For a change request, it is a validated approach and an effort estimate. Every step below exists either to gather that evidence, or to guard against reporting something that sounds right and is not.
 
-The workflow is tool-agnostic; the tracker-specific and observability-specific mechanics live in adapter files under `references/` and load only when you reach the step that needs them. This keeps the always-loaded body focused on judgment — the part that's the same whether the work item lives in Jira or GitHub and whether the telemetry is in Grafana or CloudWatch.
+The workflow is tool-agnostic. The tracker-specific and observability-specific mechanics live in adapter files under `references/`, and each one loads only when you reach the step that needs it. That keeps the always-loaded body focused on judgment. The judgment stays the same wherever the work item lives, and wherever the telemetry lives.
 
-By default, once you've verified your findings, post the comment — don't pause for a separate approval step. The verification step (Step 9) is the safety gate, not a human checkpoint. The one exception is `--dry-run`: if the user passes it (or clearly wants to see the analysis before anything goes out), write the finished comment to a file and show it instead of posting.
+By default, post the comment once you have verified your findings. Do not pause for a separate approval step. Step 9 verifies the findings, and that verification is the safety gate rather than a human checkpoint. The one exception is `--dry-run`. When the user passes that flag, write the finished comment to a file and show it. Do the same when the user clearly wants to see the analysis before anything goes out.
 
 ## Inputs
 
-- **Required**: an issue URL or key. If given a bare key (e.g. `PROJ-123`) you also need enough to identify the tracker and instance — ask if it isn't obvious from context (a prior message, a hostname already visible, the repo you're standing in).
-- **Optional**: which repo(s)/codebase(s) to investigate. If not given, see Step 5.
-- **Optional**: `--dry-run` — draft only, never post.
+- **Required**: an issue URL or key. With a bare key such as `PROJ-123`, you also need enough to identify the tracker and the instance. Ask when the context does not make it obvious. The context can be a prior message, a hostname already visible, or the repo you are standing in.
+- **Optional**: which repos or codebases to investigate. When the user names none, see Step 5.
+- **Optional**: `--dry-run`, which drafts the comment and never posts it.
 
-## Step 1 — Identify the tracker and load its adapter
+## Step 1: Identify the tracker and load its adapter
 
-Determine which tracker the issue lives in, primarily from the URL shape:
+Determine which tracker holds the issue, mainly from the shape of the URL:
 
-- `…atlassian.net/browse/<KEY>` or a bare `PROJ-123` key → Jira → read `references/trackers/jira.md`
-- `github.com/<owner>/<repo>/issues/<n>` → GitHub Issues → read `references/trackers/github.md`
+- A `…atlassian.net/browse/<KEY>` URL, or a bare `PROJ-123` key, is Jira. Read `references/trackers/jira.md`.
+- A `github.com/<owner>/<repo>/issues/<n>` URL is GitHub Issues. Read `references/trackers/github.md`.
 
-The adapter file is the authority for that tracker's mechanics: how to load or authenticate its tools, the exact call to fetch an issue with its full comment thread, how to search related issues, how to post a comment, and its comment markup dialect and known gotchas. Read it now and follow it wherever a later step says "per the tracker adapter."
+The adapter file is the authority for the mechanics of that tracker. It covers how to load or authenticate its tools, and the exact call that fetches an issue with its full comment thread. It covers how to search related issues, and how to post a comment. It also covers the comment markup dialect and the known gotchas of that tracker. Read it now, and follow it wherever a later step says "per the tracker adapter".
 
-If there's no adapter file for the tracker you're facing, degrade gracefully rather than stopping: discover the relevant tools with a keyword `ToolSearch` (or the platform's own CLI/API), confirm the fetch/search/comment operations you need exist, and proceed. Tell the user you're running without a dedicated adapter so they know citations of tool-specific behavior are best-effort. If the run goes well, that's a signal the tracker earns its own adapter file.
+When no adapter file exists for the tracker in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the CLI or API of the platform. Make sure that the fetch, search, and comment operations you need exist, then proceed. Tell the user that you are running without a dedicated adapter, so they know that any citation of tool-specific behavior is best-effort. A run that goes well is a signal that the tracker earns its own adapter file.
 
-## Step 2 — Fetch the target issue in full
+## Step 2: Fetch the target issue in full
 
-Using the fetch call from the tracker adapter, retrieve the issue with its **entire** comment/discussion thread, in order — not just the description. Later comments frequently change the picture: an issue gets reassigned between teams, refinement discussions narrow down a fix approach, or a "let's investigate X" comment gets superseded by "actually it's Y" a few comments later. The most recent comments carry the most current understanding; don't anchor only on the original report.
+Use the fetch call from the tracker adapter. Retrieve the issue with its **entire** comment or discussion thread, in order, and not the description alone. A later comment frequently changes the picture. An issue gets reassigned between teams. A refinement discussion narrows down a fix approach. A "let us investigate X" comment is superseded a few comments later by "actually it is Y". The most recent comments carry the most current understanding, so do not anchor only on the original report.
 
-Note the parent epic/tracking issue and any linked issues (duplicates, relates-to, blocks) — you'll check these in Step 6, but don't chase them yet.
+Note the parent epic or tracking issue, and any linked issue, which can be a duplicate, a relates-to link, or a blocks link. You check these in Step 6, so do not chase them yet.
 
-**List the attachments in the same pass**, even when nothing in the thread points at one: filename, type, size, and upload date. Attachments are first-party captures of the actual incident — a HAR, a log export, a crash dump, a screen recording, a failing input file — and they routinely settle in one read what a code investigation can only narrow down. A default fetch often leaves them out entirely — some trackers hold them in a field you have to request by name, others only as links inside the body text — so a response with no attachment data is not evidence there are none. The tracker adapter covers how to list and download them.
+**List the attachments in the same pass**, even when nothing in the thread points at one. Capture the filename, the type, the size, and the upload date. An attachment is a first-party capture of the actual incident. It can be a HAR file, a log export, a crash dump, a screen recording, or a failing input file. Such a file routinely settles in one read what a code investigation can only narrow down. A default fetch often leaves attachments out. Some trackers hold them in a field that you have to request by name, and others hold them only as links inside the body text. So a response with no attachment data is not evidence that the issue has none. The tracker adapter covers how to list and download them.
 
-**Trust the file list over what the thread says about it.** Prose goes stale and the attachment list does not. A description reading "waiting on the HAR file" describes the day it was written; the file may have landed an hour later with no edit to the description and no comment announcing it. Read upload dates against the thread's dates rather than believing either alone — an attachment that predates the discussion still asking for it is a common case, not a contradiction.
+**Trust the file list over what the thread says about it.** Prose goes stale, and the attachment list does not. A description that reads "waiting on the HAR file" describes the day someone wrote it. The file can have landed an hour later, with no edit to the description and no comment that announces it. Read the upload dates against the dates in the thread, instead of believing either one alone. An attachment that predates the discussion still asking for it is a common case, not a contradiction.
 
-## Step 3 — Classify the item and establish the comment template
+## Step 3: Classify the item and establish the comment template
 
-Determine whether this is a **bug** — actual behavior deviates from what the system is intended or documented to do — or a **change request** — the system does what it was built to do, but the desired behavior itself is changing (new/changed behavior), or the work is non-behavioral (refactor, chore, tech debt, spike) with no behavior at stake either way.
+Determine whether this item is a **bug** or a **change request**. In a bug, the actual behavior deviates from what the system is intended or documented to do. In a change request, the system does what it was built to do, and the desired behavior itself is changing. A change request also covers non-behavioral work, where no behavior is at stake either way. That work can be a refactor, a chore, tech debt, or a spike.
 
-Use two signals together, not the tracker's issue-type field alone:
+Use two signals together, and never the issue-type field of the tracker alone:
 
-- **Tracker issue type** (Bug vs. Story/Task/Feature) as a starting signal.
-- **Content-level test**: does the description/comments say the system fails to do what it's supposed to (a promise it breaks), or that it should now do something different from what it was built to do? The first is a bug; the second is a change request.
+- **The tracker issue type**, which is Bug against Story, Task, or Feature. Take it as a starting signal.
+- **The content-level test.** Ask what the description and the comments say. They can say that the system fails to do what it is supposed to do, which is a promise that it breaks. They can instead say that the system must now do something different from what it was built to do. The first is a bug, and the second is a change request.
 
-When the two disagree — e.g. the issue type is "Story" or "Task" but the content describes broken existing behavior — **the content wins**. Issue-type fields are routinely misused for workflow reasons (a team files a regression as a "Task," or a "Story" is really "fix this"); treat the field as a hint, not the source of truth. Mention the override in the comment only if it's material to how the investigation was framed — don't call out a trivial mismatch.
+When the two signals disagree, **the content wins**. For example, the issue type reads "Story" or "Task", and the content describes broken existing behavior. Teams routinely misuse issue-type fields for workflow reasons. A team can file a regression as a "Task", and a "Story" can really mean "fix this". Treat the field as a hint, and not as the source of truth. Mention the override in the comment only when it is material to how you framed the investigation. Do not call out a trivial mismatch.
 
-Non-behavioral tasks (refactor, chore, tech debt, spike) default to the change-request template: effort and approach are exactly what's needed there, and neither "root cause" nor "how it works today vs. what's wrong" fits a pure refactor cleanly enough to force the bug shape.
+A non-behavioral task, such as a refactor, a chore, tech debt, or a spike, defaults to the change-request template. Effort and approach are exactly what such an item needs. Neither "root cause" nor "how it works today against what is wrong" fits a pure refactor cleanly enough to force the bug shape.
 
-If the item is too sparse to classify with confidence (e.g. a one-line title, no description, no comments), ask the user (`AskUserQuestion`) rather than guessing — a wrong template choice compounds through the rest of the workflow.
+Some items are too sparse to classify with confidence, such as a one-line title with no description and no comments. Ask the user through `AskUserQuestion` instead of guessing. A wrong template choice compounds through the rest of the workflow.
 
-Once classified:
+Once you classify the item:
 
-- **Bug** → use `references/bug-template.md`.
-- **Change request** (including non-behavioral tasks) → use `references/change-request-template.md`.
+- For a **bug**, use `references/bug-template.md`.
+- For a **change request**, including a non-behavioral task, use `references/change-request-template.md`.
 
-Open the comment with an attribution line: `Triaged with 🤖 using <model> (<effort> effort)`. This flags the comment as AI-assisted so readers calibrate trust and scrutiny accordingly — keep it rather than dropping it to make the comment look more "human." Always fill in `<model>` — you know your own model name from your environment context (e.g. `Sonnet 5`). Only fill in `(<effort> effort)` when you have a concretely known effort/thinking-level setting for this session — never guess one just to fill the field; when you don't have one, drop the whole parenthetical rather than write a placeholder: `Triaged with 🤖 using Sonnet 5:`. Use the literal Unicode 🤖, not a `:robot:`-style shortcode — some trackers (e.g. Jira, see `references/trackers/jira.md`) don't expand shortcodes, so it would render as literal text instead of an emoji.
+Open the comment with an attribution line: `Triaged with 🤖 using <model> (<effort> effort)`. That line flags the comment as AI-assisted, so readers calibrate their trust and their scrutiny. Keep it, and never drop it to make the comment look more human. Always fill in `<model>`, because you know your own model name from your environment context, such as `Sonnet 5`. Fill in `(<effort> effort)` only when you have a concretely known effort or thinking-level setting for this session. Never guess one to fill the field. With no known setting, drop the whole parenthetical instead of writing a placeholder, which gives `Triaged with 🤖 using Sonnet 5:`. Use the literal Unicode 🤖, and not a `:robot:` shortcode. Some trackers do not expand shortcodes, as `references/trackers/jira.md` records for Jira, so a shortcode renders as literal text instead of an emoji.
 
-## Step 4 — Note the tracker's comment markup dialect
+## Step 4: Note the comment markup dialect of the tracker
 
-Different trackers render comments differently: Jira via its own wiki/ADF markup (though its comment API accepts Markdown and converts it), GitHub via GitHub-flavored Markdown. The tracker adapter states which dialect to write in and how the post call expects it. Keep this in mind while drafting (Step 10) so code fences, headings, and links render rather than showing as literal characters.
+Different trackers render comments differently. Jira renders its own wiki and ADF markup, and its comment API accepts Markdown and converts it. GitHub renders GitHub-flavored Markdown. The tracker adapter states which dialect to write in, and how the post call expects it. Keep the dialect in mind while you draft in Step 10, so that code fences, headings, and links render instead of showing as literal characters.
 
-## Step 5 — Scope the codebase(s) to investigate
+## Step 5: Scope the codebases to investigate
 
-If the user already named the repo(s), use them. Otherwise, figure out what's in scope before guessing blindly:
+When the user already named the repos, use them. Otherwise work out what is in scope before you guess blindly:
 
-- Check whether you're already working inside a relevant repo (current directory, or a workspace documented in a top-level `CLAUDE.md`/`README` that maps products/teams to repos).
-- If the issue's product area suggests a codebase you can identify with reasonable confidence, say so and proceed — but if it's genuinely ambiguous (e.g. a multi-repo organization and no strong signal which service owns this behavior), ask the user rather than spending a long investigation on the wrong repo.
+- Find out whether you are already working inside a relevant repo. Check the current directory, and check a workspace documented in a top-level `CLAUDE.md` or `README` that maps products and teams to repos.
+- When the product area of the issue suggests a codebase that you can identify with reasonable confidence, say so and proceed. When the choice is genuinely ambiguous, ask the user. That happens in a multi-repo organization with no strong signal about which service owns this behavior. A question costs less than a long investigation on the wrong repo.
 
-This step investigates a **local checkout** with Read/Grep/git — it does not call the git host's API, so it's the same regardless of whether the repo is hosted on GitHub, GitLab, or Bitbucket.
+This step investigates a **local checkout**, through Read, Grep, and git. It calls no API of the git host, so it works the same whether the repo lives on GitHub, GitLab, or Bitbucket.
 
-**Before investigating, make sure each repo is current.** These are locally cloned working copies that can silently drift behind their remote — and a stale checkout doesn't fail loudly, it produces a *confidently wrong negative*: a subagent searching a checkout that's missing the very commit that implements the feature will report "no such code exists anywhere," which reads identically to a genuine gap and can send the whole investigation toward the wrong repo entirely. For each repo in scope, before dispatching Step 7 agents against it:
+**Before you investigate, make sure that each repo is current.** These are local working copies that drift behind their remote in silence. A stale checkout does not fail loudly. It produces a *confidently wrong negative*: a subagent that searches a checkout missing the commit that implements the feature reports "no such code exists anywhere". That report reads exactly like a genuine gap, and it can send the whole investigation toward the wrong repo. For each repo in scope, do this before you dispatch the Step 7 agents against it:
 
-- `git fetch origin && git log HEAD..origin/<default-branch> --oneline` to check if you're behind.
-- If behind and `git status` shows a clean working tree, fast-forward: `git pull --ff-only`.
-- If there are local uncommitted changes you don't want to disturb, investigate against a worktree of the fresh default branch instead of touching the existing checkout (`git worktree add` or the `EnterWorktree` tool if available) rather than stashing someone's in-progress work.
+- Run `git fetch origin && git log HEAD..origin/<default-branch> --oneline` to find out whether the checkout is behind.
+- When the checkout is behind and `git status` shows a clean working tree, fast-forward it with `git pull --ff-only`.
+- When local uncommitted changes exist that you do not want to disturb, leave the existing checkout alone. Investigate against a worktree of the fresh default branch instead. Use `git worktree add`, or the `EnterWorktree` tool when it is available. Do not stash the in-progress work of someone else.
 
-## Step 6 — Cross-reference related issues
+## Step 6: Cross-reference related issues
 
-Search for issues that might carry extra context: siblings under the same parent epic/tracking issue, and a keyword search on the summary. The exact search call and its result-handling quirks are in the tracker adapter (some trackers return large result sets that spill to a file and need `jq` rather than a direct `Read`). Two things to watch for regardless of tracker:
+Search for issues that can carry extra context. Search the siblings under the same parent epic or tracking issue, and run a keyword search on the summary. The exact search call, and the quirks of handling its results, live in the tracker adapter. Some trackers return a large result set that spills to a file and needs `jq` rather than a direct `Read`. Watch for two things, whatever the tracker:
 
-- **A shared epic or matching keyword is a lead, not a conclusion.** Actually read anything you find before citing it. It's common for an issue to live under the same epic as your target purely because of product-area grouping, with zero bearing on this specific bug — treating it as related without checking wastes the reader's time and can misdirect the fix.
-- **Keep large search payloads out of your context.** If a search spills to a file, extract just `key`/`summary`/`status` (via `jq` or a subagent) to scan for candidates before fetching anything in full.
+- **A shared epic or a matching keyword is a lead, not a conclusion.** Read anything you find before you cite it. An issue commonly lives under the same epic as your target purely through product-area grouping, with no bearing on this specific bug. Treating it as related without reading it wastes the time of the reader, and it can misdirect the fix.
+- **Keep a large search payload out of your context.** When a search spills to a file, extract only `key`, `summary`, and `status`, through `jq` or a subagent. Scan those for candidates before you fetch anything in full.
 
-This step and Step 7 don't depend on each other — run them concurrently rather than back to back.
+This step and Step 7 do not depend on each other, so run them concurrently rather than back to back.
 
-## Step 7 — Investigate the codebase
+## Step 7: Investigate the codebase
 
-Delegate this to one or more background `Agent` calls (Explore or general-purpose) rather than digging through the repo yourself inline — it keeps your context focused on synthesis and lets you run it in parallel with Step 6. See `references/investigation-subagent-prompt.md` for a full example of a prompt that gets good results: it briefs the agent on the user-visible symptom in plain terms, names specific classes/patterns to look for if you already have hints (e.g. from a related issue's service ownership), and asks explicitly for file paths + line numbers + actual code/config snippets, not summaries.
+Delegate this step to one or more background `Agent` calls, either Explore or general-purpose. Do not dig through the repo yourself inline. Delegation keeps your context focused on synthesis, and it lets you run this step in parallel with Step 6. See `references/investigation-subagent-prompt.md` for a full example of a prompt that gets good results. That prompt does three things. It briefs the agent on the user-visible symptom in plain terms. It names specific classes and patterns to look for, when you already hold hints, such as the service ownership of a related issue. It asks explicitly for file paths, line numbers, and actual code or configuration snippets, rather than summaries.
 
-What you want back, concretely:
-- The full call path for the affected behavior (e.g. controller → service → data-access layer).
-- Any config values that bound the behavior (timeouts, batch sizes, feature flags).
-- **For a bug**: whether the current implementation has an evident gap explaining the symptom (missing check, missing index, unbounded query, race condition) — not just "here's the relevant code," but a stated hypothesis for *why* it produces the reported symptom.
-- **For a change request**: how the current implementation actually works today (the mechanism the change needs to modify or extend), and a candidate approach for making the change — what would need to move, plus any complicating factors (data migration, backward compatibility, affected callers).
-- Git history/blame for recent, relevant changes — an issue number referenced in a commit message near the affected code is often the single best clue for why current behavior exists.
+Here is what you want back, concretely:
+- The full call path for the affected behavior, such as controller to service to data-access layer.
+- Any configuration value that bounds the behavior, such as a timeout, a batch size, or a feature flag.
+- **For a bug**: whether the current implementation has an evident gap that explains the symptom. The gap can be a missing check, a missing index, an unbounded query, or a race condition. Ask for more than "here is the relevant code". Ask for a stated hypothesis about *why* the code produces the reported symptom.
+- **For a change request**: how the current implementation works today, which is the mechanism that the change must modify or extend, plus a candidate approach for making the change. The approach names what has to move, and it names any complicating factor, such as a data migration, backward compatibility, or affected callers.
+- The git history and blame for recent, relevant changes. An issue number referenced in a commit message near the affected code is often the single best clue for why the current behavior exists.
 
-If the feature spans a backend and a frontend (or multiple services), it's fine to run one agent per codebase in parallel — just make sure each one gets enough of the user-facing symptom to search usefully; don't just hand them a file path and hope.
+When the feature spans a backend and a frontend, or several services, run one agent per codebase in parallel. Give each agent enough of the user-facing symptom to search usefully. Do not hand an agent a file path alone and hope.
 
-## Step 8 — Corroborate with runtime evidence
+## Step 8: Corroborate with runtime evidence
 
-Two sources, with opposite aging characteristics: files attached to the issue, and whatever the observability platform still retains.
+There are two sources, and they age in opposite ways: the files attached to the issue, and whatever the observability platform still retains.
 
-**Take the attachments first.** Anything Step 2 listed is a recording of the incident as it actually happened, and unlike a log backend it never ages out — so for an issue reported months ago it is often the only runtime evidence left, and it frequently answers the question a code read can only narrow. Mine it before or alongside Step 7 rather than after: a decisive attachment reshapes the hypothesis the code investigation is meant to test, and reading it late means re-doing work you had already reasoned your way around. `references/attached-evidence.md` covers getting these files without blowing up your context, and which fields carry the answer in the common formats.
+**Take the attachments first.** Anything that Step 2 listed is a recording of the incident as it happened. Unlike a log backend, it never ages out. For an issue reported months ago, an attachment is often the only runtime evidence left. It frequently answers the question that a code read can only narrow. Mine it before Step 7, or alongside it, and not after. A decisive attachment reshapes the hypothesis that the code investigation is meant to test. Read it late, and you redo work that you already reasoned your way around. `references/attached-evidence.md` covers how to get these files without blowing up your context, and which fields carry the answer in the common formats.
 
-### Observability data, if it's actually going to help
+### Observability data, when it will actually help
 
-If no observability platform is configured or reachable, skip this part — the code investigation stands on its own. When one is available, its mechanics (which tools/CLI, how to pick a datasource, the query languages for logs/metrics/traces) live in an observability adapter: read `references/observability/grafana.md`, `references/observability/cloudwatch.md`, or the file matching your platform. If there's no adapter for your platform, discover the tools with `ToolSearch` and proceed best-effort, same as Step 1.
+When no observability platform is configured or reachable, skip this part. The code investigation stands on its own. When a platform is available, its mechanics live in an observability adapter. That adapter covers the tools or CLI, how to pick a datasource, and the query languages for logs, metrics, and traces. Read `references/observability/grafana.md`, `references/observability/cloudwatch.md`, or the file that matches your platform. When no adapter exists for your platform, discover the tools with `ToolSearch` and proceed best-effort, the same way as in Step 1.
 
-Before querying anything, check the issue's age against your log/trace retention window (commonly somewhere in the 14–30 day range for hosted logging/tracing backends — the adapter notes the platform's default if known). If the reported incident is older than that, log lookups will almost certainly come back empty — skip and don't waste a round trip. It's only worth doing for still-relevant or recurring issues where current data could confirm or refute a hypothesis (e.g. an ongoing elevated error rate, a currently-slow endpoint you can trace).
+Before you query anything, check the age of the issue against your log and trace retention window. A hosted logging or tracing backend commonly retains 14 to 30 days. The adapter notes the default of the platform when that default is known. When the reported incident is older than the window, a log lookup almost certainly comes back empty, so skip it and save the round trip. The query is worth running only for a still-relevant or recurring issue, where current data can confirm or refute a hypothesis. Examples are an ongoing elevated error rate, and a currently slow endpoint that you can trace.
 
-Treat this as corroborating evidence for a hypothesis you already have from the code, not a starting point — you should already know what you're looking for before you query. For a change request, this can also serve as baseline evidence for the "How it works today" section (e.g. current latency or error-rate numbers) rather than confirming a failure hypothesis.
+Treat this data as corroboration for a hypothesis that the code already gave you, and not as a starting point. You must already know what you are looking for before you query. For a change request, this data can also serve as baseline evidence for the "How it works today" section. It then confirms no failure hypothesis. The current latency and error-rate numbers are that kind of baseline.
 
-## Step 9 — Verify before you trust the investigation
+## Step 9: Verify before you trust the investigation
 
-This is the step that keeps the analysis honest. A subagent's report is a *claim*, not a fact — it can misstate a line number, paraphrase code loosely, or miss that a config value it found isn't actually the one wired up to this code path. Before drafting anything:
+This step keeps the analysis honest. The report of a subagent is a *claim*, not a fact. It can misstate a line number or paraphrase code loosely. It can also miss that a configuration value it found is not the one wired up to this code path. Before you draft anything, do four things:
 
-- Take the 2-3 highest-confidence claims underpinning your conclusion — for a bug, the root cause (the specific code that's missing/wrong, and any config value you're citing); for a change request, your description of how the current behavior works and any claim about what the proposed approach requires — and check them yourself with `Read` or `grep` on the actual file. Confirm the line number, confirm the surrounding logic actually says what was reported.
-- Give extra scrutiny to *negative* claims specifically ("this repo has no code related to X", "no caller of this endpoint exists") — the freshness check from Step 5 is exactly what guards against these; if you skipped it for this repo, do it now before accepting the conclusion.
-- If a claim doesn't hold up on inspection, don't just drop it — figure out what's actually true and adjust the conclusion. A confidently-wrong root cause is worse than an admittedly-incomplete one.
-- Only quote code snippets or cite file:line references in the final comment that you've personally confirmed in this step — don't relay a subagent's snippet unverified.
+- Take the two or three highest-confidence claims that hold up your conclusion, and check each one yourself with `Read` or `grep` on the actual file. For a bug, those claims are the root cause, plus any configuration value that you cite. The root cause is the specific code that is missing or wrong. For a change request, they are your description of how the current behavior works, plus any claim about what the proposed approach requires. Confirm the line number, and confirm that the surrounding logic says what the report said.
+- Give extra scrutiny to a *negative* claim, such as "this repo has no code related to X" or "no caller of this endpoint exists". The freshness check in Step 5 is exactly what guards against a false negative. When you skipped that check for this repo, run it now, before you accept the conclusion.
+- When a claim does not hold up under inspection, do not drop it. Work out what is actually true, and adjust the conclusion. A confidently wrong root cause is worse than one that admits it is incomplete.
+- Quote a code snippet, or cite a `file:line` reference, in the final comment only when you confirmed it in this step. Never relay an unverified snippet from a subagent.
 
-## Step 10 — Draft the analysis
+## Step 10: Draft the analysis
 
-Structure per the template chosen in Step 3 (`references/bug-template.md` or `references/change-request-template.md`), in the markup dialect from Step 4.
+Structure the comment per the template chosen in Step 3, which is `references/bug-template.md` or `references/change-request-template.md`, in the markup dialect from Step 4.
 
-**For a bug**, regardless of exact headers used, the content needs to cover:
+**For a bug**, whatever headers you use, the content must cover four things:
 
-1. **What's happening** — the mechanism behind the user-visible symptom, in plain terms tied back to what was reported.
-2. **Root cause** — the specific, verified code path/config/data condition, with real file paths and (where it clarifies things) an actual code snippet.
-3. **Why it's specific to the reported conditions**, if relevant — e.g. why this particular customer/input/timing triggers it when others don't.
-4. **Proposed fix(es)** — at least two options where reasonable, each with its tradeoff, plus a recommendation if you have one. If there's genuinely only one sane fix, say so rather than padding with a strawman alternative.
+1. **What is happening**: the mechanism behind the user-visible symptom, in plain terms, tied back to what the reporter described.
+2. **Root cause**: the specific, verified code path, configuration value, or data condition, with real file paths, and with an actual code snippet where that clarifies things.
+3. **Why the problem is specific to the reported conditions**, when that matters. For example, say why this particular customer, input, or timing triggers it when others do not.
+4. **Proposed fixes**: at least two options where two are reasonable, each with its trade-off, plus a recommendation when you have one. When only one sane fix exists, say so instead of padding the section with a strawman alternative.
 
-**For a change request** (including non-behavioral tasks), the content needs to cover:
+**For a change request**, including a non-behavioral task, the content must cover five things:
 
-1. **How it works today** — the current mechanism/behavior, or (for non-behavioral work) the current state driving the request.
-2. **What should change** — the concrete new/changed behavior, or concrete engineering outcome, stated precisely enough that "done" is unambiguous.
-3. **Proposed approach** — a candidate implementation path naming the code that would need to change; at least two options where there's a genuine choice, each with its tradeoff, plus a recommendation if you have one.
-4. **Risks / open questions**, if relevant — data migration, backward compatibility, affected callers, decisions needing a stakeholder.
-5. **Rough effort** — small / medium / large, with a one-line reason tied to what the approach actually touches.
+1. **How it works today**: the current mechanism or behavior. For non-behavioral work, describe the current state that drives the request.
+2. **What must change**: the concrete new or changed behavior, or the concrete engineering outcome, stated precisely enough that "done" is unambiguous.
+3. **Proposed approach**: a candidate implementation path that names the code that has to change. Give at least two options where a genuine choice exists, each with its trade-off, plus a recommendation when you have one.
+4. **Risks and open questions**, when they are relevant: a data migration, backward compatibility, affected callers, or a decision that needs a stakeholder.
+5. **Rough effort**: small, medium, or large, with a one-line reason tied to what the approach actually touches.
 
 ### Keep it tight
 
-A thorough investigation and a long comment aren't the same thing — the lists above say what each section covers, not how much to write, and it's easy to let section length track how much you found rather than how much the reader needs. A few habits keep it proportional:
+A thorough investigation and a long comment are not the same thing. The lists above say what each section covers, and they do not say how much to write. It is easy to let the length of a section track how much you found instead of how much the reader needs. A few habits keep the comment proportional:
 
-- **Cite the strongest evidence for a point once.** When git history, a doc, and a code comment all confirm the same fact (e.g. "this gap is deliberate, not a regression"), pick whichever makes the point most directly and leave the rest out — three citations for one claim reads as padding, not rigor.
-- **Name each file/line once.** If Root cause or How it works today already named the files involved, a closing list of "files touched" is telling the reader something they already have.
-- **Match depth to merit, not to symmetry.** When one option is clearly the pick, give it the fuller explanation and dispatch a weaker alternative in one clause — don't mirror the winner's depth just because it's "Option B."
-- **Show one snippet for a repeated gap.** When the same issue shows up in more than one file (e.g. the same missing check duplicated across backend and frontend), verify and quote one, and cite the other by file:line — the reader can open it themselves.
-- **Quote the shortest excerpt that carries the argument.** Trim a log trace, a request timeline, or a payload to the fields doing the work and drop the rows that don't participate. Six annotated lines showing a duplicated call and a dead redirect prove the point; the raw capture pasted in leaves the reader to re-derive it.
-- **Describe an artifact or show it, not both.** Once a sentence has stated what the error payload contains and how it's classified, pasting the payload underneath adds length rather than proof. Include the artifact only when its shape is what the reader needs — when they have to recognize it, match on it, or act on its exact contents.
+- **Cite the strongest evidence for a point once.** Sometimes git history, a doc, and a code comment all confirm the same fact, such as "this gap is deliberate, not a regression". Pick whichever one makes the point most directly, and leave the rest out. Three citations for one claim read as padding rather than rigor.
+- **Name each file and line once.** Root cause, and How it works today, already name the files involved. A closing list of "files touched" then tells the reader something they already have.
+- **Match depth to merit, not to symmetry.** When one option is clearly the pick, give it the fuller explanation. Dispatch a weaker alternative in one clause. Do not mirror the depth of the winner because the alternative is "Option B".
+- **Show one snippet for a repeated gap.** The same issue sometimes shows up in more than one file, such as one missing check duplicated across a backend and a frontend. Verify and quote one of them, and cite the other by `file:line`. The reader can open it themselves.
+- **Quote the shortest excerpt that carries the argument.** Trim a log trace, a request timeline, or a payload to the fields that do the work. Drop the rows that take no part. Six annotated lines that show a duplicated call and a dead redirect prove the point. The raw capture pasted in leaves the reader to re-derive it.
+- **Describe an artifact or show it, and not both.** One sentence states what the error payload contains and how the code classifies it. The payload pasted underneath then adds length rather than proof. Include the artifact only when its shape is what the reader needs. That happens when they have to recognize it, match on it, or act on its exact contents.
 
-It's fine for a section to run long when the substance genuinely needs it — a root cause with several interacting factors, a proposed approach with a real architectural fork — but keep it one tight paragraph even then, not a bulleted sub-breakdown.
+A section can run long when the substance genuinely needs it. A root cause with several interacting factors needs the room, and so does a proposed approach with a real architectural fork. Even then, keep it to one tight paragraph, and do not break it into a bulleted sub-structure.
 
-**The test before posting**: read the draft as the single message you'd send one colleague who has to act on this today, and cut every sentence that wouldn't change what they do. The summary you are about to give the user in conversation is a good calibration — that version gets written for someone who wants the point, and it is usually the right length and the right shape. When the ticket comment runs markedly longer than that summary, the excess is nearly always transcript rather than substance: evidence quoted twice, a conclusion restated as its own section, or the reasoning that got you there rather than the finding itself. Post the version you'd want to read six months from now, not the one that shows how much work it took.
+**The test before you post**: read the draft as the single message that you send to one colleague who has to act on this today. Cut every sentence that will not change what they do. The summary that you are about to give the user in the conversation is a good calibration. You write that version for someone who wants the point, and it is usually the right length and the right shape. When the ticket comment runs markedly longer than that summary, the excess is nearly always transcript rather than substance: evidence quoted twice, a conclusion restated as its own section, or the reasoning that got you there instead of the finding itself. Post the version that you want to read six months from now, and not the one that shows how much work it took.
 
-**Posting a follow-up comment**: link or name the earlier one and give only what changed — the new evidence, and which of your earlier conclusions it confirms, sharpens, or kills. Re-explaining the parts that still hold makes anyone who read the first comment pay twice, and makes the delta harder to find. This is separate from a correction, where the point *is* to be explicit about what was wrong (Step 11).
+**Posting a follow-up comment**: link or name the earlier comment, and give only what changed. That is the new evidence, plus which of your earlier conclusions it confirms, sharpens, or kills. Re-explaining the parts that still hold makes anyone who read the first comment pay twice, and it makes the delta harder to find. This differs from a correction, where the point *is* to be explicit about what was wrong, as Step 11 describes.
 
-## Step 11 — Post (or hold, for dry-run)
+## Step 11: Post the comment, or hold it for a dry run
 
-If `--dry-run` was requested: write the finished comment to a file (report the path) and show it in the conversation instead of posting. Do not call any post-comment operation.
+When the user requested `--dry-run`, write the finished comment to a file and report the path. Show the comment in the conversation instead of posting it. Call no post-comment operation.
 
-Otherwise, post it now via the comment call from the tracker adapter, in that tracker's expected markup. Don't add a separate "should I post this?" checkpoint — Step 9 is what earns the right to post automatically.
+Otherwise, post the comment now, through the comment call from the tracker adapter, in the markup that the tracker expects. Do not add a separate "must I post this?" checkpoint. Step 9 is what earns the right to post automatically.
 
-**If you later discover a comment you already posted was wrong** (e.g. it was built on a stale checkout, or a claim didn't survive re-verification), post a new comment that explicitly says it supersedes the previous one and explains what changed and why. Don't silently edit or delete the earlier comment — readers who already saw it need the correction to be visible, and the trail of "here's what I thought, here's what was actually true" is itself useful signal.
+**If you later discover that a comment you already posted was wrong**, post a new comment. That happens when the comment was built on a stale checkout, or when a claim did not survive re-verification. Say explicitly that it supersedes the previous one, and explain what changed and why. Never edit or delete the earlier comment in silence. Readers who already saw it need the correction to be visible. The trail of "here is what I thought, here is what was actually true" is itself useful signal.

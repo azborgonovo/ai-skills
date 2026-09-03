@@ -2,29 +2,29 @@
 # These are optional metadata elements. Feel free to remove any of them.
 status: {draft | proposed | rejected | adopted | retired | superseded by DR-0123}
 date: {YYYY-MM-DD when the decision was last updated}
-decision-makers: {list everyone involved in the decision}
-consulted: {list everyone whose opinions are sought (typically subject-matter experts); and with whom there is a two-way communication}
-informed: {list everyone who is kept up-to-date on progress; and with whom there is a one-way communication}
+decision-makers: {list everyone who took part in the decision}
+consulted: {list everyone whose opinion was sought, usually the subject-matter experts, and with whom there is two-way communication}
+informed: {list everyone who is kept up to date on progress, and with whom there is one-way communication}
 ---
 
-# {{short title, representative of solved problem and found solution}}
+# {{short title, representative of the problem solved and the solution found}}
 
 ## Context and Problem Statement
 
-{{Describe the contextual circumstances which have necessitated this decision and the problem being solved, e.g., in free form using two to three sentences or in the form of an illustrative story. Write each distinct aspect as its own paragraph, separated by a blank line. You may want to articulate the problem in the form of a question and add links to relevant code, collaboration boards, or issue management systems.}}
+{{Describe the circumstances that made this decision necessary, and the problem that it solves. Use two or three sentences of free prose, or tell an illustrative story. Write each distinct aspect as its own paragraph, separated by a blank line. You can state the problem as a question. Add links to relevant code, collaboration boards, or issue management systems.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## Forces and Constraints
 
-{{Identify the requirements, assumptions, forces, and constraints that impact the considered options and decision, e.g., in free form using a sentence for each topic or in bullet points.}}
+{{Name the requirements, assumptions, forces, and constraints that shaped the options and the decision. Use one sentence per topic, or use bullet points.}}
 
 ## Considered Options
 
-{{List each option considered, described briefly, with pros and cons. Be sure to write this objectively; other options should be fairly represented.}}
+{{List each option that was considered, described briefly, with its pros and its cons. Write this objectively, and represent every other option fairly.}}
 
 ### {{Title of option 1}}
 
-{{Describe the option briefly. Add code blocks or mermaid diagrams if necessary}}
+{{Describe the option briefly. Add code blocks or mermaid diagrams where they help.}}
 
 **Pros**
 - {{List the pros of this option as bullet points}}
@@ -32,11 +32,11 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 **Cons**
 - {{List the cons of this option as bullet points}}
 
-{{If necessary, add any other neutral points that weigh on this option but are neither positive nor negative.}}
+{{Add any other point that weighs on this option and is neither positive nor negative.}}
 
 ## Decision
 
-{{The decision that has been taken using Y-Statement. Bold the chosen option name/number in the Y-Statement to make the decision stand out.}}
+{{The decision that was taken, written as a Y-Statement. Bold the name or number of the chosen option inside the Y-Statement, so the decision stands out.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ### Consequences
@@ -46,7 +46,7 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 <!-- This is an optional element. Feel free to remove. -->
 ## More Information
 
-{{You might want to provide additional evidence/confidence for the decision outcome here and/or document the team agreement on the decision and/or define when/how this decision should be realized and if/when it should be revisited. Include links where helpful:
-- Related DRs (e.g. [DR-0001-previous-decision](DR-0001-previous-decision.md))
+{{Add further evidence for the decision, and record the agreement of the team. Say when and how the team will realize the decision, and when it will revisit the decision. Include links where they help:
+- Related DRs, for example [DR-0001-previous-decision](DR-0001-previous-decision.md)
 - Issues or PRs that motivated or track this decision
-- External resources (RFCs, benchmarks, vendor documentation)}}
+- External resources, such as RFCs, benchmarks, and vendor documentation}}

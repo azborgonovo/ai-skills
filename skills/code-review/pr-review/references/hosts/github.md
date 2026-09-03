@@ -1,12 +1,12 @@
 # Host adapter: GitHub
 
-Mechanics for reviewing a GitHub pull request. Read this when Step 1 identifies the host as GitHub (URL shape `https://github.com/<owner>/<repo>/pull/<number>`).
+Mechanics for the review of a GitHub pull request. Read this file when Step 1 identifies the host as GitHub. The URL has the shape `https://github.com/<owner>/<repo>/pull/<number>`.
 
-**Status**: the read-side calls below (`gh pr view`, `gh api .../pulls/<n>/files`) were run live against a real repo/PR (v2.89.0, authenticated) and returned the fields documented here. The posting mechanics (comment creation, line validation, review events) follow the current GitHub REST API docs and are exercised by the bundled script's own test path, but weren't fired against a real PR, to avoid creating a live review as a side effect of writing this adapter — treat the happy path as reliable and the fallback paths (below) as the safety net for the rare case it isn't.
+**Status**: the read calls below are `gh pr view` and `gh api .../pulls/<n>/files`. Both ran live against a real repo and PR, on version 2.89.0, authenticated. Both returned the fields documented here. The posting mechanics are comment creation, line validation, and review events. They follow the current GitHub REST API documentation, and the test path of the bundled script exercises them. They were never fired against a real PR, to prevent a live review as a side effect of writing this adapter. Treat the happy path as reliable, and treat the fallback paths below as the safety net for the rare case where it is not.
 
 ## Tooling
 
-Use the `gh` CLI over Bash — no separate MCP connector needed once `gh auth status` shows you're logged in. If `gh` isn't installed or authenticated, fall back to the graceful-degradation path in Step 1 (discover MCP GitHub tools via `ToolSearch`), or ask the user to `gh auth login`.
+Use the `gh` CLI over Bash. No separate MCP connector is needed once `gh auth status` shows that you are logged in. When `gh` is absent or unauthenticated, fall back to the graceful-degradation path in Step 1, which discovers MCP GitHub tools through `ToolSearch`. You can also ask the user to run `gh auth login`.
 
 ## Fetch change metadata (Step 2)
 
@@ -14,43 +14,43 @@ Use the `gh` CLI over Bash — no separate MCP connector needed once `gh auth st
 gh pr view <url> --json title,body,author,baseRefName,headRefName,baseRefOid,headRefOid,changedFiles,statusCheckRollup,url
 ```
 
-Extract:
-- `title`, `body` — scan both for a work-item reference (Step 3)
-- `author.login` — compare against `gh api user`'s `login` to detect a self-authored PR (Step 2)
-- `baseRefName`, `headRefName`
-- `baseRefOid`, `headRefOid` — these are the `base_sha`/`head_sha` equivalents used for inline comment positions
-- `statusCheckRollup` — the CI signal handed to review-changes, so the review reports test status from GitHub's own checks rather than building the PR locally
-- `url` — for the summary note
+Extract these fields:
+- `title` and `body`. Scan both for a work-item reference, which Step 3 needs.
+- `author.login`. Compare it against the `login` from `gh api user`, to detect a self-authored PR in Step 2.
+- `baseRefName` and `headRefName`.
+- `baseRefOid` and `headRefOid`. These are the equivalents of `base_sha` and `head_sha`, and inline comment positions use them.
+- `statusCheckRollup`. This is the CI signal handed to review-changes. The review then reports the test status from the checks of GitHub, instead of building the PR locally.
+- `url`, for the summary note.
 
 ## Fetch diffs (Step 4, diff-only fallback)
 
-Only needed when Step 4 can't create a worktree — with one, the review reads the diff from git in the worktree, which has neither GitHub's per-file cap nor its pagination to work around.
+You need this call only when Step 4 cannot create a worktree. With a worktree, the review reads the diff from git, which has neither the per-file cap of GitHub nor its pagination to work around.
 
 ```
 gh api repos/<owner>/<repo>/pulls/<number>/files --paginate
 ```
 
-Each element has:
-- `filename`, `previous_filename` (renames only)
-- `status` (`added`/`removed`/`modified`/`renamed`)
-- `patch` — unified diff string (the hunks). **Absent for binary files and for files GitHub considers too large to diff** — treat those as diff-unavailable and skip line-anchored comments on them.
+Each element carries:
+- `filename`, and `previous_filename` for a rename.
+- `status`, which is `added`, `removed`, `modified`, or `renamed`.
+- `patch`, which is the unified diff string that holds the hunks. **It is absent for a binary file, and for a file that GitHub considers too large to diff.** Treat such a file as diff-unavailable, and skip line-anchored comments on it.
 
-**Truncation check**: `--paginate` handles GitHub's page size limit, but very large PRs can still hit GitHub's own per-file diff cap (files over ~3000 lines return no `patch`). Note in the summary "diff unavailable for N large/binary files — reviewed by reading the file directly" when this happens, and prioritize the highest-risk files (auth, data access, public API surface).
+**Truncation check**: `--paginate` handles the page size limit of GitHub. A very large PR can still hit the per-file diff cap of GitHub, where a file over roughly 3000 lines returns no `patch`. When that happens, note in the summary "diff unavailable for N large or binary files, reviewed by reading the file directly". Then prioritize the files with the highest risk, which are auth, data access, and the public API surface.
 
 ## Repo path shape (Step 4)
 
-`<repo_path>` is `<owner>/<repo>` (GitHub has no nested subgroup concept, unlike GitLab). For example, `https://github.com/acme/my-service` → `acme/my-service`. This is a relative shape, not an absolute location — Step 4's script searches for it rather than assuming a fixed clone root.
+`<repo_path>` is `<owner>/<repo>`, because GitHub has no nested subgroup concept, unlike GitLab. For example, `https://github.com/acme/my-service` gives `acme/my-service`. This is a relative shape, and not an absolute location. So the script in Step 4 searches for the clone, instead of assuming a fixed clone root.
 
 ## Post the findings and act on the verdict (Step 6)
 
-GitHub's review-creation call is **atomic**: if even one inline comment's `line`/`path` doesn't land on a line that's actually part of the diff, the whole call is rejected (HTTP 422) and *none* of the comments are created. It also **requires a `body`** for the `COMMENT` and `REQUEST_CHANGES` events. Those two facts are why the two modes use different endpoints, and why the mechanics live in a bundled script — **`scripts/post_review_notes_github.py`** (relative to the SKILL.md) — which fetches the PR's diff and validates every anchor locally before posting anything:
+The review-creation call of GitHub is **atomic**. One inline comment with a `line` or `path` outside the diff fails the whole call. GitHub rejects it with HTTP 422. It then creates *none* of the comments. The call also **requires a `body`** for the `COMMENT` and `REQUEST_CHANGES` events. Those two facts are why the two modes use different endpoints, and why the mechanics live in a bundled script: **`scripts/post_review_notes_github.py`**, relative to the SKILL.md. The script fetches the diff of the PR and validates every anchor locally before it posts anything.
 
 | Mode | How comments land | Verdict |
 |---|---|---|
-| `--mode direct` | one `POST .../pulls/<n>/comments` per anchored finding, one `POST .../issues/<n>/comments` per unanchored one — a bad anchor costs only that finding | one bodyless `POST .../pulls/<n>/reviews` with `event: APPROVE`, or with `event: REQUEST_CHANGES` plus the summary body GitHub demands |
-| `--mode draft` (the script's own default) | one `PENDING` review holding every inline comment, unanchorable findings folded into its body — visible only to the user until they submit it | none |
+| `--mode direct` | one `POST .../pulls/<n>/comments` per anchored finding, and one `POST .../issues/<n>/comments` per unanchored one, so a bad anchor costs only that finding | one bodyless `POST .../pulls/<n>/reviews` with `event: APPROVE`, or with `event: REQUEST_CHANGES` plus the summary body that GitHub demands |
+| `--mode draft` (the default of the script) | one `PENDING` review that holds every inline comment, with unanchorable findings folded into its body, visible only to the user until they submit it | none |
 
-1. Write findings to a JSON array — same shape as the GitLab adapter, so the note-drafting step doesn't change based on host:
+1. Write the findings to a JSON array. The shape matches the GitLab adapter, so the note-drafting step does not change with the host:
 
 ```json
 // ${TMPDIR:-/tmp}/pr<number>_notes.json
@@ -60,42 +60,42 @@ GitHub's review-creation call is **atomic**: if even one inline comment's `line`
 ]
 ```
 
-- `new_line` is the **new-file** line number (integer). Only lines that appear with a `+` prefix in the file's `patch` are valid anchors — the script checks this itself, but anchoring to a `+` line in the first place (same rule as the GitLab adapter) means it's very unlikely to get downgraded.
-- Use `"general": true` (or omit `new_line`) for a finding with no line anchor.
-- Leave the marking to the script: it appends a trailing 🤖 to each one, and that marker is how it recognizes its own work on a rerun.
+- `new_line` is the line number in the **new file**, as an integer. Only a line that appears with a `+` prefix in the `patch` of the file is a valid anchor. The script checks this itself, and an anchor placed on a `+` line from the start is very unlikely to get downgraded. This is the same rule as the GitLab adapter.
+- Use `"general": true`, or omit `new_line`, for a finding with no line anchor.
+- Leave the marking to the script. It appends a trailing 🤖 to each note, and that marker is how it recognizes its own work on a rerun.
 
-2. Run the script for the mode this run is in:
+2. Run the script for the mode of this run:
 
 ```bash
-# default mode — publish the comments, then approve
+# default mode: publish the comments, then approve
 python3 <skill_dir>/scripts/post_review_notes_github.py \
   --owner <owner> --repo <repo> --pr <number> --head-sha <headRefOid> \
   --notes ${TMPDIR:-/tmp}/pr<number>_notes.json \
   --mode direct --verdict approve
 
-# default mode, Request changes verdict — GitHub requires the body for this event
+# default mode with a Request changes verdict: GitHub requires the body for this event
 python3 ... --mode direct --verdict request-changes --summary-file ${TMPDIR:-/tmp}/pr<number>_summary.md
 
-# comments-only mode — publish the comments, record no verdict
+# comments-only mode: publish the comments, record no verdict
 python3 ... --mode direct
 
-# draft mode — one pending review for the user to submit
+# draft mode: one pending review for the user to submit
 python3 ... --purge
 ```
 
-3. Read the summary it prints: how many comments went inline, how many went to the conversation, which findings were skipped as already posted, and the verdict result. Carry the skipped list and the verdict result into Step 8's output.
+3. Read the summary that the script prints. It reports how many comments went inline, how many went to the conversation, which findings it skipped as already posted, and the verdict result. Carry the skipped list and the verdict result into the Step 8 output.
 
-**Approving**: GitHub rejects approving or requesting changes on your **own** PR (422, "Can not approve your own pull request"), which is why Step 2 compares `author.login` against `gh api user` and drops to comments-only mode when they match. The script reports the rejection rather than failing the run if it happens anyway.
+**Approving**: GitHub rejects an approval or a request for changes on your **own** PR. It returns a 422 with the message "Can not approve your own pull request". That is why Step 2 compares `author.login` against `gh api user` and drops to comments-only mode on a match. If the rejection happens anyway, the script reports it instead of failing the run.
 
 **Why the script, and what it protects you from:**
-- In draft mode, every inline comment must be supplied together in the one review-creation call, and one bad anchor fails the entire call. Validating locally against the fetched `patch` text before posting is the only reliable way to avoid losing the whole batch to a single bad line; if the call still fails, the script retries with every finding folded into the review body rather than losing the review.
-- `side: "RIGHT"` (new-file side) is set on every inline comment automatically — the script only ever anchors to added (`+`) lines, matching the GitLab adapter's own anchor policy, so behavior is consistent regardless of which host the change lives on.
-- In direct mode the script reads the PR's existing review and conversation comments first and skips a finding this account already published — matched by the same `path`/`line`, or by identical text anywhere on the PR. It never deletes a published comment, so a thread the author replied to stays intact.
-- `--purge` applies to draft mode only, where the target is an unpublished pending review. It finds its own by the 🤖 marker in the review body *or* in any of its inline comments, so a pending review whose findings all anchored (leaving the body empty) is still recognized.
+- In draft mode, every inline comment must arrive together in the one review-creation call, and one bad anchor fails the entire call. Local validation against the fetched `patch` text, before anything is posted, is the only reliable way to keep the whole batch. If the call still fails, the script retries with every finding folded into the review body, instead of losing the review.
+- The script sets `side: "RIGHT"`, which is the new-file side, on every inline comment. It only ever anchors to added `+` lines, which matches the anchor policy of the GitLab adapter. So the behavior stays the same whatever host holds the change.
+- In direct mode, the script first reads the existing review comments and conversation comments of the PR. It then skips a finding that this account already published. It matches on the same `path` and `line`, or on identical text anywhere on the PR. It never deletes a published comment, so a thread that the author replied to stays intact.
+- `--purge` applies to draft mode alone, where the target is an unpublished pending review. It finds its own review by the 🤖 marker in the review body *or* in any of its inline comments. So it still recognizes a pending review whose findings all anchored, and whose body is empty as a result.
 
 ## Suggested changes (Step 6)
 
-GitHub renders a fenced `suggestion` block inside an inline review comment as a committable patch: the author clicks **Commit suggestion**, or adds several to a batch to commit them together. Same fence as GitLab's, without the offset syntax:
+GitHub renders a fenced `suggestion` block inside an inline review comment as a committable patch. The author clicks **Commit suggestion**, or adds several suggestions to a batch and commits them together. The fence matches the GitLab fence, without the offset syntax:
 
 ````
 ```suggestion
@@ -103,16 +103,16 @@ GitHub renders a fenced `suggestion` block inside an inline review comment as a 
 ```
 ````
 
-- The block replaces **the commented line, whole**: full original indentation, no leading `+`. Read the exact current text out of the worktree — `sed -n '<line>p' <worktree_path>/<file>` — rather than reconstructing it from the diff.
-- The block's contents may span several lines, so one line can be expanded into three. Replacing more than one *existing* line needs the comment itself to span a line range (`start_line` plus `line`), which the bundled script doesn't send — it anchors one line per comment — so a fix that rewrites a block of existing lines goes in prose instead.
-- Only an inline review comment can carry one. A finding the script couldn't anchor lands as a conversation comment, where the block renders as inert code — the script warns when that happens, and Step 8 reports the finding as posted without its suggestion.
+- The block replaces **the commented line, whole**. Keep the full original indentation, and add no leading `+`. Read the exact current text out of the worktree with `sed -n '<line>p' <worktree_path>/<file>`. Do not reconstruct it from the diff.
+- The contents of the block can span several lines, so one line can expand into three. A replacement of more than one *existing* line needs the comment itself to span a line range, through `start_line` plus `line`. The bundled script does not send that range, because it anchors one line per comment. So a fix that rewrites a block of existing lines goes in prose instead.
+- Only an inline review comment can carry a suggestion block. A finding that the script failed to anchor lands as a conversation comment, where the block renders as inert code. The script warns when that happens, and Step 8 reports the finding as posted without its suggestion.
 
 ## Closing lines (Step 8)
 
-- **Draft mode**: "A pending review has been created. Open the PR on GitHub, go to **Files changed → Review changes**, confirm the draft comments, then submit the review to publish it."
-- **Approved**: name the PR and say how to reverse it — a later review supersedes an earlier one, so `gh pr review <number> --request-changes --body "<reason>"` overrides the approval. Dismissing it outright (`PUT .../reviews/<review_id>/dismissals`) needs dismissal permission on the branch, so don't offer that as the first option.
-- **Request changes**: state that the comments and the summary are published and the PR is marked as requesting changes; `gh pr review <number> --approve` reverses it.
+- **Draft mode**: "A pending review is ready. Open the PR on GitHub, go to **Files changed → Review changes**, confirm the draft comments, then submit the review to publish it."
+- **Approved**: name the PR and say how to reverse the approval. A later review supersedes an earlier one, so `gh pr review <number> --request-changes --body "<reason>"` overrides it. An outright dismissal, through `PUT .../reviews/<review_id>/dismissals`, needs dismissal permission on the branch, so do not offer it as the first option.
+- **Request changes**: state that the comments and the summary are published and that the PR is marked as requesting changes. `gh pr review <number> --approve` reverses that state.
 
-## Markup dialect (Step 6, when quoting a work item in a comment)
+## Markup dialect (Step 6, when a comment quotes a work item)
 
-GitHub-flavored Markdown. Fenced code blocks, headings, and `#`/`@` autolinks all render. Emoji shortcodes (`:robot:`) render.
+GitHub-flavored Markdown. Fenced code blocks, headings, and `#` and `@` autolinks all render. Emoji shortcodes such as `:robot:` render.
