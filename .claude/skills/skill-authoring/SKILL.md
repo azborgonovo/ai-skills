@@ -33,6 +33,16 @@ Write the body in plain English, per [Plain English in agent-facing markdown](..
 
 Use American English spelling, such as `behavior`, `normalize`, and `canceled`, so that terminology stays consistent across skills. The exception is text quoted word for word from another source. That covers an example string copied from a sibling skill, and the wording of a real product. Keep the original there rather than "correcting" the quote.
 
+### The `description` field
+
+The `description` is retrieval text, and not prose. Claude reads it to decide whether to load the skill. State what the skill does, in the third person, and then state when to use it. That is the rule in Anthropic's [skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#writing-effective-descriptions), and every official example writes the second part as "Use when ...".
+
+Keep that wording. Write the main trigger as `Use when the user ...`, and open a further branch with `Use it also when ...`. Quote the phrasings that a real request carries. Do not replace the framing with a sentence about the triggering of the skill, as in "The trigger covers phrasings such as ...". That shape keeps the keywords and drops the instruction that Anthropic recommends around them.
+
+A skill with `disable-model-invocation: true` is the one exception. Claude cannot load such a skill, so "Use when" promises something that cannot happen. Say that the skill is user-only, name its command, and then write the trigger as "When the user wants ..., suggest this command".
+
+A plain English rewrite must not cost a description its framing. The exemption for a `description` in the repository guidelines exists for that reason.
+
 ### Referencing other skills
 
 Reference a sibling skill by name when it lives in the same plugin. Everything under `skills/<plugin>/` installs as one unit, so that pointer always resolves for an installed user. Naming the sibling and handing off to it is cheaper and clearer than restating what it already covers.

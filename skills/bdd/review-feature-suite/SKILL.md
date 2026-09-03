@@ -6,9 +6,9 @@ description: >
   language across files, reuses step phrasing instead of duplicating it, carries no contradictory or
   redundant scenarios, and stays consistent in tags, naming, and data. Use whenever the user has
   several `.feature` files, in a Cucumber, SpecFlow, Behave, or plain Gherkin suite, and wants to
-  audit, align, reconcile, or de-duplicate them as a set. The trigger covers phrasings such as "our
+  audit, align, reconcile, or de-duplicate them as a set. Use it also when the user says "our
   features use different words for the same thing", "do these scenarios contradict each other",
-  "find duplicate steps across our features", and "make our feature files consistent". To author or
+  "find duplicate steps across our features", or "make our feature files consistent". To author or
   refine one feature on its own, use a single-feature skill such as define-behavior where one is
   available.
 argument-hint: "[path to a features directory or glob]"
