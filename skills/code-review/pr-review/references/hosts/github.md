@@ -48,7 +48,7 @@ The review-creation call of GitHub is **atomic**. One inline comment with a `lin
 | Mode | How comments land | Verdict |
 |---|---|---|
 | `--mode direct` | one `POST .../pulls/<n>/comments` per anchored finding, and one `POST .../issues/<n>/comments` per unanchored one, so a bad anchor costs only that finding | one bodyless `POST .../pulls/<n>/reviews` with `event: APPROVE`, or with `event: REQUEST_CHANGES` plus the summary body that GitHub demands |
-| `--mode draft` (the default of the script) | one `PENDING` review that holds every inline comment, with unanchorable findings folded into its body, visible only to the user until they submit it | none |
+| `--mode draft` (the script's default) | one `PENDING` review that holds every inline comment, with unanchorable findings folded into its body, visible only to the user until they submit it | none |
 
 1. Write the findings to a JSON array. The shape matches the GitLab adapter, so the note-drafting step does not change with the host:
 

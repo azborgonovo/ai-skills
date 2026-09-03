@@ -98,7 +98,7 @@ python3 ...
 
 **Approving**: the script calls `POST .../approve` with `sha=<head_sha>`. GitLab returns **409** and refuses when the author pushed while the review was running. That refusal is the right outcome, because the review no longer describes the head. Report it, and do not retry against the new head without a new review.
 
-**Requesting changes**: GitLab exposes **no API** for the `requested_changes` state of a reviewer, on REST or on GraphQL. The state is readable and not settable. The script does what it can instead. It calls `POST .../unapprove` to clear any approval that this account holds, and then it posts the summary as a note. Tell the user in the Step 8 output that the merge-blocking reviewer state itself needs a click in the UI.
+**Requesting changes**: GitLab exposes **no API** for a reviewer's `requested_changes` state, on REST or on GraphQL. The state is readable and not settable. The script does what it can instead. It calls `POST .../unapprove` to clear any approval that this account holds, and then it posts the summary as a note. Tell the user in the Step 8 output that the merge-blocking reviewer state itself needs a click in the UI.
 
 **Why the script, and what it protects you from:**
 - GitLab **always returns HTTP 200** for `draft_notes`, even when it cannot resolve the position. The real indicator is the `line_code` field in the response, which GitLab populates only when the position anchored to the diff. A draft that cannot resolve carries a null `line_code`, and it never publishes as an inline comment. The script detects that case, deletes the draft, and re-posts it with no position, so the finding is never lost. It lands as a general discussion comment instead.

@@ -70,7 +70,7 @@ Never assume. Ask whenever something is ambiguous.
 
 ### 4. Write the DR file
 
-Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. When that path does not resolve, fall back to `$HOME/.claude/skills/log-decision/assets/dr-template.md`. Fill every section with the information you gathered. For an optional section with no content, remove the section and its `<!-- This is an optional element. Feel free to remove. -->` comment. Leave no placeholder text.
+Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every section with the information you gathered. For an optional section with no content, remove the section and its `<!-- This is an optional element. Feel free to remove. -->` comment. Leave no placeholder text.
 
 Include markdown links wherever they help: to the PRs or issues that motivated the decision, to external docs such as RFCs, benchmarks, and vendor pages, and to related DRs. Use a relative path for a link between DR files. Use a full web URL for every other link.
 

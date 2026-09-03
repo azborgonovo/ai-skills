@@ -4,17 +4,12 @@ How each recognized AI-steering format is structured, scoped, and sized, taken f
 
 ## General principles that hold across every format
 
-These come mainly from [the Skill authoring best practices of Anthropic](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices). That page frames them as Skill guidance, but it states them at a level that applies to any markdown an agent reads as instruction.
+These come mainly from [Anthropic's Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices). That page frames them as Skill guidance, but it states them at a level that applies to any markdown an agent reads as instruction. The four below are the ones that the checks in `SKILL.md` do not already carry, so apply them alongside those checks.
 
-- **Consistent terminology**: pick one term per concept and use it everywhere in the doc. A doc that mixes "API endpoint", "URL", and "route" for one thing costs the agent parsing effort and returns nothing.
 - **Concrete examples over abstract description**: an input and output pair, or a code snippet, carries the intended style more reliably than a paragraph that describes it.
-- **Match degrees of freedom to fragility**: use loose, high-freedom language for a judgment call. Use specific, low-freedom, exact-steps language for a fragile operation, or for one that must run in order. Never use one kind of language for the job of the other.
-- **No time-sensitive conditionals**: a line such as "until the migration finishes, do X" or "before Q3, use the old endpoint" goes stale in silence. Fold superseded guidance into a clearly labeled old-patterns note instead.
 - **Offer no more options than the agent needs**: state the default. Add the one alternative, and when to reach for it, only when the choice matters. A wall of options with equal weight reads as indecision.
 - **Keep references one level deep**: link every supporting file directly from the entry-point doc. A reference that links to another reference risks a partial read.
 - **Give a reference file over roughly 100 lines a table of contents** at the top. A partial read then still shows the full scope of what the file holds.
-- **State the target behavior instead of the prohibition**: a "never do X" line puts X in the context of the agent with nothing to replace it. The ban then competes with the behavior it just named. Keep a prohibition for a guardrail that has no positive phrasing, and pair even that one with what to do instead. This principle comes from the skill-writing conventions of this repo, not from the Anthropic page above.
-- **Cut instructions that the model already follows**: a line that changes no behavior against the plain model pays context for nothing. The test is whether an agent that never read the line acts differently.
 
 ## Claude Code: `CLAUDE.md`, `AGENTS.md`, `.claude/rules/`
 

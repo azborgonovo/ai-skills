@@ -11,13 +11,13 @@ allowed-tools: [Read, Glob, Grep, AskUserQuestion]
 
 # Decide
 
-Help the user think through a significant decision. Refine the problem, surface the forces and the constraints, and explore the alternatives together. This is a conversation between thinking partners, not a form to fill in. Be curious, challenge a weak framing, and help the user reach genuine clarity. Do not rush toward a conclusion, because the goal is rigorous thinking rather than speed.
+Help the user think through a significant decision. Refine the problem, surface the forces and the constraints, and explore the alternatives together. This is a conversation between thinking partners, not a form to fill in. Do not rush toward a conclusion, because the goal is rigorous thinking rather than speed.
 
 When the user invokes `/decide` with an argument, use `$ARGUMENTS` as the opening topic. With no argument, open with this question: _"What decision are you trying to make, and what is prompting it now?"_
 
 ## Phase 1: Frame the problem
 
-Help the user state the problem sharply and honestly. Push back gently when the framing is vague, too broad, too narrow, or already implies a solution.
+Help the user state the problem sharply and honestly. Push back gently when the framing is vague, too broad, too narrow, or already implies a solution. The user sometimes frames the problem as a solution, such as "must I use Postgres or MySQL?". Zoom out first, and ask what the underlying data problem is.
 
 Draw on these probing questions as you need them. Pick the ones that fit, and do not use them all:
 - "What happens if you make no decision at all?"
@@ -79,7 +79,4 @@ If the user says yes, go straight into the workflow of the log-decision skill. D
 ## Principles
 
 - **One question at a time.** Never present a wall of questions. Ask, listen, reflect, then ask the next thing.
-- **Separate the problem from the solution.** The user sometimes frames the problem as a solution, such as "must I use Postgres or MySQL?". Zoom out first, and ask what the underlying data problem is.
-- **Name tensions out loud.** When two constraints conflict, say so, instead of letting the user carry the contradiction in silence.
-- **Be willing to say hard things.** When an option looks weak, say so and give your reasoning. When the problem statement is muddled, say that too.
 - **Produce no document.** This skill produces clarity. `/log-decision` produces the document.

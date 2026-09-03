@@ -16,9 +16,7 @@ disable-model-invocation: true
 
 # Address PR/MR Comments
 
-Work through every open review thread on a merge request or pull request. Fix what needs fixing, then reply and resolve.
-
-Two generic terms run through this skill. A "change" is what the host calls a merge request on GitLab, or a pull request on GitHub. The host adapter keeps the word of that host when it names a concrete API object or CLI call. A "thread" is a GitLab discussion or a GitHub review thread. It is a root comment plus its replies, and it resolves independently of the rest of the change.
+Two generic terms run through this skill. A "change" is what the host calls a merge request on GitLab, or a pull request on GitHub. The host adapter keeps that host's own word when it names a concrete API object or CLI call. A "thread" is a GitLab discussion or a GitHub review thread. It is a root comment plus its replies, and it resolves independently of the rest of the change.
 
 The workflow is host-agnostic. The host-specific mechanics live in adapter files under `references/`, and each one loads only when you reach the step that needs it. That keeps the always-loaded body focused on judgment, which is the classification of each thread and the fix to the code. Both stay the same wherever the change lives.
 
@@ -37,13 +35,13 @@ Determine which host holds the change, mainly from the shape of the URL:
 
 The adapter file is the authority for the mechanics of that host. It covers URL parsing, the auth check, and the exact calls that list threads and fetch metadata. It covers the local-clone path convention, and how to reply to and resolve a thread. It also covers the gotchas of that host. Read it now, and follow it wherever a later step says "per the host adapter".
 
-When no adapter file exists for the host in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the CLI or API of the platform. Make sure that the fetch-metadata, list-threads, reply, and resolve operations you need exist, then proceed. Tell the user that you are running without a dedicated adapter, so they know that host-specific behavior is best-effort.
+When no adapter file exists for the host in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the platform's CLI or API. Make sure that the fetch-metadata, list-threads, reply, and resolve operations you need exist, then proceed. Tell the user that you are running without a dedicated adapter, so they know that host-specific behavior is best-effort.
 
 ### Step 2: Fetch change metadata and open threads
 
 Use the metadata call from the host adapter. Fetch the title, the source branch, and the web URL of the change. The summary in Step 10 needs all three, and the source branch drives the worktree in Step 3.
 
-**If the metadata call fails with an auth error**, the CLI or tool of the host adapter is not authenticated. An auth error is a 401, or a "not logged in" message. Stop and ask the user to authenticate, and quote the exact command from the adapter.
+**If the metadata call fails with an auth error**, the CLI or tool that the host adapter names is not authenticated. An auth error is a 401, or a "not logged in" message. Stop and ask the user to authenticate, and quote the exact command from the adapter.
 
 Use the list-threads call from the host adapter. Fetch every thread, then keep only the threads that are still open, which means unresolved. For each open thread, capture three things. Capture its ID, which you need to reply and to resolve. Capture the file and line it anchors to, when it is inline. Capture the full body of every comment in it. You need the whole exchange, not the first comment alone, because a later reply from a reviewer often narrows or changes the ask.
 
@@ -51,7 +49,7 @@ When there are no open threads, skip to Step 10 and report that there is nothing
 
 ### Step 3: Create a fix worktree
 
-A checkout of the branch in the main clone of the user switches what is checked out under them. This worktree also holds real commits that get pushed back to the source branch of the change, which a read-only review never does. So check the worktree out on that branch, and do not detach it at a SHA.
+A checkout of the branch in the user's main clone switches what is checked out under them. This worktree also holds real commits that get pushed back to the source branch of the change, which a read-only review never does. So check the worktree out on that branch, and do not detach it at a SHA.
 
 Locating the clone, fetching, and refusing to build on a leftover or colliding worktree is deterministic and identical on every run. So a bundled script does it, instead of inline bash. The script also sidesteps shell code that has to work on both POSIX shells and PowerShell:
 
@@ -76,7 +74,7 @@ For each open thread, read every comment in it, and put the thread in one of thr
 
 - **Already fixed**: the code already does what the thread asks, probably through a later commit in the same change. Reply and explain where and how, then resolve the thread. No code change is needed.
 - **Needs fix**: the ask is actionable and you agree with it. Implement it in Step 5.
-- **Disagree**: the ask is arguably wrong, out of scope for this change, or based on a misunderstanding. Reply and explain your reasoning, and leave the thread open, as Step 8 describes. Closing a thread that the reviewer raised is the call of the reviewer, and you cannot make that decision on their behalf.
+- **Disagree**: the ask is arguably wrong, out of scope for this change, or based on a misunderstanding. Reply and explain your reasoning, and leave the thread open, as Step 8 describes. Closing a thread that a reviewer raised is the reviewer's call, and you cannot make that decision on their behalf.
 
 ### Step 5: Implement fixes
 
@@ -94,7 +92,7 @@ If anything fails, stop and fix it before you move on. Never push, and never res
 git -C <worktree_path> push origin <source_branch>
 ```
 
-Push only after Step 6 is green, and only ever to the source branch of the change. Push nowhere else. When git rejects the push, stop and tell the user what git reported. A rejection happens when the push is non-fast-forward, because someone else pushed to the branch meanwhile. Never force-push, because a force-push over the branch of someone else can discard their work in silence.
+Push only after Step 6 is green, and only ever to the source branch of the change. Push nowhere else. When git rejects the push, stop and tell the user what git reported. A rejection happens when the push is non-fast-forward, because someone else pushed to the branch meanwhile. Never force-push, because a force-push over someone else's branch can discard their work in silence.
 
 ### Step 8: Reply and resolve, per the host adapter
 
@@ -124,4 +122,4 @@ The steps above carry their own reasoning. These three repeat because each one d
 
 - **Never** force-push. When git rejects the push in Step 7, stop and ask the user how to proceed.
 - **Never** resolve a thread classified as disagree. Reply, then leave it for the reviewer to close.
-- **Never** check out the branch of the change in the main clone of the user. Always work from the isolated worktree that Step 3 created.
+- **Never** check out the branch of the change in the user's main clone. Always work from the isolated worktree that Step 3 created.

@@ -1,7 +1,7 @@
 ---
 name: pareto
 description: >
-  Processes the request of the user through the Pareto Principle. It ranks the causes that generate
+  Processes the user's request through the Pareto Principle. It ranks the causes that generate
   most of the outcome, spends roughly a fifth of the effort on the interventions that address them,
   and reports what that effort bought. This skill is user-only: it runs only when the user invokes
   /pareto [request]. When the user wants the highest-leverage slice of a large task, asks "what
@@ -63,4 +63,4 @@ Write a few sentences, and not a section per bullet:
 
 - **The vital few causes**, and how you ranked them.
 - **What the budget bought**: the rough share of effort spent against the rough share of outcome gained, reported as observations rather than as the prediction of the principle. Skip any number that you cannot estimate honestly.
-- **What is left**, grouped, with minor items separated from unaffordable ones. The second group is the next funding decision of the user.
+- **What is left**, grouped, with minor items separated from unaffordable ones. The second group is the user's next funding decision.

@@ -46,7 +46,7 @@ informed: {list everyone who is kept up to date on progress, and with whom there
 <!-- This is an optional element. Feel free to remove. -->
 ## More Information
 
-{{Add further evidence for the decision, and record the agreement of the team. Say when and how the team will realize the decision, and when it will revisit the decision. Include links where they help:
+{{Add further evidence for the decision, and record the team's agreement. Say when and how the team will realize the decision, and when it will revisit the decision. Include links where they help:
 - Related DRs, for example [DR-0001-previous-decision](DR-0001-previous-decision.md)
 - Issues or PRs that motivated or track this decision
 - External resources, such as RFCs, benchmarks, and vendor documentation}}

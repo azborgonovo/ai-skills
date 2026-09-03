@@ -3,11 +3,14 @@ name: review-changes
 description: >
   Reviews the diff between HEAD and a fixed point, which is a commit, a branch, a tag, or a
   merge-base, against the Code Review Pyramid. Checks the change against the originating issue or
-  spec, and against the documented standards of the repo. Sorts every finding into blocking or
+  spec, and against the repo's documented standards. Sorts every finding into blocking or
   non-blocking, and resolves them into one verdict: Approved, Approved with suggestions, or Request
   changes. Use when the user wants to review a branch, a PR, or work-in-progress changes, or asks to
   "review since X".
+argument-hint: "<fixed point: a commit, a branch, a tag, or a merge-base>"
 ---
+
+# Review Changes
 
 Review the diff between `HEAD` and a fixed point that the user supplies, driven by the pyramid. The review ends in one verdict, and the reader meets that verdict before any detail.
 
@@ -34,7 +37,7 @@ When the caller hands you a diff that it captured itself, review that diff inste
 **The spec**: look for the originating spec, and try the cheapest source first.
 
 1. A path that the user passed as an argument.
-2. An issue reference in a commit message, such as `#123`, `Closes #45`, a GitLab `!67`, or `ABC-123`. Resolve it locally first, because a file under `docs/`, `specs/`, or `.scratch/` whose name carries the key costs one `Glob`. Reach for tracker tooling, discovered with a keyword `ToolSearch` or through the CLI of the platform, only when nothing local matches.
+2. An issue reference in a commit message, such as `#123`, `Closes #45`, a GitLab `!67`, or `ABC-123`. Resolve it locally first, because a file under `docs/`, `specs/`, or `.scratch/` whose name carries the key costs one `Glob`. Reach for tracker tooling, discovered with a keyword `ToolSearch` or through the platform's own CLI, only when nothing local matches.
 3. A spec file that matches the branch name or the feature.
 4. When nothing turns up, ask the user where the spec is.
 
@@ -51,7 +54,7 @@ Take the standards only from the repo under review. A `CLAUDE.md` that already s
 
 ### 3. Load the pyramid
 
-If the `code-review-pyramid` skill appears in the available skills, invoke it through the Skill tool, with `skill: "code-review-pyramid"`, to load the layer definitions and their questions. When it is absent, fall back to your own judgment of what belongs at each layer.
+Invoke the `code-review-pyramid` skill through the Skill tool, with `skill: "code-review-pyramid"`, to load the layer definitions and their questions. It ships in this plugin, so it is installed wherever this skill is.
 
 Work through the questions of every layer, instead of stopping at what surfaces first. Spend attention in proportion to the order of the pyramid. Go deepest at API semantics and implementation semantics, and go lightest at code style, where automation must do the work.
 
@@ -66,7 +69,7 @@ Severity is independent of layer. A code style finding that breaches a documente
 
 Hold a blocking claim to a higher bar than a suggestion. A false blocker costs the author a round trip, and it costs you their trust in the next review. Where a claim is cheap to settle by running the code, run the code. When a claim does not substantiate, downgrade it or drop it. Never hedge it into the blocking list.
 
-**Test status**: establish it rather than assume it. Use the CI result when the repo has CI, and otherwise run the suite yourself. Either way, say which signal you used. Report the status as unverified only when neither signal is available. On a repo where the answer is one command away, "unverified" is a caveat that you invented. Treat a test committed as skipped or disabled as unverified coverage, not as a passing test.
+**Test status**: establish it rather than assume it. A caller sometimes hands you the test signal, such as a pipeline or checks result from a code host. Report that signal, and do not build the repo yourself. Otherwise use the CI result of the repo when it has CI, and run the suite yourself when it does not. Either way, say which signal you used. Report the status as unverified only when no signal is available. On a repo where the answer is one command away, "unverified" is a caveat that you invented. Treat a test committed as skipped or disabled as unverified coverage, not as a passing test.
 
 ### 5. Decide the verdict
 
@@ -80,7 +83,9 @@ Two caveats belong in the summary whatever the verdict is. The first is that no 
 
 Lead with the verdict. Then write a summary paragraph under all three outcomes. Cover the fixed point, the diff scope in commits and files, what the review verified, and any caveat.
 
-When the caller supplied a destination for the report, writing the report to that path *is* how this step is satisfied. This happens when another skill invokes this one as a step inside its own workflow. Write the file and print nothing in the conversation, because the output of the caller is what the user reads.
+When the caller supplied a destination for the report, writing the report to that path *is* how this step is satisfied. This happens when another skill invokes this one as a step inside its own workflow. Write the file and print nothing in the conversation, because the caller's own output is what the user reads.
+
+**Finding length**: a caller that republishes these entries word for word sometimes states how long each one can run. Write to that budget. With none given, write one or two sentences per finding: the symbol, the concrete problem, then the fix or the question.
 
 ```markdown
 ## <Approved | Approved with suggestions | Request changes>

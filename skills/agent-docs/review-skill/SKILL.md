@@ -15,7 +15,7 @@ allowed-tools: [Read, Glob, WebSearch, WebFetch, Bash, Edit, Write]
 
 # Review Skill
 
-Audit a skill against the way good skills behave, then tighten it. Read it closely, name what weakens the skill, and fix those things when the user agrees.
+Audit a skill against the way good skills behave, then tighten it. Name what weakens the skill, and fix those things when the user agrees.
 
 This skill is the static half of skill review. If the user wants a measured trigger rate or eval-graded iteration, say that the work needs an eval loop. Do not build one here. Hand off to a skill-creation skill when the session has one.
 
@@ -33,7 +33,7 @@ Read the whole bundle, not the `SKILL.md` alone. Note any `scripts/`, `reference
 
 **The standards**: before you walk the dimensions, find the authoring conventions that govern this skill. Look for a `CLAUDE.md`, a `CONTRIBUTING.md`, a skill-authoring style guide, or an equivalent file. A documented convention overrides a generic dimension below wherever the two disagree. A convention the repo settled is settled, so do not raise it as a finding.
 
-Take the conventions only from the repo that holds the skill under review. Resolve a path under `~/.claude/skills/` to its real target first with `readlink -f`. An installed skill is often a symlink into a source repo, and that repo governs it. When the resolved path sits in no repo at all, review on the dimensions alone. Do not hold the skill to the conventions of the repo your shell happens to sit in. Do not hold it to the global conventions of the user either.
+Take the conventions only from the repo that holds the skill under review. Resolve a path under `~/.claude/skills/` to its real target first with `readlink -f`. An installed skill is often a symlink into a source repo, and that repo governs it. When the resolved path sits in no repo at all, review on the dimensions alone. Do not hold the skill to the conventions of the repo your shell happens to sit in. Do not hold it to the user's global conventions either.
 
 Then walk these dimensions and collect concrete findings. Tie each finding to specific lines.
 
@@ -47,7 +47,7 @@ Then walk these dimensions and collect concrete findings. Tie each finding to sp
 
 First decide whether the skill is domain-specific or a generic process skill. A domain-specific skill covers a framework, a cloud service, a methodology, or a business domain. Research only a domain-specific skill, and route the research by the kind of domain:
 
-- For libraries, frameworks, SDKs, CLIs, and cloud services, fetch current documentation with the `ctx7` CLI. Run `npx ctx7@latest library "<name>"`, then `npx ctx7@latest docs <id> "<question>"`.
+- For libraries, frameworks, SDKs, CLIs, and cloud services, fetch current documentation with the `ctx7` CLI. Run `npx ctx7@latest library "<name>"`, then `npx ctx7@latest docs <id> "<question>"`. When that CLI is unavailable, fetch the official documentation page with `WebFetch` instead, and take it from the vendor's own domain.
 - For methodologies and business or domain concepts, use `WebSearch` and `WebFetch` against reputable primary sources.
 
 Compare the terminology, the definitions, and the recommended patterns of the skill against what you find. Flag anything stale, misnamed, or contradicted by the source. Cite the source for every domain finding, so the user can weigh how authoritative it is. Never correct domain wording from training data alone.

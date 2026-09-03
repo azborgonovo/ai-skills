@@ -45,7 +45,7 @@ Please find and report on:
 3. Anything that complicates the change: a data migration, backward compatibility, or other callers of the code being modified.
 4. Anything in git history or blame that suggests why the current implementation is shaped the way it is. A prior deliberate constraint reads differently than an oversight.
 
-Report back: exact file paths and line numbers, the specific code responsible, and a candidate approach with its tradeoffs. Keep it under 500 words plus snippets.
+Report back: exact file paths and line numbers, the specific code responsible, and a candidate approach with its trade-offs. Keep it under 500 words plus snippets.
 ```
 
 ## Anti-patterns

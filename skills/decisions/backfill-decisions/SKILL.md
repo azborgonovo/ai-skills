@@ -17,7 +17,7 @@ disable-model-invocation: true
 
 Reconstruct Decision Records, called DRs, for significant past decisions, by mining the git history. This skill produces *retroactive* DRs. Someone already took and adopted each decision. The goal is to capture the evidence and the reasoning that the history reveals, marked honestly as a reconstruction.
 
-> **Taking a decision now?** Use `/log-decision` to record it while the reasoning is fresh, or `/decide` when you are still exploring options. This skill covers only decisions already buried in the past of the repository.
+> **Taking a decision now?** Use `/log-decision` to record it while the reasoning is fresh, or `/decide` when you are still exploring options. This skill covers only decisions already buried in the repository's past.
 
 ## Execution steps
 
@@ -52,7 +52,7 @@ A candidate decision is **architecturally significant** when it hits at least on
 
 **Counter-signals, which you ignore:** a routine dependency bump, a formatting or lint commit, and a bug fix. Also ignore a feature added inside an existing pattern, and a change to a lockfile alone.
 
-Run these sweeps. Run them per era when you work era by era. All of them are read-only.
+Run these sweeps. Run them per era when you work era by era.
 
 1. **Keyword sweep of commit subjects:**
    ```
@@ -102,7 +102,7 @@ Run these sweeps. Run them per era when you work era by era. All of them are rea
 
 For each confirmed candidate, go straight into the writing steps of the log-decision skill, which cover the directory, the numbering, the filename, and the template. Do not ask the user again for information that the mining already established. Apply these retroactive adaptations:
 
-- **Template**: read `${CLAUDE_SKILL_DIR}/../log-decision/assets/dr-template.md`. When that path does not resolve, try `$HOME/.claude/skills/log-decision/assets/dr-template.md`, and use the expanded absolute path, because the file tools do not expand `~`. When neither file exists, stop and tell the user that this skill requires the log-decision skill.
+- **Template**: read `${CLAUDE_SKILL_DIR}/../log-decision/assets/dr-template.md`. That path resolves in both install modes, because log-decision is a sibling skill in this plugin. When the file does not exist, stop and tell the user that this skill requires the log-decision skill.
 - **File naming**: the target directory sometimes has an established naming convention, such as the MADR-style `0007-use-postgres.md` with no `DR-` prefix. Match that pattern and continue its numbering. A forked scheme splits the log in two. Use the log-decision default, which is `DR-NNNN-kebab-title.md`, only when the directory is new or holds no consistent pattern.
 - **Status**: default to `adopted`. For a reversal pair, the original gets `superseded by DR-NNNN`, or `retired` when nothing replaced it. Cross-link both files in `## More Information`. Both files are new, so write the links directly instead of editing them in later.
 - **Date**: use the commit date of the decision, which is the first commit of the cluster or the merge date. Do **not** use today.

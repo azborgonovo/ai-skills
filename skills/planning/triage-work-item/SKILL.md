@@ -41,7 +41,7 @@ Determine which tracker holds the issue, mainly from the shape of the URL:
 
 The adapter file is the authority for the mechanics of that tracker. It covers how to load or authenticate its tools, and the exact call that fetches an issue with its full comment thread. It covers how to search related issues, and how to post a comment. It also covers the comment markup dialect and the known gotchas of that tracker. Read it now, and follow it wherever a later step says "per the tracker adapter".
 
-When no adapter file exists for the tracker in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the CLI or API of the platform. Make sure that the fetch, search, and comment operations you need exist, then proceed. Tell the user that you are running without a dedicated adapter, so they know that any citation of tool-specific behavior is best-effort. A run that goes well is a signal that the tracker earns its own adapter file.
+When no adapter file exists for the tracker in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the platform's CLI or API. Make sure that the fetch, search, and comment operations you need exist, then proceed. Tell the user that you are running without a dedicated adapter, so they know that any citation of tool-specific behavior is best-effort. A run that goes well is a signal that the tracker earns its own adapter file.
 
 ## Step 2: Fetch the target issue in full
 
@@ -57,14 +57,14 @@ Note the parent epic or tracking issue, and any linked issue, which can be a dup
 
 Determine whether this item is a **bug** or a **change request**. In a bug, the actual behavior deviates from what the system is intended or documented to do. In a change request, the system does what it was built to do, and the desired behavior itself is changing. A change request also covers non-behavioral work, where no behavior is at stake either way. That work can be a refactor, a chore, tech debt, or a spike.
 
-Use two signals together, and never the issue-type field of the tracker alone:
+Use two signals together, and never the tracker's issue-type field alone:
 
 - **The tracker issue type**, which is Bug against Story, Task, or Feature. Take it as a starting signal.
 - **The content-level test.** Ask what the description and the comments say. They can say that the system fails to do what it is supposed to do, which is a promise that it breaks. They can instead say that the system must now do something different from what it was built to do. The first is a bug, and the second is a change request.
 
 When the two signals disagree, **the content wins**. For example, the issue type reads "Story" or "Task", and the content describes broken existing behavior. Teams routinely misuse issue-type fields for workflow reasons. A team can file a regression as a "Task", and a "Story" can really mean "fix this". Treat the field as a hint, and not as the source of truth. Mention the override in the comment only when it is material to how you framed the investigation. Do not call out a trivial mismatch.
 
-A non-behavioral task, such as a refactor, a chore, tech debt, or a spike, defaults to the change-request template. Effort and approach are exactly what such an item needs. Neither "root cause" nor "how it works today against what is wrong" fits a pure refactor cleanly enough to force the bug shape.
+A non-behavioral task defaults to the change-request template. Effort and approach are exactly what such an item needs. Neither "root cause" nor "how it works today against what is wrong" fits a pure refactor cleanly enough to force the bug shape.
 
 Some items are too sparse to classify with confidence, such as a one-line title with no description and no comments. Ask the user through `AskUserQuestion` instead of guessing. A wrong template choice compounds through the rest of the workflow.
 
@@ -75,7 +75,7 @@ Once you classify the item:
 
 Open the comment with an attribution line: `Triaged with 🤖 using <model> (<effort> effort)`. That line flags the comment as AI-assisted, so readers calibrate their trust and their scrutiny. Keep it, and never drop it to make the comment look more human. Always fill in `<model>`, because you know your own model name from your environment context, such as `Sonnet 5`. Fill in `(<effort> effort)` only when you have a concretely known effort or thinking-level setting for this session. Never guess one to fill the field. With no known setting, drop the whole parenthetical instead of writing a placeholder, which gives `Triaged with 🤖 using Sonnet 5:`. Use the literal Unicode 🤖, and not a `:robot:` shortcode. Some trackers do not expand shortcodes, as `references/trackers/jira.md` records for Jira, so a shortcode renders as literal text instead of an emoji.
 
-## Step 4: Note the comment markup dialect of the tracker
+## Step 4: Note the tracker's comment markup dialect
 
 Different trackers render comments differently. Jira renders its own wiki and ADF markup, and its comment API accepts Markdown and converts it. GitHub renders GitHub-flavored Markdown. The tracker adapter states which dialect to write in, and how the post call expects it. Keep the dialect in mind while you draft in Step 10, so that code fences, headings, and links render instead of showing as literal characters.
 
@@ -92,13 +92,13 @@ This step investigates a **local checkout**, through Read, Grep, and git. It cal
 
 - Run `git fetch origin && git log HEAD..origin/<default-branch> --oneline` to find out whether the checkout is behind.
 - When the checkout is behind and `git status` shows a clean working tree, fast-forward it with `git pull --ff-only`.
-- When local uncommitted changes exist that you do not want to disturb, leave the existing checkout alone. Investigate against a worktree of the fresh default branch instead. Use `git worktree add`, or the `EnterWorktree` tool when it is available. Do not stash the in-progress work of someone else.
+- When local uncommitted changes exist that you do not want to disturb, leave the existing checkout alone. Investigate against a worktree of the fresh default branch instead. Use `git worktree add`, or the `EnterWorktree` tool when it is available. Do not stash someone else's work in progress.
 
 ## Step 6: Cross-reference related issues
 
 Search for issues that can carry extra context. Search the siblings under the same parent epic or tracking issue, and run a keyword search on the summary. The exact search call, and the quirks of handling its results, live in the tracker adapter. Some trackers return a large result set that spills to a file and needs `jq` rather than a direct `Read`. Watch for two things, whatever the tracker:
 
-- **A shared epic or a matching keyword is a lead, not a conclusion.** Read anything you find before you cite it. An issue commonly lives under the same epic as your target purely through product-area grouping, with no bearing on this specific bug. Treating it as related without reading it wastes the time of the reader, and it can misdirect the fix.
+- **A shared epic or a matching keyword is a lead, not a conclusion.** Read anything you find before you cite it. An issue commonly lives under the same epic as your target purely through product-area grouping, with no bearing on this specific bug. Treating it as related without reading it wastes the reader's time, and it can misdirect the fix.
 - **Keep a large search payload out of your context.** When a search spills to a file, extract only `key`, `summary`, and `status`, through `jq` or a subagent. Scan those for candidates before you fetch anything in full.
 
 This step and Step 7 do not depend on each other, so run them concurrently rather than back to back.
@@ -126,13 +126,13 @@ There are two sources, and they age in opposite ways: the files attached to the 
 
 When no observability platform is configured or reachable, skip this part. The code investigation stands on its own. When a platform is available, its mechanics live in an observability adapter. That adapter covers the tools or CLI, how to pick a datasource, and the query languages for logs, metrics, and traces. Read `references/observability/grafana.md`, `references/observability/cloudwatch.md`, or the file that matches your platform. When no adapter exists for your platform, discover the tools with `ToolSearch` and proceed best-effort, the same way as in Step 1.
 
-Before you query anything, check the age of the issue against your log and trace retention window. A hosted logging or tracing backend commonly retains 14 to 30 days. The adapter notes the default of the platform when that default is known. When the reported incident is older than the window, a log lookup almost certainly comes back empty, so skip it and save the round trip. The query is worth running only for a still-relevant or recurring issue, where current data can confirm or refute a hypothesis. Examples are an ongoing elevated error rate, and a currently slow endpoint that you can trace.
+Before you query anything, check the age of the issue against your log and trace retention window. A hosted logging or tracing backend commonly retains 14 to 30 days. The adapter notes the platform's own default when that default is known. When the reported incident is older than the window, a log lookup almost certainly comes back empty, so skip it and save the round trip. The query is worth running only for a still-relevant or recurring issue, where current data can confirm or refute a hypothesis. Examples are an ongoing elevated error rate, and a currently slow endpoint that you can trace.
 
 Treat this data as corroboration for a hypothesis that the code already gave you, and not as a starting point. You must already know what you are looking for before you query. For a change request, this data can also serve as baseline evidence for the "How it works today" section. It then confirms no failure hypothesis. The current latency and error-rate numbers are that kind of baseline.
 
 ## Step 9: Verify before you trust the investigation
 
-This step keeps the analysis honest. The report of a subagent is a *claim*, not a fact. It can misstate a line number or paraphrase code loosely. It can also miss that a configuration value it found is not the one wired up to this code path. Before you draft anything, do four things:
+This step keeps the analysis honest. A subagent's report is a *claim*, not a fact. It can misstate a line number or paraphrase code loosely. It can also miss that a configuration value it found is not the one wired up to this code path. Before you draft anything, do four things:
 
 - Take the two or three highest-confidence claims that hold up your conclusion, and check each one yourself with `Read` or `grep` on the actual file. For a bug, those claims are the root cause, plus any configuration value that you cite. The root cause is the specific code that is missing or wrong. For a change request, they are your description of how the current behavior works, plus any claim about what the proposed approach requires. Confirm the line number, and confirm that the surrounding logic says what the report said.
 - Give extra scrutiny to a *negative* claim, such as "this repo has no code related to X" or "no caller of this endpoint exists". The freshness check in Step 5 is exactly what guards against a false negative. When you skipped that check for this repo, run it now, before you accept the conclusion.
@@ -141,31 +141,16 @@ This step keeps the analysis honest. The report of a subagent is a *claim*, not 
 
 ## Step 10: Draft the analysis
 
-Structure the comment per the template chosen in Step 3, which is `references/bug-template.md` or `references/change-request-template.md`, in the markup dialect from Step 4.
-
-**For a bug**, whatever headers you use, the content must cover four things:
-
-1. **What is happening**: the mechanism behind the user-visible symptom, in plain terms, tied back to what the reporter described.
-2. **Root cause**: the specific, verified code path, configuration value, or data condition, with real file paths, and with an actual code snippet where that clarifies things.
-3. **Why the problem is specific to the reported conditions**, when that matters. For example, say why this particular customer, input, or timing triggers it when others do not.
-4. **Proposed fixes**: at least two options where two are reasonable, each with its trade-off, plus a recommendation when you have one. When only one sane fix exists, say so instead of padding the section with a strawman alternative.
-
-**For a change request**, including a non-behavioral task, the content must cover five things:
-
-1. **How it works today**: the current mechanism or behavior. For non-behavioral work, describe the current state that drives the request.
-2. **What must change**: the concrete new or changed behavior, or the concrete engineering outcome, stated precisely enough that "done" is unambiguous.
-3. **Proposed approach**: a candidate implementation path that names the code that has to change. Give at least two options where a genuine choice exists, each with its trade-off, plus a recommendation when you have one.
-4. **Risks and open questions**, when they are relevant: a data migration, backward compatibility, affected callers, or a decision that needs a stakeholder.
-5. **Rough effort**: small, medium, or large, with a one-line reason tied to what the approach actually touches.
+Structure the comment per the template chosen in Step 3, which is `references/bug-template.md` or `references/change-request-template.md`, in the tracker's markup dialect from Step 4. The template is the authority for which sections the comment carries and what belongs in each one, so read it before you draft. Whatever headers you end up using, cover every section that the template marks as required.
 
 ### Keep it tight
 
 A thorough investigation and a long comment are not the same thing. The lists above say what each section covers, and they do not say how much to write. It is easy to let the length of a section track how much you found instead of how much the reader needs. A few habits keep the comment proportional:
 
-- **Cite the strongest evidence for a point once.** Sometimes git history, a doc, and a code comment all confirm the same fact, such as "this gap is deliberate, not a regression". Pick whichever one makes the point most directly, and leave the rest out. Three citations for one claim read as padding rather than rigor.
+- **Cite the strongest evidence for a point once.** Sometimes git history, a doc, and a code comment all confirm one fact. An example is "this gap is deliberate, not a regression". Pick whichever one makes the point most directly, and leave the rest out. Three citations for one claim read as padding rather than rigor.
 - **Name each file and line once.** Root cause, and How it works today, already name the files involved. A closing list of "files touched" then tells the reader something they already have.
 - **Match depth to merit, not to symmetry.** When one option is clearly the pick, give it the fuller explanation. Dispatch a weaker alternative in one clause. Do not mirror the depth of the winner because the alternative is "Option B".
-- **Show one snippet for a repeated gap.** The same issue sometimes shows up in more than one file, such as one missing check duplicated across a backend and a frontend. Verify and quote one of them, and cite the other by `file:line`. The reader can open it themselves.
+- **Show one snippet for a repeated gap.** The same issue sometimes shows up in more than one file. One missing check can sit in both a backend and a frontend. Verify and quote one of them, and cite the other by `file:line`. The reader can open it themselves.
 - **Quote the shortest excerpt that carries the argument.** Trim a log trace, a request timeline, or a payload to the fields that do the work. Drop the rows that take no part. Six annotated lines that show a duplicated call and a dead redirect prove the point. The raw capture pasted in leaves the reader to re-derive it.
 - **Describe an artifact or show it, and not both.** One sentence states what the error payload contains and how the code classifies it. The payload pasted underneath then adds length rather than proof. Include the artifact only when its shape is what the reader needs. That happens when they have to recognize it, match on it, or act on its exact contents.
 

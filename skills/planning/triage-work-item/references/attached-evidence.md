@@ -8,7 +8,7 @@ An attached file is the highest-value evidence in a triage, and the easiest to o
 
 The tracker adapter holds the authenticated call, so use it instead of assembling your own request. Do not read the credential file of a CLI to build a `curl` command. A tool that already holds the session almost always exposes a raw authenticated passthrough, which for the `twg` CLI of Jira is `twg api`. The passthrough keeps the secret out of your context and out of your shell history.
 
-Write the file to the scratchpad directory, and not into the project of the user.
+Write the file to the scratchpad directory, and not into the user's project.
 
 ## Size discipline
 
