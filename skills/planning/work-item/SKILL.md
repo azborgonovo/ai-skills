@@ -17,9 +17,15 @@ If invoked via `/work-item`, treat `$ARGUMENTS` as a one-line description of the
 
 1. Determine the work's nature: is it reporting a defect (something broken) or describing new/changed work? This decides the framing section — see `assets/work-item-template.md`.
 2. Determine whether it's a standalone item or a child of a larger parent item — see "Applies to" below for the test. This decides whether Acceptance criteria is mandatory.
-3. Draft the content following `assets/work-item-template.md`. Read that file for the full template and worked examples before writing — don't rely on a remembered shape, since the exact section names and casing matter (e.g. "Acceptance criteria" is lowercase-c, bold, no colon). When fixing up an existing work item, keep what's already there and only add or rewrite the pieces that are missing or vague.
+3. Draft the content following `assets/work-item-template.md`, in the plain English described under "Writing style" below. Read that file for the full template and worked examples before writing — don't rely on a remembered shape, since the exact section names and casing matter (e.g. "Acceptance criteria" is lowercase-c, bold, no colon). When fixing up an existing work item, keep what's already there and only add or rewrite the pieces that are missing or vague.
 4. If the user asked to draft or write up the work item (not create or update it), present the drafted content for review and stop there.
 5. If the user explicitly asked to create or update the work item, proceed directly: pick whichever tool fits the destination tracker at that moment and apply the change. The request itself is the go-ahead — no extra confirmation gate is needed once content is drafted.
+
+## Writing style
+
+Write the work item in plain English, so a triager next quarter or someone outside the team understands it on one read.
+
+If a plain-English writing skill is loaded in the session (`simple-english`, for one), hand the drafted item to it for a final pass before presenting or creating it. Otherwise follow the plain-language principles at https://digital.gov/guides/plain-language/principles.
 
 ## Applies to
 
