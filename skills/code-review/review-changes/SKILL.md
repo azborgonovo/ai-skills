@@ -87,6 +87,8 @@ When the caller supplied a destination for the report, writing the report to tha
 
 **Finding length**: a caller that republishes these entries word for word sometimes states how long each one can run. Write to that budget. With none given, write one or two sentences per finding: the symbol, the concrete problem, then the fix or the question.
 
+**Plain English**: the author of the change reads these findings, and a caller sometimes posts them word for word. Write short sentences in the active voice, define a term that the reader can miss at its first use, and cut filler. Keep every layer tag, `file:line` citation, symbol name, and code snippet exactly as it is. Where this pulls against the length budget above, the budget wins. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the report.
+
 ```markdown
 ## <Approved | Approved with suggestions | Request changes>
 

@@ -160,6 +160,16 @@ A section can run long when the substance genuinely needs it. A root cause with 
 
 **Posting a follow-up comment**: link or name the earlier comment, and give only what changed. That is the new evidence, plus which of your earlier conclusions it confirms, sharpens, or kills. Re-explaining the parts that still hold makes anyone who read the first comment pay twice, and it makes the delta harder to find. This differs from a correction, where the point *is* to be explicit about what was wrong, as Step 11 describes.
 
+### Write it in plain English
+
+The reader of this comment is often not the person who wrote the code, and sometimes not an engineer at all. Write short sentences in the active voice, define a term that such a reader can miss at its first use, and cut filler.
+
+Keep every verified `file:line` citation, code snippet, and quoted log line exactly as it is. A reworded quote of an artifact is no longer evidence.
+
+When you cite a commit, make it reachable. Derive the base URL of the repo from `git remote get-url origin`, and write the citation as a markdown link whose text a human can read, such as "the batch-size cap raised in abc1234". When the remote resolves to no web URL, write the short SHA plus the subject line of the commit, because the subject is the part that a human can act on. A tracker does not always turn a SHA into a link, and the tracker adapter records what this one does.
+
+Where this pulls against the length test above, the length test wins. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the draft, before Step 11 posts anything.
+
 ## Step 11: Post the comment, or hold it for a dry run
 
 When the user requested `--dry-run`, write the finished comment to a file and report the path. Show the comment in the conversation instead of posting it. Call no post-comment operation.

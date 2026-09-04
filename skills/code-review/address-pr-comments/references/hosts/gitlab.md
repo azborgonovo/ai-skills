@@ -69,3 +69,5 @@ Resolving requires the Developer role or above on the project. When this call re
 ## Markup dialect
 
 GitLab-flavored Markdown. Fenced code blocks, headings, and links render. Emoji shortcodes such as `:robot:` render.
+
+A bare commit SHA of this project autolinks to the commit. A SHA inside backticks does not autolink, because a code span suppresses the reference. So write a SHA as plain text wherever you want the link.

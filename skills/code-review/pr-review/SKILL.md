@@ -147,6 +147,8 @@ I did not approve this <merge request | pull request> yet because <the blocking 
 
 Write two or three sentences, with no headings and no lists. The inline comments carry the mechanism. The suggestions, the "checked and clean" list, and the path to merge stay in the Step 8 output. Write the summary to `${TMPDIR:-/tmp}/<change-id>-summary.md`, and pass it as `--summary-file`. The script marks it, so leave the 🤖 off.
 
+Write the summary in short sentences and the active voice, define a term that the author can miss at its first use, and cut filler. Where that pulls against the two-sentence-to-three-sentence limit above, the limit wins. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the summary. The findings need no pass here, because review-changes already wrote them in plain English and this step posts them word for word.
+
 The host adapter names the bundled script that posts the notes, which is `scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md. It also gives the exact invocation for the mode that Step 2 settled on. Both scripts read the same notes-file JSON shape, so the notes file does not change with the host. Both mark each comment and the verdict summary with a trailing 🤖. Both publish the comments before they touch the verdict, so an approval never lands without its reasoning. Both skip a finding that this account already published, instead of deleting it or duplicating it. Leave the marking to the script, because a mark you write yourself can land twice.
 
 Read the script's tally afterward. It reports what was posted, what was skipped as already present, and what the verdict action did. Step 8 reports all three.

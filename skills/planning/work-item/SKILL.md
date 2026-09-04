@@ -31,9 +31,9 @@ When the user invokes `/work-item`, treat `$ARGUMENTS` as a one-line description
 
 ## Writing style
 
-Write the work item in plain English, so that a triager next quarter, or a reader outside the team, understands it on one read.
+A triager next quarter, or a reader outside the team, must understand the work item on one read. Write short sentences in the active voice, define a term that such a reader can miss at its first use, and cut filler.
 
-When a plain-English writing skill is loaded in the session, such as `simple-english`, hand the drafted item to it for a final pass. Do that before you present or create the item. Otherwise follow the plain-language principles at https://digital.gov/guides/plain-language/principles.
+Keep every quoted error message, identifier, and value exactly as it is. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the draft, before you present or create the item.
 
 ## Applies to
 

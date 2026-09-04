@@ -96,9 +96,11 @@ Push only after Step 6 is green, and only ever to the source branch of the chang
 
 ### Step 8: Reply and resolve, per the host adapter
 
-For each thread classified as **needs fix** or **already fixed**, reply with the commit SHA and a short description of what changed. For an already-fixed thread, say where the existing code already covers the ask. Then resolve the thread. The host adapter states the exact reply and resolve calls. Always post a true threaded reply, tied to the ID of the thread. Never post a new standalone or general comment.
+For each thread classified as **needs fix** or **already fixed**, reply with the short commit SHA and what changed. A SHA identifies the fix, and it does not explain the fix, so never let one stand alone. "Fixed in abc1234 by capping the batch size at 500" tells the reviewer whether to keep reading, and "Fixed in abc1234" does not. Both hosts turn a bare SHA into a link to the commit, as the markup section of the host adapter describes, so write no URL of your own. For an already-fixed thread, say where the existing code already covers the ask. Then resolve the thread. The host adapter states the exact reply and resolve calls. Always post a true threaded reply, tied to the ID of the thread. Never post a new standalone or general comment.
 
 For each thread classified as **disagree**, reply with your reasoning, and leave the thread unresolved.
+
+A human reviewer reads every reply. Write short sentences in the active voice, define a term that the reviewer can miss at its first use, and cut filler. That matters most on a disagreement, where the reply carries the reasoning on its own. Never paraphrase a commit SHA, a file path, or a symbol name. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the replies.
 
 ### Step 9: Remove the worktree
 

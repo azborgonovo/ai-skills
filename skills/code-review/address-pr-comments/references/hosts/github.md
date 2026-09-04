@@ -70,3 +70,5 @@ Resolving a conversation requires write access to the repo. When this call fails
 ## Markup dialect
 
 GitHub-flavored Markdown. Fenced code blocks, headings, and `#` and `@` autolinks all render. Emoji shortcodes such as `:robot:` render.
+
+A bare commit SHA of this repo autolinks to the commit, and GitHub shortens a 40-character SHA to 7 characters in the rendered link. A SHA inside backticks does not autolink, because a code span suppresses the reference. So write a SHA as plain text wherever you want the link.

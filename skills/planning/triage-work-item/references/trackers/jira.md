@@ -110,4 +110,6 @@ Call `addCommentToJiraIssue` with `contentFormat: "markdown"`. Jira accepts Mark
 
 Write the comment body in Markdown on either backend. Backend A takes `--body-format markdown`, and Backend B takes `contentFormat: "markdown"`. Standard fenced code blocks, headings, and links render correctly. The wiki markup of Jira, such as `h2. Heading`, `*bold*`, and `[label|url]`, is a third dialect that neither path accepts, and `twg` rejects it outright.
 
+Jira turns no commit SHA into a link, whatever repo the commit lives in. A SHA on its own is dead text there, so cite a commit as an explicit markdown link.
+
 The markdown-to-ADF conversion of Jira does not expand an emoji shortcode such as `:robot:`, the way Slack or GitHub-flavored markdown does. A posted `:robot:` renders as the literal text ":robot:", and not as an emoji. Use the literal Unicode character 🤖 instead, in the attribution line and everywhere else in the comment.

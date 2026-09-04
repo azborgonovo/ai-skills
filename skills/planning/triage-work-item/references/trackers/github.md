@@ -46,3 +46,5 @@ Write the drafted comment to a file, and pass `--body-file` instead of `--body` 
 ## Markup dialect (Step 4)
 
 GitHub-flavored Markdown. Fenced code blocks with language hints, task lists, and `#` and `@` autolinks all render. Emoji shortcodes such as `:robot:` render.
+
+A bare commit SHA autolinks only for the repo that holds this issue. An investigation usually reads a different repo, so cite a commit there as an explicit markdown link, or in the qualified `owner/repo@sha` form. Neither form autolinks inside backticks, because a code span suppresses the reference.

@@ -76,4 +76,6 @@ Include markdown links wherever they help: to the PRs or issues that motivated t
 
 If the status is `superseded`, find the DR that this one supersedes. Add a "Superseded by [DR-NNNN](path)" note to its `## More Information` section, and append that section when it is absent. Then reference that DR in the `## More Information` section of the new file.
 
+A DR outlives the conversation that produced it, and a reader opens it months later with none of that context. Write short sentences in the active voice, define a term that such a reader can miss at its first use, and cut filler. Keep the Y-statement shape of the Decision section, and keep every link and quoted value exactly as it is. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the draft, before you write the file.
+
 After you write the file, tell the user the file path and a one-line summary of the decision. Do not offer to improve the DR unless the user asks.
