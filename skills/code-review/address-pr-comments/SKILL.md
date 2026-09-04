@@ -39,34 +39,40 @@ When no adapter file exists for the host in front of you, degrade instead of sto
 
 ### Step 2: Fetch change metadata and open threads
 
-Use the metadata call from the host adapter. Fetch the title, the source branch, and the web URL of the change. The summary in Step 10 needs all three, and the source branch drives the worktree in Step 3.
+Use the metadata call from the host adapter. Fetch the title, the source branch, and the web URL of the change. The summary in Step 10 needs all three, and the source branch drives the workspace in Step 3.
 
 **If the metadata call fails with an auth error**, the CLI or tool that the host adapter names is not authenticated. An auth error is a 401, or a "not logged in" message. Stop and ask the user to authenticate, and quote the exact command from the adapter.
 
 Use the list-threads call from the host adapter. Fetch every thread, then keep only the threads that are still open, which means unresolved. For each open thread, capture three things. Capture its ID, which you need to reply and to resolve. Capture the file and line it anchors to, when it is inline. Capture the full body of every comment in it. You need the whole exchange, not the first comment alone, because a later reply from a reviewer often narrows or changes the ask.
 
-When there are no open threads, skip to Step 10 and report that there is nothing to address. No worktree is needed.
+When there are no open threads, skip to Step 10 and report that there is nothing to address. No workspace is needed.
 
-### Step 3: Create a fix worktree
+### Step 3: Prepare the fix workspace
 
-A checkout of the branch in the user's main clone switches what is checked out under them. This worktree also holds real commits that get pushed back to the source branch of the change, which a read-only review never does. So check the worktree out on that branch, and do not detach it at a SHA.
+This step holds real commits that get pushed back to the source branch of the change, which a read-only review never does. So the workspace sits on that branch, and never detaches at a SHA.
 
-Locating the clone, fetching, and refusing to build on a leftover or colliding worktree is deterministic and identical on every run. So a bundled script does it, instead of inline bash. The script also sidesteps shell code that has to work on both POSIX shells and PowerShell:
+The script picks the workspace, and you must not ask the user which one to use. When the user's clone already has the source branch checked out, the script works there. That directory is the one the user watches, and one branch cannot be checked out twice anyway. Otherwise the script adds a separate worktree, so that a checkout does not switch the branch under the user.
+
+Locating the clone, fetching, and refusing to build on a leftover or colliding workspace is deterministic and identical on every run. So a bundled script does it, instead of inline bash. The script also sidesteps shell code that has to work on both POSIX shells and PowerShell:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "<skill_dir>/SKILL.md")")")}"
-python3 "$PLUGIN_ROOT/scripts/setup_worktree.py" --repo-path <repo_path> --source-branch <source_branch> --change-id <id>
+python3 "$PLUGIN_ROOT/scripts/setup_workspace.py" --repo-path <repo_path> --source-branch <source_branch> --change-id <id>
 ```
 
 Use `python` in place of `python3` when `python3` is not on `PATH`. Some native Windows installs carry only one of the two.
 
 The first line resolves the shared helper at the plugin root, in either install mode.
 
-`<repo_path>` is the relative shape that the host adapter states, such as the namespace for GitLab or `owner/repo` for GitHub. The script searches common project roots, and then searches by remote URL, because no single clone location is standard enough to assume. On success it prints `WORKTREE_PATH: <path>`. On a refusal it prints `STOP: <reason>` and exits non-zero. A refusal happens when a leftover worktree is dirty or unpushed, or when the branch is checked out somewhere else. Stop and tell the user, instead of working around it.
+`<repo_path>` is the relative shape that the host adapter states, such as the namespace for GitLab or `owner/repo` for GitHub. The script searches common project roots, and then searches by remote URL, because no single clone location is standard enough to assume.
+
+On success it prints two lines. `MODE:` is `main-clone` or `worktree`, and Step 9 reads it to decide what to clean up. `WORKSPACE_PATH: <path>` is the workspace itself.
+
+On a refusal it prints `STOP: <reason>` and exits non-zero. Stop and tell the user, instead of working around it. Four cases refuse. A leftover worktree is dirty or unpushed. The clone holds the source branch with uncommitted changes, which per-thread commits would capture. The clone holds commits that origin does not, which the push in Step 7 would carry. Another worktree holds the source branch, which means that another agent works on it.
 
 When the script cannot locate the repo at all, ask the user for the local clone path, and re-run with `--repo-root <path>` in place of `--repo-path`.
 
-Use the printed worktree path for every read, every edit, and every commit from here on.
+Use the printed `WORKSPACE_PATH` for every read, every edit, and every commit from here on.
 
 ### Step 4: Classify each thread
 
@@ -104,13 +110,15 @@ A human reviewer reads every reply. Write short sentences in the active voice, d
 
 ### Step 9: Remove the worktree
 
-When Step 3 created a worktree, remove it now, even when an earlier step failed partway through. When Step 3 stopped before it printed a worktree path, this run created no worktree, so remove nothing here:
+Remove nothing when Step 3 printed `MODE: main-clone`. The workspace is the user's own clone, and the branch was checked out there before this run started.
+
+When Step 3 printed `MODE: worktree`, remove that worktree now, even when an earlier step failed partway through. When Step 3 stopped before it printed a path, this run created no worktree, so remove nothing here:
 
 ```bash
 git -C <repo_path> worktree remove <worktree_path>
 ```
 
-Use the same `<repo_path>` and `<worktree_path>` that Step 3 printed.
+`<worktree_path>` is the `WORKSPACE_PATH` that Step 3 printed, and `<repo_path>` is the clone it came from.
 
 If git refuses the removal, leave the worktree in place, and tell the user exactly what git reported.
 
@@ -124,4 +132,4 @@ The steps above carry their own reasoning. These three repeat because each one d
 
 - **Never** force-push. When git rejects the push in Step 7, stop and ask the user how to proceed.
 - **Never** resolve a thread classified as disagree. Reply, then leave it for the reviewer to close.
-- **Never** check out the branch of the change in the user's main clone. Always work from the isolated worktree that Step 3 created.
+- **Never** switch the branch of the user's clone. Work only in the workspace that Step 3 printed, which is either that clone on the branch it already held, or a separate worktree.

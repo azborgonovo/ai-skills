@@ -85,7 +85,7 @@ A checkout of the change in the user's main clone switches what is checked out u
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "<skill_dir>/SKILL.md")")")}"
-python3 "$PLUGIN_ROOT/scripts/setup_worktree.py" \
+python3 "$PLUGIN_ROOT/scripts/setup_workspace.py" \
   --repo-path <repo_path> --purpose review --change-id <mr_iid or pr_number> \
   --source-branch <source_branch> --target-branch <target_branch> --detach-sha <head_sha>
 ```
@@ -94,7 +94,7 @@ Use `python` in place of `python3` when `python3` is not on `PATH`. Some native 
 
 The first line resolves the shared helper at the plugin root, in either install mode. `<repo_path>` is the relative shape that the host adapter states, which is the namespace for GitLab and `owner/repo` for GitHub. The script searches common project roots, and then searches by remote URL, because no single clone location is standard enough to assume. The `--target-branch` flag fetches the diff base too, which is what makes the fixed point in Step 5 resolvable locally.
 
-On success the script prints `WORKTREE_PATH: <path>`. Use that path for every read, every `grep`, and every `git` call from here on. On a refusal, the script prints `STOP: <reason>` and exits non-zero. A refusal happens when a leftover worktree is dirty or unpushed, or when the script cannot find the clone. Never force past a refusal, and never fall back to a checkout of the change in the user's main clone. When the script cannot locate the clone, ask the user for the path, and re-run with `--repo-root <path>` in place of `--repo-path`.
+On success the script prints `MODE: worktree`, then `WORKSPACE_PATH: <path>`. A review always detaches, so the mode is always `worktree` here. Use that path for every read, every `grep`, and every `git` call from here on. On a refusal, the script prints `STOP: <reason>` and exits non-zero. A refusal happens when a leftover worktree is dirty or unpushed, or when the script cannot find the clone. Never force past a refusal, and never fall back to a checkout of the change in the user's main clone. When the script cannot locate the clone, ask the user for the path, and re-run with `--repo-root <path>` in place of `--repo-path`.
 
 With no worktree, the review is diff-only. Fetch the diff of every changed file per the host adapter, including its truncation check, and write it to `${TMPDIR:-/tmp}/<change-id>.diff`. Step 5 hands that file over in place of the worktree. Step 8 carries the limitation as a caveat, because with no working tree you cannot settle any claim by running the code.
 
