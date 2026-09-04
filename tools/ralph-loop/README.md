@@ -1,12 +1,11 @@
 # ralph-loop
 
-**Status: Trial** — usable, still being validated. See [README.md](../../README.md) for what that means.
+**Status: Trial** — usable, still under validation. See [README.md](../../README.md) for what that means.
 
-Re-runs a prompt file through the [Claude Code](https://code.claude.com) CLI, in
-headless mode, over and over, until the agent signals it's done. Named after
-the ["Ralph Wiggum" technique](https://ghuntley.com/ralph/): a dumb `while`
-loop around an agent is often enough to grind through a queue of well-defined
-work — one subtask per iteration — without a human driving each step.
+Sends a prompt file to the [Claude Code](https://code.claude.com) CLI in headless mode, again and again, until the
+agent signals that the work is done. The name comes from the ["Ralph Wiggum" technique](https://ghuntley.com/ralph/).
+A plain `while` loop around an agent is often enough to work through a queue of well-defined work, one subtask per
+iteration. No person drives each step.
 
 ## Requirements
 
@@ -21,9 +20,9 @@ python tools/ralph-loop/ralph_loop.py [prompt_file] [sentinel] [max_iters]
 
 | Argument      | Default            | Meaning                                                          |
 |---------------|---------------------|-------------------------------------------------------------------|
-| `prompt_file` | `prompt.md`         | Path to the prompt fed to `claude -p` on every iteration.        |
+| `prompt_file` | `prompt.md`         | Path to the prompt that goes to `claude -p` on every iteration.  |
 | `sentinel`    | `FINISHED`          | Exact final response that stops the loop (see below).            |
-| `max_iters`   | `10`                | Safety cap so a stuck loop can't run forever.                    |
+| `max_iters`   | `10`                | Safety cap, so a stuck loop cannot run forever.                  |
 
 Example:
 
@@ -31,26 +30,40 @@ Example:
 python tools/ralph-loop/ralph_loop.py my-prompt.md FINISHED 20
 ```
 
-Output streams live: thinking, tool calls, tool results, and a per-iteration cost/turn summary — colorized when stdout is a TTY, plain otherwise (or when `NO_COLOR` is set).
+The output streams live: the thinking, the tool calls, the tool results, and a summary of cost and turns for each
+iteration. The output has color when stdout is a TTY, and no color otherwise, or when `NO_COLOR` is set.
 
-The loop stops when any of these happens:
+The loop stops on any of these events:
 
-- Claude's final response for an iteration contains a line that is *exactly* the sentinel string (a lead-in sentence before that line is fine — models don't reliably print the sentinel with nothing else, so the check matches per line rather than requiring the whole response to be just the sentinel)
-- `max_iters` iterations ran without that happening
-- the `claude` process exits non-zero
+- The final response of an iteration holds a line that is *exactly* the sentinel string. A lead-in sentence before
+  that line is acceptable, because a model does not reliably print the sentinel alone. For that reason the check reads
+  each line on its own, instead of the whole response.
+- The loop ran `max_iters` iterations and no sentinel arrived.
+- The `claude` process exits with a non-zero code.
 
 ## Writing a prompt for the loop
 
-Each iteration re-sends the same prompt file from scratch — Claude has no memory of prior iterations beyond what it left behind in the world (commits, tracker state, files). So the prompt must:
+Each iteration sends the same prompt file again, from the start. Claude remembers nothing from an earlier iteration,
+except what it left behind in the world, such as commits, tracker state, and files. The prompt must therefore do two
+things:
 
-1. Find the next unit of work itself (e.g. query a tracker for the next `"To Do"` item) rather than assume it's continuing a specific task.
-2. Print the sentinel string *exactly*, and stop, once there is no more work — that's the loop's only way to know it's done.
+1. Find the next unit of work itself. For example, query the tracker for the next `"To Do"` item. The prompt must not
+   assume that it continues one specific task.
+2. Print the sentinel string *exactly*, and stop, when no work is left. The sentinel is the only signal that tells the
+   loop that the work is done.
 
-See [`jira-tasks-example.md`](jira-tasks-example.md) for a full example that pulls Jira subtasks one at a time, implements each on its own branch, opens a draft MR, and prints `FINISHED` once the tracker has nothing left in `"To Do"`.
+For a full example, see [`jira-tasks-example.md`](jira-tasks-example.md). It pulls Jira subtasks one at a time. It
+implements each one on its own branch, and opens a draft merge request for it. It prints `FINISHED` when the tracker
+holds nothing more in `"To Do"`.
 
-### Best Practices for token-efficiency
+### Best practices for token efficiency
 
-Because each iteration is a fresh `claude -p` process with no memory of the last one, anything the prompt doesn't hand it directly gets rediscovered from scratch, every time. A few habits keep that rediscovery cheap:
+Each iteration is a fresh `claude -p` process with no memory of the last one. Anything that the prompt does not hand
+to the agent directly, the agent finds again from scratch, every time. Two habits keep that cost low:
 
-- **Only name a skill/tool you have confirmed exists.** A prompt step that says "use the `foo-cli` skill" costs nothing when `foo-cli` is configured, but if it isn't, every single iteration wastes a call discovering that and falling back to something else.
-- **Inline static facts instead of rediscovering them.** Tracker site IDs, your tracker username, repo-host org names, and similar constants don't change between iterations — put them directly in the prompt instead of making the agent look them up each time.
+- **Name a skill or a tool only after you confirm that it exists.** A prompt step that says "use the `foo-cli` skill"
+  costs nothing when `foo-cli` is configured. When it is absent, every iteration wastes a call to discover that, and
+  then falls back to something else.
+- **Put static facts in the prompt.** Tracker site IDs, your tracker username, the org name of the repository host,
+  and similar constants do not change between iterations. Write them into the prompt, instead of a lookup on every
+  iteration.
