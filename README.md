@@ -17,27 +17,32 @@ Invocation shows [who can trigger a skill](https://code.claude.com/docs/en/skill
 
 You install each plugin below on its own, from the `ai-skills` marketplace (see [Installation](#installation)).
 
-Each entry ends with how the skill loads, how far it is adopted, and how it scored on the triggering
-axis. **Fires** counts the prompts that must load the skill and did. **Holds** counts the near-miss
-prompts that must not load it and did not. Both come from 8 probes each, measured by
-[`scripts/run_evals.py`](scripts/run_evals.py), which drives `claude plugin eval` over the case
-suites under [`evals/`](evals). A Manual skill carries no score, because only the user can invoke
-it.
+Each entry ends with how the skill loads, how far it is adopted, and what it bought when it was
+measured. **+9 pts vs. no skill** means the graded score with the plugin installed sat 9 points
+above the same prompts run with no plugin at all. Both arms get the identical prompt, so the number
+already prices in whether the model reached for the skill. A Manual skill shows an absolute score
+instead, because a no-plugin arm cannot reach it. An entry with no score has not been measured on
+the current harness yet.
+
+[`scripts/run_evals.py`](scripts/run_evals.py) produces these numbers. It drives
+`claude plugin eval` over the case suites under [`evals/`](evals), and
+[`scripts/eval_report.py`](scripts/eval_report.py) turns each result document into the string an
+entry carries.
 
 ### `bdd`
 
 Author, automate, and reconcile behavior specifications in Gherkin, turning system behavior into executable specs.
 
-- **[/define-behavior](skills/bdd/define-behavior/SKILL.md)** — Writes behavior-driven Gherkin features and scenarios as specification by example. *Auto · Adopt · Fires 5/8 · Holds 8/8*
-- **[/implement-scenarios](skills/bdd/implement-scenarios/SKILL.md)** — Implements the behavior for Gherkin scenarios that exist, from the outside in. It puts each scenario at the lowest test level that verifies it, and binds a traceable test to it. The test fails first, then the code makes it pass. *Auto · Trial · Fires 4/8 · Holds 8/8*
-- **[/review-feature-suite](skills/bdd/review-feature-suite/SKILL.md)** — Audits a Gherkin suite across files, so the suite keeps one shared language, and resolves the contradictions it finds. *Auto · Adopt · Fires 8/8 · Holds 7/8*
+- **[/define-behavior](skills/bdd/define-behavior/SKILL.md)** — Writes behavior-driven Gherkin features and scenarios as specification by example. *Auto · Adopt*
+- **[/implement-scenarios](skills/bdd/implement-scenarios/SKILL.md)** — Implements the behavior for Gherkin scenarios that exist, from the outside in. It puts each scenario at the lowest test level that verifies it, and binds a traceable test to it. The test fails first, then the code makes it pass. *Auto · Trial*
+- **[/review-feature-suite](skills/bdd/review-feature-suite/SKILL.md)** — Audits a Gherkin suite across files, so the suite keeps one shared language, and resolves the contradictions it finds. *Auto · Adopt*
 
 ### `code-review`
 
 Structure and carry out code reviews with a consistent, cost-of-change-driven framework and reviewer workflows.
 
-- **[/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md)** — Knowledge base for Gunnar Morling's Code Review Pyramid. *Auto · Adopt · Fires 6/8 · Holds 8/8*
-- **[/review-changes](skills/code-review/review-changes/SKILL.md)** — Reviews the diff since a fixed point against the Code Review Pyramid, then reports one verdict: approved, approved with suggestions, or request changes. *Auto · Trial · Fires 6/8 · Holds 8/8*
+- **[/code-review-pyramid](skills/code-review/code-review-pyramid/SKILL.md)** — Knowledge base for Gunnar Morling's Code Review Pyramid. *Auto · Adopt*
+- **[/review-changes](skills/code-review/review-changes/SKILL.md)** — Reviews the diff since a fixed point against the Code Review Pyramid, then reports one verdict: approved, approved with suggestions, or request changes. *Auto · Trial*
 - **[/pr-review](skills/code-review/pr-review/SKILL.md)** — Reviews a merge request on GitLab, or a pull request on GitHub, against its linked work item with `/review-changes`. It then posts the findings as inline comments, and approves or requests changes to match the verdict. The `draft` and `comments-only` modes hold back one half or the other. *Manual · Adopt*
 - **[/address-pr-comments](skills/code-review/address-pr-comments/SKILL.md)** — Triages every open review thread on a merge request or a pull request. It fixes what the thread asks for, or it pushes back. It then replies to the thread and resolves it. *Manual · Trial*
 
@@ -45,29 +50,29 @@ Structure and carry out code reviews with a consistent, cost-of-change-driven fr
 
 Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.
 
-- **[/decide](skills/decisions/decide/SKILL.md)** — Works as a thinking partner. It explores a problem and the options for it, before you make a decision. *Auto · Adopt · Fires 7/8 · Holds 8/8*
-- **[/log-decision](skills/decisions/log-decision/SKILL.md)** — Captures a structured Decision Record (DR) for a significant decision. *Auto · Adopt · Fires 6/8 · Holds 8/8*
+- **[/decide](skills/decisions/decide/SKILL.md)** — Works as a thinking partner. It explores a problem and the options for it, before you make a decision. *Auto · Adopt · +9 pts vs. no skill*
+- **[/log-decision](skills/decisions/log-decision/SKILL.md)** — Captures a structured Decision Record (DR) for a significant decision. *Auto · Adopt*
 - **[/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md)** — Mines the git history of a repository for significant decisions from the past. It then writes a Decision Record for each one, with the log-decision conventions. *Manual · Trial*
 
 ### `agent-docs`
 
 Author and tighten the docs that steer AI coding agents — a single SKILL.md or a repo's full CLAUDE.md/AGENTS.md/editor-rules corpus.
 
-- **[/review-skill](skills/agent-docs/review-skill/SKILL.md)** — Audits a skill that exists, for its triggering, scope, structure, prose, and domain accuracy. *Auto · Adopt · Fires 6/8 · Holds 8/8*
-- **[/tune-agent-docs](skills/agent-docs/tune-agent-docs/SKILL.md)** — Reviews every markdown file that steers an AI agent in a repository as one corpus, then tightens them. That covers CLAUDE.md, AGENTS.md, the Cursor, Cline, Windsurf, and Kiro rules, and the Copilot instructions. *Auto · Trial · Fires 8/8 · Holds 8/8*
+- **[/review-skill](skills/agent-docs/review-skill/SKILL.md)** — Audits a skill that exists, for its triggering, scope, structure, prose, and domain accuracy. *Auto · Adopt*
+- **[/tune-agent-docs](skills/agent-docs/tune-agent-docs/SKILL.md)** — Reviews every markdown file that steers an AI agent in a repository as one corpus, then tightens them. That covers CLAUDE.md, AGENTS.md, the Cursor, Cline, Windsurf, and Kiro rules, and the Copilot instructions. *Auto · Trial*
 
 ### `engineering-practices`
 
 Guidelines that keep execution aligned with proven engineering practices.
 
-- **[/standard-first](skills/engineering-practices/standard-first/SKILL.md)** — Guides technical implementation to prefer the standard, officially documented solution. *Auto · Adopt · Fires 7/8 · Holds 8/8*
+- **[/standard-first](skills/engineering-practices/standard-first/SKILL.md)** — Guides technical implementation to prefer the standard, officially documented solution. *Auto · Adopt*
 
 ### `planning`
 
 Shape units of work that are well-defined, verifiable, and ready to be executed, and triage existing ones against the codebase.
 
-- **[/work-item](skills/planning/work-item/SKILL.md)** — Drafts a work item with verifiable acceptance criteria, and creates it in whatever tracker is connected. *Auto · Adopt · Fires 7/8 · Holds 8/8*
-- **[/triage-work-item](skills/planning/triage-work-item/SKILL.md)** — Triages a work item in the tracker from end to end, and reads the telemetry it can reach. It then posts the root-cause analysis back to the item as a comment. *Auto · Adopt · Fires 8/8 · Holds 8/8*
+- **[/work-item](skills/planning/work-item/SKILL.md)** — Drafts a work item with verifiable acceptance criteria, and creates it in whatever tracker is connected. *Auto · Adopt*
+- **[/triage-work-item](skills/planning/triage-work-item/SKILL.md)** — Triages a work item in the tracker from end to end, and reads the telemetry it can reach. It then posts the root-cause analysis back to the item as a comment. *Auto · Adopt*
 
 ## Draft skills
 
@@ -118,9 +123,9 @@ has no business shipping to whoever installs the plugin. Each case names its plu
 
 | Tag | Ablation | What it measures |
 |---|---|---|
-| `behavior` | `with-without` | An Auto skill against a no-plugin baseline arm. The delta is the headline number. |
-| `mechanics` | `none` | A Manual skill, which a baseline arm cannot reach, so the absolute score is the number. |
-| `triggering` | `none` | Whether the description fires, as `Fires n/8 · Holds n/8`. |
+| `behavior` | `with-without` | An Auto skill against a no-plugin baseline arm. The delta is the headline number, and it is what an Auto entry above carries as `+N pts vs. no skill`. |
+| `mechanics` | `none` | A Manual skill, which a baseline arm cannot reach, so the absolute score is the number, carried as `Scores N%`. |
+| `triggering` | `none` | Whether the description fires, as `Fires n/8 · Holds n/8`. It lands in `evals/TRIGGERING.md` and not in the listing above, because the behavior delta already prices firing in. |
 
 Each run is sandboxed: its own `HOME`, its own `CLAUDE_CONFIG_DIR`, its own working directory, and
 only the plugin under test loaded. Nothing touches your `~/.claude`, so you keep using your own

@@ -46,7 +46,7 @@ See the `plugin-versioning` skill for how to bump a plugin's SemVer version befo
 
 `README.md` is the only listing a user reads to discover what a plugin offers. Nothing regenerates it from the `skills/` tree, so a skill that exists in code and not in the README is invisible to them.
 
-Whenever a skill is added, removed, or renamed under `skills/<plugin>/`, update that plugin's entry in the same commit. It sits in the [Plugins](README.md#plugins) section of the README. Use the [Draft skills](README.md#draft-skills) section instead for anything under `skills/drafts/`. Each entry carries the one-line description, the `Auto` or `Manual` invocation, and the `Draft`, `Trial`, or `Adopt` status.
+Whenever a skill is added, removed, or renamed under `skills/<plugin>/`, update that plugin's entry in the same commit. It sits in the [Plugins](README.md#plugins) section of the README. Use the [Draft skills](README.md#draft-skills) section instead for anything under `skills/drafts/`. Each entry carries the one-line description, the `Auto` or `Manual` invocation, and the `Draft`, `Trial`, or `Adopt` status. An entry carries a score only after a measured sweep: `+N pts vs. no skill` for an Auto skill, and `Scores N%` for a Manual one. `scripts/eval_report.py` prints those strings, so never write one by hand, and leave an unmeasured skill with no score.
 
 The same applies to `rules/`. Whenever a rule is added, removed, or renamed there, update its entry in the same commit, in the [Rules](README.md#rules) section of the README. That entry carries the one-line description and the paths that the rule is scoped to.
 

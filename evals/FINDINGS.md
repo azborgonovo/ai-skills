@@ -93,7 +93,7 @@ verdicts that land near a threshold at `--runs 3`.
 
 ## State
 
-`decide` is the only skill measured on the new harness, on both axes. The other 14 carry converted
-suites that have not been run, so every `Fires n/8 · Holds n/8` string in `README.md` except
-`decide` still comes from the old harness. Run the full sweep before trusting the table as one
-measurement.
+`decide` is the only skill measured on the new harness, on both axes, so it is the only entry in
+`README.md` that carries a score: `+9 pts vs. no skill`, from **+9.2%** over 4 behavior cases. The
+other 14 carry converted suites that have not been run, and an unmeasured skill carries no score
+rather than a figure from the old harness. Run the full sweep to fill them in.

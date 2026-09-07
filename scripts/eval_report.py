@@ -7,8 +7,10 @@ directory is `evals/<plugin>/<skill>/<case>` for a behavior or mechanics case,
 and `evals/<plugin>/<skill>/triggering/<fire|hold>-NN` for a probe, so the skill
 is the third segment.
 
-Writes `evals/SWEEP.md` and `evals/TRIGGERING.md`, and prints the
-`Fires n/N · Holds n/N` strings that README.md carries per Auto skill.
+Writes `evals/SWEEP.md` and `evals/TRIGGERING.md`, and prints the score
+strings that README.md carries per skill: `+N pts vs. no skill` from a
+behavior document, and `Scores N%` from a mechanics one. A partial document
+yields no string, because a partial run is not a measurement.
 
 The result document is an additive-only public contract: field names are
 camelCase, and a reader tolerates unknown fields. A document marked `partial`
@@ -124,6 +126,15 @@ def signed(value: float | None) -> str:
     return "—" if value is None else f"{value * 100:+.1f}%"
 
 
+def readme_string(tag: str, row: dict) -> str | None:
+    """The score string README.md carries, or None when there is none to carry."""
+    if tag == "behavior" and row["delta"] is not None:
+        return f"{row['delta'] * 100:+.0f} pts vs. no skill"
+    if tag == "mechanics" and row["score"] is not None:
+        return f"Scores {row['score'] * 100:.0f}%"
+    return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -161,7 +172,6 @@ def main() -> int:
                 f, ft = row["fire"]
                 h, ht = row["hold"]
                 trig.append(f"| {skill} | {f}/{ft} | {h}/{ht} |")
-                readme.append(f"{plugin}/{skill}: Fires {f}/{ft} · Holds {h}/{ht}")
             trig.append("")
         else:
             sweep += [f"## {head}", "",
@@ -172,6 +182,9 @@ def main() -> int:
                     f"| {skill} | {row['cases']} | {pct(row['score'])} | "
                     f"{pct(row['without'])} | {signed(row['delta'])} | "
                     f"{row['fired']}/{row['cases']} |")
+                string = readme_string(tag, row)
+                if string and not doc.get("partial"):
+                    readme.append(f"{plugin}/{skill}: {string}")
             sweep.append("")
 
     if warnings:
