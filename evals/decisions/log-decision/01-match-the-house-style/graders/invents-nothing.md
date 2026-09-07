@@ -1,6 +1,6 @@
 ---
 type: llm
-focus: trace
+focus: files
 ---
 Every option, consequence and decision-maker in the new record traces to the
 prompt or to the two existing records that the run read. The run invents no

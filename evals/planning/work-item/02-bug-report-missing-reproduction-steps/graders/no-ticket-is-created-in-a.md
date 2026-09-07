@@ -1,6 +1,6 @@
 ---
 type: llm
-focus: last_message
+focus: trace
 arm: with-only
 ---
-No ticket is created in a live tracker. Every tracker call resolves to the stub at evals/fixtures/bin/gh, which only records the call.
+No ticket is created in a live tracker. Every tracker call goes through the sandbox stub at bin/gh, which only records the call.

@@ -12,6 +12,16 @@ strings that README.md carries per skill: `+N pts vs. no skill` from a
 behavior document, and `Scores N%` from a mechanics one. A partial document
 yields no string, because a partial run is not a measurement.
 
+Every table carries pass@k and pass^k beside the mean score, because the agent
+is not deterministic. `aggregates.passRate` is the fraction of a case's runs
+that scored a full 1.0, so pass@k, the case passing at least once, is that
+fraction above zero, and pass^k, the case passing every time, is that fraction
+at exactly one. A wide gap between the two names a flaky case, and a wide gap
+across a whole skill names a flaky skill. Read pass^k for a skill that has to
+work every time, and pass@k for one where a single good answer is enough. Both
+collapse into the mean score at `--runs 1`, which is why one run is a smoke run
+and not a measurement.
+
 The result document is an additive-only public contract: field names are
 camelCase, and a reader tolerates unknown fields. A document marked `partial`
 did not finish, so it is reported and never presented as a measurement.
@@ -75,6 +85,21 @@ def mean(values: list[float]) -> float | None:
     return sum(values) / len(values) if values else None
 
 
+def runs_of(case: dict) -> int:
+    """How many times the with-arm ran, which is the k in pass@k and pass^k."""
+    return len(case["arms"]["with"])
+
+
+def pass_at_k(case: dict) -> bool:
+    """The case scored a full 1.0 in at least one run."""
+    return case["aggregates"]["passRate"] > 0
+
+
+def pass_pow_k(case: dict) -> bool:
+    """The case scored a full 1.0 in every run."""
+    return case["aggregates"]["passRate"] == 1.0
+
+
 def behavior_rows(doc: dict) -> dict[str, dict]:
     """Per-skill score, baseline score and delta."""
     by_skill: dict[str, list[dict]] = {}
@@ -88,10 +113,13 @@ def behavior_rows(doc: dict) -> dict[str, dict]:
         agg = [c["aggregates"] for c in cases]
         rows[skill] = {
             "cases": len(cases),
+            "runs": max(runs_of(c) for c in cases),
             "score": mean([a["score"] for a in agg]),
             # scoreWithout and delta are absent when the arms are not comparable.
             "without": mean([a["scoreWithout"] for a in agg if "scoreWithout" in a]),
             "delta": mean([a["delta"] for a in agg if "delta" in a]),
+            "at_k": sum(1 for c in cases if pass_at_k(c)),
+            "pow_k": sum(1 for c in cases if pass_pow_k(c)),
             "fired": sum(1 for c in cases if case_fired(c)),
         }
     return rows
@@ -111,10 +139,12 @@ def triggering_rows(doc: dict) -> dict[str, dict]:
         kind = probe_kind(case)
         if not kind:
             continue
-        row = rows.setdefault(skill_of(case), {"fire": [0, 0], "hold": [0, 0]})
-        passed = case["aggregates"]["passRate"] == 1.0
-        row[kind][1] += 1
-        row[kind][0] += int(passed)
+        row = rows.setdefault(skill_of(case),
+                              {"fire": [0, 0, 0], "hold": [0, 0, 0], "runs": 1})
+        row["runs"] = max(row["runs"], runs_of(case))
+        row[kind][2] += 1
+        row[kind][0] += int(pass_pow_k(case))
+        row[kind][1] += int(pass_at_k(case))
     return dict(sorted(rows.items()))
 
 
@@ -167,20 +197,26 @@ def main() -> int:
 
         if tag == "triggering":
             trig += [f"## {head}", "",
-                     "| Skill | Fires | Holds |", "|---|---|---|"]
+                     "| Skill | Runs | Fires (pass^k) | Fires (pass@k) | "
+                     "Holds (pass^k) | Holds (pass@k) |",
+                     "|---|---|---|---|---|---|"]
             for skill, row in triggering_rows(doc).items():
-                f, ft = row["fire"]
-                h, ht = row["hold"]
-                trig.append(f"| {skill} | {f}/{ft} | {h}/{ht} |")
+                fp, fa, ft = row["fire"]
+                hp, ha, ht = row["hold"]
+                trig.append(f"| {skill} | {row['runs']} | {fp}/{ft} | {fa}/{ft} | "
+                            f"{hp}/{ht} | {ha}/{ht} |")
             trig.append("")
         else:
             sweep += [f"## {head}", "",
-                      "| Skill | Cases | Score | Baseline | Delta | Fired |",
-                      "|---|---|---|---|---|---|"]
+                      "| Skill | Cases | Runs | Score | Baseline | Delta | "
+                      "pass@k | pass^k | Fired |",
+                      "|---|---|---|---|---|---|---|---|---|"]
             for skill, row in behavior_rows(doc).items():
                 sweep.append(
-                    f"| {skill} | {row['cases']} | {pct(row['score'])} | "
-                    f"{pct(row['without'])} | {signed(row['delta'])} | "
+                    f"| {skill} | {row['cases']} | {row['runs']} | "
+                    f"{pct(row['score'])} | {pct(row['without'])} | "
+                    f"{signed(row['delta'])} | {row['at_k']}/{row['cases']} | "
+                    f"{row['pow_k']}/{row['cases']} | "
                     f"{row['fired']}/{row['cases']} |")
                 string = readme_string(tag, row)
                 if string and not doc.get("partial"):

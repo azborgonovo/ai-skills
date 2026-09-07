@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/clean" ./clean
-cp -R "$(dirname "$0")/../fixtures/clean" ./clean

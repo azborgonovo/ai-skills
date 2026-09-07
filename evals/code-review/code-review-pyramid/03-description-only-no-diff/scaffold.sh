@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/pr-description.md" ./pr-description.md
-cp -R "$(dirname "$0")/../fixtures/pr-description.md" ./pr-description.md

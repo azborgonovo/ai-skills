@@ -1,5 +1,5 @@
 ---
 type: llm
-focus: trace
+focus: files
 ---
-Writes exactly one new test, and that test carries the literal string SCN-0203.
+Writes exactly one new test, for the scenario that had no bound test.

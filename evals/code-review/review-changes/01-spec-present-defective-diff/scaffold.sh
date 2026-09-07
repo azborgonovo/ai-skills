@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/defective" ./defective
-cp -R "$(dirname "$0")/../fixtures/defective" ./defective

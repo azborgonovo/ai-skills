@@ -1,5 +1,5 @@
 ---
 type: llm
-focus: trace
+focus: last_message
 ---
 Reports the two rejected scenarios as uncovered.

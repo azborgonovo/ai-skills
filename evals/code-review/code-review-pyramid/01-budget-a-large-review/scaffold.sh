@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/changed-files.txt" ./changed-files.txt
-cp -R "$(dirname "$0")/../fixtures/changed-files.txt" ./changed-files.txt

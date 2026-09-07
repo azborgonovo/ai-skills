@@ -1,5 +1,5 @@
 ---
 type: llm
-focus: last_message
+focus: files
 ---
 Turns the criterion 'Search works correctly' into an outcome about result order or ranking, which is what the Root cause section points at.

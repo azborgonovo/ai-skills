@@ -1,5 +1,5 @@
 ---
 type: llm
-focus: trace
+focus: last_message
 ---
 Puts both gaps to the user as questions in the final reply, rather than choosing an answer.

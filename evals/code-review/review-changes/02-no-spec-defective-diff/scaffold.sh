@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/defective-nospec" ./defective-nospec
-cp -R "$(dirname "$0")/../fixtures/defective-nospec" ./defective-nospec

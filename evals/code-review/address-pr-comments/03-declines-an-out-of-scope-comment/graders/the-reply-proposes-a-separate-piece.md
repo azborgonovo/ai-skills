@@ -1,5 +1,7 @@
 ---
 type: llm
-focus: last_message
+focus:
+  source: file
+  path: writes.log
 ---
-The reply proposes a separate piece of work, or states what this change covers, instead of agreeing to widen the pull request or refusing with no reason.
+The reply it posted proposes a separate piece of work, or states what this change covers, instead of agreeing to widen the pull request or refusing with no reason.

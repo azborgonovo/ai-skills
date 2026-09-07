@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/orders-api" ./orders-api
-cp -R "$(dirname "$0")/../fixtures/orders-api" ./orders-api

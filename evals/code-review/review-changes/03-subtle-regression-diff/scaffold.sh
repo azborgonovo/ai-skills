@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/regression" ./regression
-cp -R "$(dirname "$0")/../fixtures/regression" ./regression

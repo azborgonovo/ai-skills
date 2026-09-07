@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/notifier.diff" ./notifier.diff
-cp -R "$(dirname "$0")/../fixtures/notifier.diff" ./notifier.diff

@@ -5,5 +5,4 @@ set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/bin" ./bin
 cp -R "$(dirname "$0")/../fixtures/exports-repo" ./exports-repo
-cp -R "$(dirname "$0")/../fixtures/exports-repo" ./exports-repo
 cp -R "$(dirname "$0")/../fixtures/tracker" ./tracker

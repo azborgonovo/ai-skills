@@ -79,21 +79,58 @@ moved and nothing is blanked.
 **Triggering got better, not just cheaper.** `decide` measured **Fires 8/8 · Holds 8/8** against
 7/8 · 8/8 under the old harness, at $1.92 for 16 probes.
 
-## Measured cost, at one run per case
+## Measured cost
 
-| Axis | Units | Measured | Projected |
-|---|---|---|---|
-| behavior | 55 cases x 2 arms | $2.46 for 4 cases | about $34 |
-| mechanics | 16 cases x 1 arm | — | about $8 |
-| triggering | 192 probes x 1 arm | $1.92 for 16 probes | about $23 |
+The figures below were measured at one run per case. `scripts/run_evals.py` now defaults to
+`--runs 3`, so multiply by three for a sweep that yields a verdict.
 
-About **$65** for a full sweep. Pass `--max-cost-usd`; a run that hits the ceiling still writes its
-document and marks it `partial`, and a partial document is not a measurement. Re-run only the
-verdicts that land near a threshold at `--runs 3`.
+| Axis | Units | Measured at 1 run | Projected at 1 run | Projected at 3 runs |
+|---|---|---|---|---|
+| behavior | 57 cases x 2 arms | $2.46 for 4 cases | about $35 | about $105 |
+| mechanics | 16 cases x 1 arm | — | about $8 | about $24 |
+| triggering | 192 probes x 1 arm | $1.92 for 16 probes | about $23 | about $69 |
+
+About **$66** for a smoke sweep and about **$200** for a measured one. Pass `--max-cost-usd`. A run
+that hits the ceiling still writes its document and marks it `partial`, and a partial document is
+not a measurement.
+
+One run is the reason to spend the extra money. `aggregates.passRate` is the fraction of a case's
+runs that scored a full 1.0, so at one run it is the score itself and carries no error bar. At three
+runs it separates pass@k, the case passing at least once, from pass^k, the case passing every time,
+and the gap between them is what names a flaky skill. `scripts/eval_report.py` reports both.
+
+## What the eval-practice review changed
+
+The suites were reviewed against Anthropic's [Demystifying evals for AI
+agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents). Four gaps were
+real, and [README.md](README.md#how-a-case-is-graded) now carries the rules that close them.
+
+**Most graders scored the retelling and not the outcome.** A case whose deliverable was a file, a
+commit or a posted comment asserted that outcome against `focus: last_message` or `focus: trace`, so
+a run that described the artifact well enough scored the same as one that wrote it. Roughly a
+hundred graders moved onto `focus: files`, onto the one file that holds the artifact, or onto the
+stub call log that records what was posted. Path and literal-string questions became `file_exists`
+and `regex` graders, which need no judge at all.
+
+**The prompts of two cases named a directory the run never sees.** A case starts in an empty working
+directory that its `scaffold.sh` fills, and `review-feature-suite` told the run to read
+`evals/fixtures/`, which the scaffold copies to `./`. A third prompt was truncated mid-sentence.
+Twenty-three grader criteria named the same wrong paths, across five suites. A run cannot pass a
+case whose spec points nowhere, and a 0% there measures the case and not the skill.
+
+**Every suite scored finding problems, and three scored nothing else.** `review-feature-suite` and
+`tune-agent-docs` gained a case whose right answer is that nothing is wrong, matching
+`review-skill/04-already-sound-skill`. Without one, a suite rewards a run that invents a defect
+exactly as much as one that reads the file correctly.
+
+**Twenty-five scaffolds copied the same fixture twice**, and four graders bundled five or six
+requirements into one bit, which threw away the partial credit that shows a run getting closer.
 
 ## State
 
 `decide` is the only skill measured on the new harness, on both axes, so it is the only entry in
-`README.md` that carries a score: `+9 pts vs. no skill`, from **+9.2%** over 4 behavior cases. The
-other 14 carry converted suites that have not been run, and an unmeasured skill carries no score
-rather than a figure from the old harness. Run the full sweep to fill them in.
+`README.md` that carries a score: `+9 pts vs. no skill`, from **+9.2%** over 4 behavior cases at one
+run per case, with the skill firing in 2 of those 4. That figure predates both the `--runs 3`
+default and the grader repairs above, so it carries no error bar and it is due a re-measurement. The
+other 14 skills carry converted suites that have not been run, and an unmeasured skill carries no
+score rather than a figure from the old harness. Run the full sweep to fill them in.

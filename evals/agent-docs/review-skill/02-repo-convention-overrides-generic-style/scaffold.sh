@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/payments-repo" ./payments-repo
-cp -R "$(dirname "$0")/../fixtures/payments-repo" ./payments-repo

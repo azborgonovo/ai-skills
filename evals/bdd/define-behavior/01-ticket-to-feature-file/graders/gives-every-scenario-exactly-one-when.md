@@ -1,6 +1,6 @@
 ---
 type: llm
-focus: last_message
+focus: files
 arm: with-only
 ---
 Gives every scenario exactly one `When` step.

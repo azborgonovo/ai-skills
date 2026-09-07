@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/refund-request.md" ./refund-request.md
-cp -R "$(dirname "$0")/../fixtures/refund-request.md" ./refund-request.md

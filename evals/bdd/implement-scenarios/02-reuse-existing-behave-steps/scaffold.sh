@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/loyalty-app" ./loyalty-app
-cp -R "$(dirname "$0")/../fixtures/loyalty-app" ./loyalty-app

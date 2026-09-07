@@ -1,6 +1,6 @@
 ---
 type: llm
-focus: trace
+focus: files
 ---
 The decision record the run wrote repeats the section layout of its two
 neighbours: status, date and decision-makers in frontmatter, a heading of the

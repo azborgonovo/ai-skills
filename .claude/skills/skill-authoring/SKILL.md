@@ -80,7 +80,11 @@ Read the `Fired` column before the delta. The with-plugin arm loads the plugin, 
 | Promote Trial to Adopt | A score of about 90%, with a positive delta. |
 | Demote Adopt to Trial | The measured score does not support the claim. |
 
-A single run per case carries variance. Re-run any verdict that lands near a threshold at 3 runs before you act on it.
+Read a verdict off three runs, never one. The agent is not deterministic, so a single run reports luck as skill. `scripts/run_evals.py` runs each case three times by default, and `scripts/eval_report.py` reports two numbers from that: pass@k, the cases that passed at least once, and pass^k, the cases that passed every time. Read pass^k for a skill that must work every time, and pass@k for one where a single good answer is enough. A wide gap between the two names a flaky skill, and a flaky skill is not ready to promote whatever its mean score says.
+
+A suite that reaches 100% stops telling you anything. When pass^k hits every case, the suite is saturated: add harder cases rather than reading the score as proof the skill is finished.
+
+A pass rate of 0% is a broken case far more often than an incapable model. Before you act on one, read the transcript and check that the case is solvable, that the prompt names paths that exist in the sandbox, and that no grader demands something the granted tools cannot do.
 
 `scripts/run_evals.py` runs every axis and writes the numbers, and `scripts/eval_report.py` turns them into the records that `README.md` reads. See [Evals](../../../README.md#evals) for the case layout, which lives under `evals/<plugin>/<skill>/` at the repository root, and for the grader types.
 

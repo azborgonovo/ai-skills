@@ -1,5 +1,7 @@
 ---
 type: llm
-focus: trace
+focus:
+  source: file
+  path: writes.log
 ---
-The SHA in the reply is the one git reports for that commit, and it is not invented or paraphrased.
+The SHA in the reply it posted is the one git reports for that commit, and it is not invented or paraphrased.

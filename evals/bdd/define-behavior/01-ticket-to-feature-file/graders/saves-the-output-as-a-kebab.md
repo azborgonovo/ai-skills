@@ -1,6 +1,6 @@
 ---
 type: llm
-focus: last_message
+focus: files
 arm: with-only
 ---
-Saves the output as a kebab-case `.feature` file that holds exactly one `Feature`.
+Saves the output as a `.feature` file whose name is kebab-case.

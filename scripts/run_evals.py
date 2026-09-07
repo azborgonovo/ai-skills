@@ -12,6 +12,12 @@ plugin needs one invocation per tag that it has cases for:
 The result document of each invocation lands in the plugin's results directory
 as `<tag>.json`. `scripts/eval_report.py` turns those into the README strings.
 
+Every case runs three times. The agent is not deterministic, so one run gives a
+score with no error bar, and a verdict read off one run reports luck as skill.
+Three runs give both metrics that a non-deterministic agent needs: pass@k, which
+is the case passing at least once, and pass^k, which is the case passing every
+time. `--runs 1` is a smoke run, and a smoke run is not a measurement.
+
 Nothing here reimplements the harness. Arm construction, config isolation, the
 judge, retries and aggregation all belong to `claude plugin eval`.
 """
@@ -132,8 +138,8 @@ def main() -> int:
     ap.add_argument("plugin", nargs="*", help="plugin names; default is every one")
     ap.add_argument("--tag", action="append", choices=sorted(ABLATION),
                     help="repeatable; default is every tag")
-    ap.add_argument("--runs", type=int, default=1,
-                    help="runs per case (default 1; use 3 near a threshold)")
+    ap.add_argument("--runs", type=int, default=3,
+                    help="runs per case (default 3; 1 only for a smoke run)")
     ap.add_argument("--judge-model", default="sonnet",
                     help="LLM-grader model (default sonnet; the CLI default is haiku)")
     ap.add_argument("--model", help="pin the agent model, as CI should")

@@ -109,9 +109,10 @@ Every published skill carries an eval suite. `claude plugin eval` runs it, and
 [`scripts/run_evals.py`](scripts/run_evals.py) drives one invocation per plugin per axis:
 
 ```bash
-python scripts/run_evals.py                       # every plugin, every axis, 1 run per case
+python scripts/run_evals.py                       # every plugin, every axis, 3 runs per case
 python scripts/run_evals.py decisions --tag behavior
 python scripts/run_evals.py --dry-run             # print the commands only
+python scripts/run_evals.py bdd --runs 1          # smoke run, not a measurement
 python scripts/eval_report.py --write             # regenerate evals/SWEEP.md
 ```
 
@@ -130,6 +131,12 @@ has no business shipping to whoever installs the plugin. Each case names its plu
 Each run is sandboxed: its own `HOME`, its own `CLAUDE_CONFIG_DIR`, its own working directory, and
 only the plugin under test loaded. Nothing touches your `~/.claude`, so you keep using your own
 plugins and skills while a sweep runs.
+
+Every case runs three times, because the agent is not deterministic and one run carries no error
+bar. `evals/SWEEP.md` reports pass@k, the cases that passed at least once, next to pass^k, the cases
+that passed every time, and the gap between them is what names a flaky skill.
+[`evals/README.md`](evals/README.md#how-a-case-is-graded) carries the rules a case is written to,
+and [`evals/FINDINGS.md`](evals/FINDINGS.md) carries what the sweeps established.
 
 `claude plugin eval` is in early access. An enabled organization needs nothing. Every other client
 needs `CLAUDE_CODE_WALNUT_SPIRE=1`, which `run_evals.py` sets for the child, in the shell or in

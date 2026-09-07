@@ -6,4 +6,3 @@ set -euo pipefail
 cp -R "$(dirname "$0")/../fixtures/bin" ./bin
 cp -R "$(dirname "$0")/../fixtures/exports-app" ./exports-app
 cp -R "$(dirname "$0")/../fixtures/tracker" ./tracker
-cp -R "$(dirname "$0")/../fixtures/exports-app" ./exports-app

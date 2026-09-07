@@ -4,5 +4,4 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/bin" ./bin
-cp -R "$(dirname "$0")/../fixtures/bin" ./bin
 cp -R "$(dirname "$0")/../fixtures/support-thread.md" ./support-thread.md

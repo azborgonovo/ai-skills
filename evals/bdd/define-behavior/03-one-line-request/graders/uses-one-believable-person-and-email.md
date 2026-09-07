@@ -1,5 +1,5 @@
 ---
 type: llm
-focus: last_message
+focus: files
 ---
 Uses one believable person and email address rather than foo, bar or test placeholders.

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Sandbox stub for the gh CLI.
 
-A read is answered from evals/fixtures/canned/. A write is appended to
-evals/fixtures/writes.log and goes no further, so no call reaches github.com.
+A read is answered from the canned/ tree a scaffold copies in. A write is appended
+to writes.log beside it and goes no further, so no call reaches github.com.
 """
 
 import json

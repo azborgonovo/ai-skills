@@ -1,5 +1,5 @@
 ---
 type: llm
-focus: last_message
+focus: files
 ---
-Writes no annual price and no proration amount into evals/fixtures/subscription-billing.feature.
+Writes no annual price and no proration amount into subscription-billing.feature.

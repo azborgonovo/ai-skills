@@ -7,4 +7,4 @@ timeout_seconds: 900
 allowed_tools: [Bash, Edit, Glob, Grep, Read, Skill, Write]
 ---
 
-I'm about to wire up automation for . Before I do, do these scenarios contradict each other anywhere, and is anything referenced but never actually specified? Do not stop and wait for me. Put your questions and your full answer in this one reply.
+I'm about to wire up automation for these feature files. Before I do, do these scenarios contradict each other anywhere, and is anything referenced but never actually specified? Do not stop and wait for me. Put your questions and your full answer in this one reply.

@@ -3,7 +3,6 @@
 # prompt names has to be copied in first.
 set -euo pipefail
 
-cp -R "$(dirname "$0")/../fixtures/." ./.
 cp -R "$(dirname "$0")/../fixtures/checkout.feature" ./checkout.feature
 cp -R "$(dirname "$0")/../fixtures/promotions.feature" ./promotions.feature
 cp -R "$(dirname "$0")/../fixtures/sign-in.feature" ./sign-in.feature

@@ -1,8 +1,8 @@
 """Shared lookup and call-recording helpers for the stub host CLIs.
 
-The stubs serve canned JSON from `evals/fixtures/<case>/api/`. They open no socket, so a
-run cannot reach a real host. Every write call is appended to `posted-calls.log` in the
-working directory and answered with a canned success.
+The stubs serve canned JSON from the `<case>/api/` tree a scaffold copies in. They open no socket, so a
+run cannot reach a real host. Every write call is appended to `posted-calls.log` beside the
+bin/ directory that holds these stubs, and answered with a canned success.
 """
 
 import json
@@ -45,7 +45,10 @@ def find_glob(pattern):
 
 
 def log_path():
-    return Path(os.environ.get("PR_REVIEW_CALL_LOG") or Path.cwd() / "posted-calls.log")
+    # Anchored to the stub, not to the caller. A run reviews from inside the
+    # clone or a worktree, so a cwd-relative log would scatter across
+    # directories and the graders that read it would find an empty file.
+    return Path(os.environ.get("PR_REVIEW_CALL_LOG") or BIN.parent / "posted-calls.log")
 
 
 def serve(path, tool):

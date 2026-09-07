@@ -4,4 +4,3 @@
 set -euo pipefail
 
 cp -R "$(dirname "$0")/../fixtures/ratelimit-api" ./ratelimit-api
-cp -R "$(dirname "$0")/../fixtures/ratelimit-api" ./ratelimit-api
