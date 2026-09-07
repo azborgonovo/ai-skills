@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Sandbox stub for the gh CLI.
+
+A read is answered from evals/fixtures/canned/. A write is appended to
+evals/fixtures/writes.log and goes no further, so no call reaches github.com.
+"""
+
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+FIXTURES = Path(__file__).resolve().parent.parent
+CANNED = FIXTURES / "canned"
+LOG = Path(os.environ.get("GH_STUB_LOG", FIXTURES / "writes.log"))
+WRITE_METHODS = {"POST", "PATCH", "PUT", "DELETE"}
+FIELD_FLAGS = {"-f", "-F", "--field", "--raw-field"}
+
+argv = sys.argv[1:]
+
+
+def record(kind):
+    LOG.parent.mkdir(parents=True, exist_ok=True)
+    with LOG.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"cli": "gh", "kind": kind, "argv": argv}) + "\n")
+    print(f"[stub] recorded {kind} in {LOG}; nothing was sent to github.com", file=sys.stderr)
+
+
+def fields():
+    out = {}
+    for index, arg in enumerate(argv):
+        if arg in FIELD_FLAGS and index + 1 < len(argv) and "=" in argv[index + 1]:
+            key, value = argv[index + 1].split("=", 1)
+            out[key] = value
+    return out
+
+
+def pull_number():
+    for arg in argv:
+        match = re.search(r"/pull/(\d+)", arg)
+        if match:
+            return match.group(1)
+    number = fields().get("number")
+    if number:
+        return number
+    for arg in argv:
+        if re.fullmatch(r"\d+", arg):
+            return arg
+    return None
+
+
+def serve(kind):
+    number = pull_number()
+    path = CANNED / f"pr-{number}.{kind}.json"
+    if not path.exists():
+        print(f"[stub] no canned {kind} for pull request {number}", file=sys.stderr)
+        sys.exit(1)
+    sys.stdout.write(path.read_text(encoding="utf-8"))
+
+
+def method():
+    for index, arg in enumerate(argv):
+        if arg in ("-X", "--method") and index + 1 < len(argv):
+            return argv[index + 1].upper()
+    return None
+
+
+def unsupported():
+    record("unsupported")
+    print(f"[stub] unsupported gh command: {' '.join(argv)}", file=sys.stderr)
+    sys.exit(1)
+
+
+if not argv:
+    unsupported()
+
+if argv[0] == "auth":
+    print("github.com\n  logged in to github.com account eval-bot (keyring)")
+    sys.exit(0)
+
+if argv[0] == "pr":
+    if len(argv) > 1 and argv[1] in ("view", "diff", "status", "list"):
+        serve("view")
+        sys.exit(0)
+    record("pr-write")
+    sys.exit(0)
+
+if argv[0] == "api":
+    endpoint = next((a for a in argv[1:] if not a.startswith("-")), "")
+    if endpoint == "graphql":
+        query = fields().get("query", "")
+        if "mutation" in query:
+            record("graphql-mutation")
+            print(json.dumps({"data": {"resolveReviewThread": {
+                "thread": {"id": fields().get("threadId", ""), "isResolved": True}}}}))
+            sys.exit(0)
+        if "reviewThreads" in query:
+            serve("threads")
+            sys.exit(0)
+        print(json.dumps({"data": {}}))
+        sys.exit(0)
+    if method() in WRITE_METHODS or fields():
+        record("rest-write")
+        print(json.dumps({"id": 990001, "body": fields().get("body", ""),
+                          "html_url": "https://github.example.invalid/recorded-only"}))
+        sys.exit(0)
+    if endpoint.rstrip("/") == "user":
+        print(json.dumps({"login": "eval-bot"}))
+        sys.exit(0)
+    print(json.dumps({}))
+    sys.exit(0)
+
+unsupported()

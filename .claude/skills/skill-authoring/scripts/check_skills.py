@@ -133,8 +133,18 @@ def collect(targets: list[str]) -> list[Path]:
         if path.is_file():
             found.append(path)
         elif path.is_dir():
-            found.extend(sorted(path.rglob("SKILL.md")))
+            found.extend(sorted(f for f in path.rglob("SKILL.md")
+                                if not is_fixture(f)))
     return found
+
+
+def is_fixture(path: Path) -> bool:
+    """An eval fixture is test data. A case can plant a defect the rules forbid.
+
+    The suites live under evals/<plugin>/<skill>/fixtures/, so the two segments
+    are not adjacent. Any SKILL.md below a fixtures directory is test data.
+    """
+    return "fixtures" in path.parts
 
 
 def main() -> int:

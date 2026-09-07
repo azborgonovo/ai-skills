@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Offline stub for the `glab` CLI, used by the pr-review eval suite.
+
+A read call is answered from `evals/fixtures/<case>/api/`. A write call is appended to
+`posted-calls.log` and answered with a canned success. No call leaves the machine.
+"""
+
+import json
+import sys
+
+import _fixture as fx
+
+TOOL = "glab"
+WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+WRITE_SUBCOMMANDS = {"approve", "unapprove", "revoke", "note", "merge", "close",
+                     "reopen", "create", "update", "delete", "subscribe", "todo"}
+FLAGS_WITH_VALUE = {"--method", "-X", "--header", "-H", "--input", "--field", "-f",
+                    "--raw-field", "-F", "--hostname", "--repo", "-R", "--output", "-o"}
+
+
+def api(argv):
+    method = "GET"
+    path = None
+    rest = list(argv)
+    i = 0
+    positional = []
+    while i < len(rest):
+        token = rest[i]
+        if token in ("--method", "-X"):
+            method = rest[i + 1].upper()
+            i += 2
+            continue
+        if token in FLAGS_WITH_VALUE:
+            i += 2
+            continue
+        if token.startswith("-"):
+            i += 1
+            continue
+        positional.append(token)
+        i += 1
+    if positional:
+        path = positional[0]
+    if path is None:
+        return fx.missing(TOOL, "an api call with no path", "a path argument")
+
+    body = fx.read_stdin_body(rest)
+    if body is not None and method == "GET":
+        method = "POST"
+
+    if method in WRITE_METHODS:
+        new_id = fx.record(TOOL, method, path, body)
+        print(json.dumps(fx.canned_write_response(new_id, path)))
+        return 0
+
+    key = fx.sanitize(path)
+    hit = fx.find(key)
+    if hit is None:
+        return fx.missing(TOOL, f"GET {path}", f"api/{key}.json")
+    return fx.serve(hit, TOOL)
+
+
+def mr(argv):
+    if not argv:
+        return fx.missing(TOOL, "mr with no subcommand", "a subcommand")
+    sub = argv[0]
+    if sub in WRITE_SUBCOMMANDS:
+        new_id = fx.record(TOOL, f"mr {sub}", " ".join(argv[1:]))
+        print(f"[stub glab] mr {sub} recorded, id {new_id}")
+        return 0
+    if sub == "diff":
+        hit = fx.find_glob("mr_diff.patch")
+        if hit is None:
+            return fx.missing(TOOL, "mr diff", "api/mr_diff.patch")
+        return fx.serve(hit, TOOL)
+    if sub == "view":
+        hit = fx.find_glob("projects_*_merge_requests_*.json")
+        if hit is None:
+            return fx.missing(TOOL, "mr view", "api/projects_*_merge_requests_*.json")
+        return fx.serve(hit, TOOL)
+    return fx.missing(TOOL, f"mr {sub}", "a known subcommand")
+
+
+def main(argv):
+    if not argv:
+        print("glab (eval stub). Only `api`, `mr`, `auth`, and `version` answer.")
+        return 0
+    command, rest = argv[0], argv[1:]
+    if command == "api":
+        return api(rest)
+    if command == "mr":
+        return mr(rest)
+    if command == "auth":
+        print("gitlab.fixture.test\n  Logged in to gitlab.fixture.test as reviewer "
+              "(eval stub, offline)")
+        return 0
+    if command == "version":
+        print("glab 1.0.0 (eval stub)")
+        return 0
+    return fx.missing(TOOL, " ".join(argv), "a supported stub command")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

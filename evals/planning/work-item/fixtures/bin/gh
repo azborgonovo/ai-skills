@@ -1,0 +1,41 @@
+#!/bin/sh
+# Sandbox stand-in for the GitHub CLI. It records every call and reaches no
+# network, so an issue create leaves a line in the log and nothing else.
+log_file="${TRACKER_CALL_LOG:-tracker-calls.log}"
+printf '%s\n' "gh $*" >> "$log_file"
+
+case "$1 $2" in
+  "auth status")
+    echo "github.com"
+    echo "  Logged in to github.com account eval-sandbox (sandbox token)"
+    echo "  Token scopes: 'repo', 'read:org'"
+    exit 0
+    ;;
+  "repo view")
+    echo '{"nameWithOwner":"acme/web-app","defaultBranchRef":{"name":"main"}}'
+    exit 0
+    ;;
+  "issue list")
+    exit 0
+    ;;
+  "label list")
+    printf 'bug\tSomething is broken\n'
+    printf 'browser-safari\tSafari only\n'
+    printf 'enhancement\tNew or changed behaviour\n'
+    exit 0
+    ;;
+  "issue create")
+    echo "https://github.com/acme/web-app/issues/4821"
+    exit 0
+    ;;
+esac
+
+case "$1" in
+  --version|version)
+    echo "gh version 2.62.0 (sandbox stub)"
+    exit 0
+    ;;
+esac
+
+echo "gh sandbox stub: '$*' is not implemented. It supports auth status, repo view, label list, issue list and issue create." >&2
+exit 1

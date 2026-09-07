@@ -1,0 +1,70 @@
+#!/bin/sh
+# Fixture stub for the GitHub CLI. It serves canned issue data from the sibling
+# tracker/ directory, and it records every write instead of performing one. The
+# only programs it runs are cat, printf and date, so no request ever leaves the
+# machine.
+set -eu
+
+fixtures="$(cd "$(dirname "$0")/.." && pwd)"
+log="$PWD/posted-calls.log"
+
+deny() {
+    printf 'gh: no fixture for: %s\n' "$*" >&2
+    exit 1
+}
+
+value_after() {
+    want="$1"
+    shift
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            "$want") printf '%s' "${2:-}"; return 0 ;;
+            "$want"=*) printf '%s' "${1#*=}"; return 0 ;;
+        esac
+        shift
+    done
+    return 0
+}
+
+case "${1:-}" in
+    auth)
+        printf 'github.com\n  Logged in to github.com account fixture-bot (fixture stub)\n'
+        exit 0
+        ;;
+    api)
+        case "${2:-}" in
+            *user-attachments*|*export-capture.har*)
+                cat "$fixtures/tracker/export-capture.har"
+                exit 0
+                ;;
+            *) deny "gh api ${2:-}" ;;
+        esac
+        ;;
+    issue) ;;
+    *) deny "gh ${1:-}" ;;
+esac
+
+case "${2:-}" in
+    view)
+        cat "$fixtures/tracker/github-issue-42.json"
+        ;;
+    list)
+        cat "$fixtures/tracker/github-search.json"
+        ;;
+    comment)
+        file="$(value_after --body-file "$@")"
+        body="$(value_after --body "$@")"
+        {
+            printf '=== %s WRITE BLOCKED: gh issue comment %s ===\n' \
+                "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${3:-}"
+            if [ -n "$file" ] && [ -f "$file" ]; then
+                cat "$file"
+            else
+                printf '%s\n' "$body"
+            fi
+            printf '=== end of recorded comment ===\n'
+        } >> "$log"
+        printf 'fixture stub: recorded to %s, nothing was sent\n' "$log"
+        ;;
+    *) deny "gh issue ${2:-}" ;;
+esac

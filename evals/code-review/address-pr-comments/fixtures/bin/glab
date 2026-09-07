@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""Sandbox stub for the glab CLI. It records the call and reaches no GitLab host."""
+
+import json
+import os
+import sys
+from pathlib import Path
+
+FIXTURES = Path(__file__).resolve().parent.parent
+LOG = Path(os.environ.get("GH_STUB_LOG", FIXTURES / "writes.log"))
+
+LOG.parent.mkdir(parents=True, exist_ok=True)
+with LOG.open("a", encoding="utf-8") as handle:
+    handle.write(json.dumps({"cli": "glab", "kind": "blocked", "argv": sys.argv[1:]}) + "\n")
+
+print("[stub] glab reaches no host in this sandbox; the change lives on GitHub", file=sys.stderr)
+sys.exit(1)

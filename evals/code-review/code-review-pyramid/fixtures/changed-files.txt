@@ -1,0 +1,15 @@
+$ git diff --stat main...HEAD
+
+ src/orders/api/OrderClient.java             | 118 +++++++++++------
+ src/orders/api/RefundOptions.java           |  64 +++++++++
+ src/orders/internal/RefundEngine.java       | 203 ++++++++++++++++++++--------
+ src/orders/internal/Retry.java              |  41 +++---
+ config/application.yml                      |  12 +-
+ docs/refunds.md                             |   9 +-
+ src/test/orders/RefundEngineTest.java       | 156 ++++++++++++++++++++++
+ (34 more files, formatting only)            | 612 +++++++++---------------
+
+ 41 files changed, 1215 insertions(+), 462 deletions(-)
+
+Note: the 34 formatting-only files come from `mvn spotless:apply`, which also
+runs as a build gate on every push.

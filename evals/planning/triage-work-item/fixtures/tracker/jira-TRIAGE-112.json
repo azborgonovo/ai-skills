@@ -1,0 +1,40 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-112",
+          "summary": "Make the nightly reconciliation job incremental",
+          "issuetype": {
+            "name": "Task"
+          },
+          "status": {
+            "name": "To Do"
+          },
+          "issuelinks": [],
+          "attachment": [],
+          "renderedFields": {
+            "description": "<p>Refactor the nightly reconciliation job to process records incrementally instead of re-fetching the full table every run. The run time grows with the table.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-08-30T15:45:00.000+0200",
+                  "author": {
+                    "displayName": "Tom Fischer"
+                  },
+                  "body": "<p>Nothing is broken. The run takes 40 minutes now and it was 4 minutes last year.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

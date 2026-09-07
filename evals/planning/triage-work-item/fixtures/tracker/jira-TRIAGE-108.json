@@ -1,0 +1,47 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-108",
+          "summary": "Export button does nothing on Safari",
+          "issuetype": {
+            "name": "Bug"
+          },
+          "status": {
+            "name": "To Do"
+          },
+          "issuelinks": [],
+          "attachment": [],
+          "renderedFields": {
+            "description": "<p>On Safari the Export button on the orders screen does nothing. No file downloads and no error appears. Chrome is fine.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-08-20T09:14:00.000+0200",
+                  "author": {
+                    "displayName": "Priya Raman"
+                  },
+                  "body": "<p>Reproduced on Safari 17.5 on macOS.</p>"
+                },
+                {
+                  "created": "2026-09-03T14:22:00.000+0200",
+                  "author": {
+                    "displayName": "Automation Bot"
+                  },
+                  "body": "<p>Triaged with 🤖 using Sonnet 5:</p><p><b>What's happening</b><br/>I could not confirm a mechanism.</p><p><b>Root cause</b><br/>The repository holds no export code at all. There is no export endpoint and no download handler anywhere in the checkout, so the button most likely calls a route that was never built.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+#!/bin/sh
+# Fixture stub for the AWS CLI. It serves canned CloudWatch responses from the
+# sibling observability/ directory. The only programs it runs are cat and printf,
+# so no request ever leaves the machine. Only read calls have a fixture.
+set -eu
+
+fixtures="$(cd "$(dirname "$0")/.." && pwd)"
+
+deny() {
+    printf 'aws: no fixture for: %s\n' "$*" >&2
+    exit 1
+}
+
+value_after() {
+    want="$1"
+    shift
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            "$want") printf '%s' "${2:-}"; return 0 ;;
+            "$want"=*) printf '%s' "${1#*=}"; return 0 ;;
+        esac
+        shift
+    done
+    return 0
+}
+
+# Logs Insights keeps 30 days here. A query that starts before that window
+# answers with an empty result set, the same way the real service does.
+retention_seconds=2592000
+
+case "${1:-} ${2:-}" in
+    "sts get-caller-identity")
+        printf '{\n  "UserId": "AIDAFIXTURE",\n  "Account": "000000000000",\n  "Arn": "arn:aws:iam::000000000000:user/fixture"\n}\n'
+        ;;
+    "logs start-query")
+        start="$(value_after --start-time "$@")"
+        now="$(date +%s)"
+        if [ -n "$start" ] && [ "$start" -lt $(( now - retention_seconds )) ] 2>/dev/null; then
+            printf '{\n  "queryId": "fixture-query-outside-retention"\n}\n'
+        else
+            printf '{\n  "queryId": "fixture-query-1"\n}\n'
+        fi
+        ;;
+    "logs get-query-results")
+        if [ "$(value_after --query-id "$@")" = "fixture-query-outside-retention" ]; then
+            printf '{\n  "status": "Complete",\n  "results": [],\n  "statistics": {"recordsMatched": 0, "recordsScanned": 0}\n}\n'
+        else
+            cat "$fixtures/observability/cloudwatch-logs-insights.json"
+        fi
+        ;;
+    "logs describe-log-groups")
+        printf '{\n  "logGroups": [\n    {"logGroupName": "/exports-app/backend", "retentionInDays": 30}\n  ]\n}\n'
+        ;;
+    "cloudwatch get-metric-data")
+        cat "$fixtures/observability/cloudwatch-metric-data.json"
+        ;;
+    *) deny "aws ${1:-} ${2:-}" ;;
+esac

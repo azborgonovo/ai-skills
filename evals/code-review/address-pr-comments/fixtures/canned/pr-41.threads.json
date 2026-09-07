@@ -1,0 +1,68 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "reviewThreads": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          },
+          "nodes": [
+            {
+              "id": "PRRT_kwaaa4101",
+              "isResolved": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "databaseId": 900100,
+                    "body": "Typo in the README: 'chekout'.",
+                    "path": "README.md",
+                    "line": 1,
+                    "author": {
+                      "login": "dana"
+                    }
+                  },
+                  {
+                    "databaseId": 900101,
+                    "body": "Fixed, thanks.",
+                    "path": "README.md",
+                    "line": 1,
+                    "author": {
+                      "login": "robin"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwaaa4102",
+              "isResolved": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "databaseId": 900102,
+                    "body": "apply_discount returns a float here. CODING_STANDARDS.md says money stays an integer number of cents, and checkout hands this value straight back to the caller.",
+                    "path": "src/discount.py",
+                    "line": 9,
+                    "author": {
+                      "login": "dana"
+                    }
+                  },
+                  {
+                    "databaseId": 900103,
+                    "body": "Agreed. Floor it rather than rounding, because we round down everywhere else in pricing.",
+                    "path": "src/discount.py",
+                    "line": 9,
+                    "author": {
+                      "login": "sam"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

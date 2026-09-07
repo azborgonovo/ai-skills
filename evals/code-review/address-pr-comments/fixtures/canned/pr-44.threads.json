@@ -1,0 +1,33 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "reviewThreads": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          },
+          "nodes": [
+            {
+              "id": "PRRT_kwaaa4401",
+              "isResolved": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "databaseId": 900401,
+                    "body": "MAX_PERCENT is declared here and again in the discount module. Pull it into one place before this merges.",
+                    "path": "src/api.py",
+                    "line": 4,
+                    "author": {
+                      "login": "dana"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

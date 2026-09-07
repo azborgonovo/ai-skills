@@ -5,3 +5,17 @@
 # Python bytecode cache from bundled skill scripts (e.g. post_review_notes.py).
 __pycache__/
 *.py[cod]
+
+# Raw eval run output. `claude plugin eval` writes report.html, per-run traces and
+# mock recordings into a directory under results/; they are large, noisy and not
+# reproducible. The committed record is each plugin's evals/<plugin>/results/<tag>.json,
+# which scripts/eval_report.py reads, plus evals/SWEEP.md and evals/TRIGGERING.md.
+evals/*/results/*/
+
+# Fixture git repositories and canned host responses that a suite's
+# fixtures/build.sh builds. Git metadata does not survive a commit into this
+# repository, so scripts/run_evals.py rebuilds them before every sweep.
+evals/code-review/review-changes/fixtures/*/
+evals/code-review/pr-review/fixtures/mr-*/
+evals/code-review/pr-review/fixtures/pr-*/
+**/fixtures/*-repo/

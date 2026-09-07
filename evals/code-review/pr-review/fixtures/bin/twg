@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Offline stub for the `twg` CLI, used by the pr-review eval suite.
+
+It answers one command: a Jira work-item fetch. It writes the canned item to a file and
+prints the envelope that names that file, which is the shape the tracker adapter reads.
+This adapter is read-only, so the stub records nothing and sends nothing.
+"""
+
+import json
+import re
+import sys
+from pathlib import Path
+
+import _fixture as fx
+
+TOOL = "twg"
+KEY = re.compile(r"^[A-Z][A-Z0-9]+-\d+$")
+
+
+def bulk_get(argv):
+    keys = [token for token in argv if KEY.match(token)]
+    if not keys:
+        return fx.missing(TOOL, "a work-item fetch with no key", "a key such as PAY-118")
+    key = keys[0]
+    hit = fx.find(f"jira_{key}")
+    if hit is None:
+        return fx.missing(TOOL, f"work item {key}", f"api/jira_{key}.json")
+    out_dir = Path.cwd() / ".twg-output"
+    out_dir.mkdir(exist_ok=True)
+    stdout_file = out_dir / f"{key}.json"
+    stdout_file.write_text(hit.read_text())
+    compact = out_dir / f"{key}.compact.json"
+    payload = json.loads(hit.read_text())
+    item = payload["data"]["items"][0]["data"]
+    compact.write_text(json.dumps(
+        {"key": item["key"], "summary": item["summary"], "status": "In Review"},
+        indent=2) + "\n")
+    print(json.dumps({
+        "command": "jira workitem bulk-get",
+        "output_files": {"stdout": str(stdout_file), "compact": str(compact)},
+        "stats": {"requested": 1, "returned": 1},
+    }, indent=2))
+    print(f"[stub twg] served {hit}", file=sys.stderr)
+    return 0
+
+
+def main(argv):
+    if not argv:
+        print("twg (eval stub). Only `jira workitem bulk-get <KEY>` answers.")
+        return 0
+    if argv[0] == "help" or "--help" in argv:
+        print("twg jira workitem bulk-get <KEY> --fields summary,description,issuetype "
+              "--expand renderedFields -o json --output-summary stats")
+        return 0
+    if argv[:3] == ["jira", "workitem", "bulk-get"]:
+        return bulk_get(argv[3:])
+    return fx.missing(TOOL, " ".join(argv), "jira workitem bulk-get <KEY>")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

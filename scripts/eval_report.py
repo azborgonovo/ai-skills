@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""Turns `claude plugin eval` result documents into this repository's records.
+
+Reads `evals/<plugin>/results/{behavior,mechanics,triggering}.json`, which
+`scripts/run_evals.py` writes, and groups each document's cases by skill. A case
+directory is `evals/<plugin>/<skill>/<case>` for a behavior or mechanics case,
+and `evals/<plugin>/<skill>/triggering/<fire|hold>-NN` for a probe, so the skill
+is the third segment.
+
+Writes `evals/SWEEP.md` and `evals/TRIGGERING.md`, and prints the
+`Fires n/N · Holds n/N` strings that README.md carries per Auto skill.
+
+The result document is an additive-only public contract: field names are
+camelCase, and a reader tolerates unknown fields. A document marked `partial`
+did not finish, so it is reported and never presented as a measurement.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+EVALS = REPO / "evals"
+TAGS = ("behavior", "mechanics", "triggering")
+
+
+def skill_of(case: dict) -> str:
+    parts = Path(case["dir"]).parts
+    # evals/<plugin>/<skill>/<case>
+    return parts[2] if len(parts) > 2 and parts[0] == "evals" else parts[-1]
+
+
+def probe_kind(case: dict) -> str | None:
+    """`fire`, `hold`, or None when the case is not a triggering probe."""
+    parts = Path(case["dir"]).parts
+    if "triggering" not in parts:
+        return None
+    leaf = parts[-1]
+    return "fire" if leaf.startswith("fire") else "hold" if leaf.startswith("hold") else None
+
+
+def documents() -> dict[tuple[str, str], dict]:
+    found = {}
+    for path in sorted(REPO.glob("evals/*/results/*.json")):
+        if path.stem not in TAGS:
+            continue
+        doc = json.loads(path.read_text())
+        if doc.get("schemaVersion") != 1:
+            print(f"warning: {path} has schemaVersion "
+                  f"{doc.get('schemaVersion')!r}, expected 1", file=sys.stderr)
+        found[(path.parents[1].name, path.stem)] = doc
+    return found
+
+
+def plugin_problems(doc: dict) -> list[str]:
+    """Problem codes that mean the with-arm ran without the plugin.
+
+    `identity_unverified` and `archive_not_probed` say nothing about loading, so
+    they are not problems here.
+    """
+    blocking = {"manifest_invalid", "disabled_by_default", "will_not_load"}
+    plugins = doc.get("suite", {}).get("plugins", [])
+    if not plugins:
+        return ["no plugin resolved"]
+    return [f"{p['name']}: {p['problem']}" for p in plugins
+            if p.get("problem") in blocking]
+
+
+def mean(values: list[float]) -> float | None:
+    return sum(values) / len(values) if values else None
+
+
+def behavior_rows(doc: dict) -> dict[str, dict]:
+    """Per-skill score, baseline score and delta."""
+    by_skill: dict[str, list[dict]] = {}
+    for case in doc["cases"]:
+        if probe_kind(case):
+            continue
+        by_skill.setdefault(skill_of(case), []).append(case)
+
+    rows = {}
+    for skill, cases in sorted(by_skill.items()):
+        agg = [c["aggregates"] for c in cases]
+        rows[skill] = {
+            "cases": len(cases),
+            "score": mean([a["score"] for a in agg]),
+            # scoreWithout and delta are absent when the arms are not comparable.
+            "without": mean([a["scoreWithout"] for a in agg if "scoreWithout" in a]),
+            "delta": mean([a["delta"] for a in agg if "delta" in a]),
+            "fired": sum(1 for c in cases if case_fired(c)),
+        }
+    return rows
+
+
+def case_fired(case: dict) -> bool:
+    """Whether the with-arm's plugin-fired indicator passed in every run."""
+    runs = case["arms"]["with"]
+    indicators = [g for r in runs for g in r["graders"]
+                  if g["name"] == "fires-the-skill"]
+    return bool(indicators) and all(g["passed"] for g in indicators)
+
+
+def triggering_rows(doc: dict) -> dict[str, dict]:
+    rows: dict[str, dict] = {}
+    for case in doc["cases"]:
+        kind = probe_kind(case)
+        if not kind:
+            continue
+        row = rows.setdefault(skill_of(case), {"fire": [0, 0], "hold": [0, 0]})
+        passed = case["aggregates"]["passRate"] == 1.0
+        row[kind][1] += 1
+        row[kind][0] += int(passed)
+    return dict(sorted(rows.items()))
+
+
+def pct(value: float | None) -> str:
+    return "—" if value is None else f"{value * 100:.1f}%"
+
+
+def signed(value: float | None) -> str:
+    return "—" if value is None else f"{value * 100:+.1f}%"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--write", action="store_true",
+                    help="write evals/SWEEP.md and evals/TRIGGERING.md")
+    args = ap.parse_args()
+
+    docs = documents()
+    if not docs:
+        print("no result documents under evals/*/results/", file=sys.stderr)
+        return 1
+
+    sweep = ["# Sweep", "",
+             "Generated by `scripts/eval_report.py`. Do not edit by hand.", ""]
+    trig = ["# Triggering", "",
+            "Generated by `scripts/eval_report.py`. Do not edit by hand.", ""]
+    readme: list[str] = []
+    warnings: list[str] = []
+
+    for (plugin, tag) in sorted(docs):
+        doc = docs[(plugin, tag)]
+        head = (f"{plugin} · {tag} · {doc['claudeVersion']} · "
+                f"{doc['startedAt']} · ${doc['costUsd']:.2f}")
+        if doc.get("partial"):
+            warnings.append(f"{plugin}/{tag}: partial run "
+                            f"({doc.get('partialReason')}) — not a measurement")
+        for problem in plugin_problems(doc):
+            warnings.append(f"{plugin}/{tag}: {problem} — the with-arm ran "
+                            "without the plugin")
+
+        if tag == "triggering":
+            trig += [f"## {head}", "",
+                     "| Skill | Fires | Holds |", "|---|---|---|"]
+            for skill, row in triggering_rows(doc).items():
+                f, ft = row["fire"]
+                h, ht = row["hold"]
+                trig.append(f"| {skill} | {f}/{ft} | {h}/{ht} |")
+                readme.append(f"{plugin}/{skill}: Fires {f}/{ft} · Holds {h}/{ht}")
+            trig.append("")
+        else:
+            sweep += [f"## {head}", "",
+                      "| Skill | Cases | Score | Baseline | Delta | Fired |",
+                      "|---|---|---|---|---|---|"]
+            for skill, row in behavior_rows(doc).items():
+                sweep.append(
+                    f"| {skill} | {row['cases']} | {pct(row['score'])} | "
+                    f"{pct(row['without'])} | {signed(row['delta'])} | "
+                    f"{row['fired']}/{row['cases']} |")
+            sweep.append("")
+
+    if warnings:
+        block = ["## Warnings", ""] + [f"- {w}" for w in warnings] + [""]
+        sweep += block
+        trig += block
+
+    out = "\n".join(sweep) + "\n"
+    tout = "\n".join(trig) + "\n"
+    if args.write:
+        (EVALS / "SWEEP.md").write_text(out)
+        (EVALS / "TRIGGERING.md").write_text(tout)
+        print(f"wrote {EVALS/'SWEEP.md'} and {EVALS/'TRIGGERING.md'}")
+    else:
+        print(out)
+        print(tout)
+
+    if readme:
+        print("README strings:")
+        for line in readme:
+            print(f"  {line}")
+    for w in warnings:
+        print(f"warning: {w}", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

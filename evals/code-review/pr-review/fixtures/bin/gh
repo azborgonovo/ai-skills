@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+"""Offline stub for the `gh` CLI, used by the pr-review eval suite.
+
+A read call is answered from `evals/fixtures/<case>/api/`. A write call is appended to
+`posted-calls.log` and answered with a canned success. No call leaves the machine.
+"""
+
+import json
+import re
+import sys
+
+import _fixture as fx
+
+TOOL = "gh"
+WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+FLAGS_WITH_VALUE = {"--method", "-X", "--header", "-H", "--input", "--field", "-f",
+                    "--raw-field", "-F", "--hostname", "--repo", "-R", "--json", "-q",
+                    "--jq", "--template", "-t", "--body", "-b", "--body-file", "-F"}
+WRITE_SUBCOMMANDS = {"review", "comment", "merge", "close", "reopen", "create", "edit",
+                     "ready", "lock", "unlock"}
+
+
+def positional(argv):
+    out = []
+    i = 0
+    while i < len(argv):
+        token = argv[i]
+        if token in FLAGS_WITH_VALUE:
+            i += 2
+            continue
+        if token.startswith("-"):
+            i += 1
+            continue
+        out.append(token)
+        i += 1
+    return out
+
+
+def parse_ref(argv, kind):
+    """Return (owner, repo, number) from a URL, or (None, None, number)."""
+    for token in positional(argv):
+        m = re.search(r"github\.com/([^/]+)/([^/]+)/(?:pull|issues)/(\d+)", token)
+        if m:
+            return m.group(1), m.group(2), m.group(3)
+        m = re.fullmatch(r"([^/#\s]+)/([^/#\s]+)#(\d+)", token)
+        if m:
+            return m.group(1), m.group(2), m.group(3)
+        if token.isdigit():
+            return None, None, token
+        if token.startswith("#") and token[1:].isdigit():
+            return None, None, token[1:]
+    return None, None, None
+
+
+def api(argv):
+    method = "GET"
+    rest = list(argv)
+    i = 0
+    paths = []
+    while i < len(rest):
+        token = rest[i]
+        if token in ("--method", "-X"):
+            method = rest[i + 1].upper()
+            i += 2
+            continue
+        if token in FLAGS_WITH_VALUE:
+            i += 2
+            continue
+        if token.startswith("-"):
+            i += 1
+            continue
+        paths.append(token)
+        i += 1
+    if not paths:
+        return fx.missing(TOOL, "an api call with no path", "a path argument")
+    path = paths[0]
+
+    body = fx.read_stdin_body(rest)
+    if body is not None and method == "GET":
+        method = "POST"
+
+    if method in WRITE_METHODS:
+        new_id = fx.record(TOOL, method, path, body)
+        print(json.dumps(fx.canned_write_response(new_id, path)))
+        return 0
+
+    key = fx.sanitize(path)
+    hit = fx.find(key)
+    if hit is None:
+        return fx.missing(TOOL, f"GET {path}", f"api/{key}.json")
+    return fx.serve(hit, TOOL)
+
+
+def pr(argv):
+    if not argv:
+        return fx.missing(TOOL, "pr with no subcommand", "a subcommand")
+    sub, rest = argv[0], argv[1:]
+    owner, repo, number = parse_ref(rest, "pull")
+    if sub in WRITE_SUBCOMMANDS:
+        new_id = fx.record(TOOL, f"pr {sub}", " ".join(rest))
+        print(f"[stub gh] pr {sub} recorded, id {new_id}")
+        return 0
+    if sub == "view":
+        name = (f"pulls_{owner}_{repo}_{number}_view" if owner
+                else None)
+        hit = fx.find(name) if name else None
+        hit = hit or fx.find_glob(f"pulls_*_{number}_view.json" if number
+                                  else "pulls_*_view.json")
+        if hit is None:
+            return fx.missing(TOOL, f"pr view {number}", "api/pulls_<owner>_<repo>_<n>_view.json")
+        return fx.serve(hit, TOOL)
+    if sub == "diff":
+        hit = fx.find_glob(f"pulls_*_{number}_diff.patch" if number
+                           else "pulls_*_diff.patch")
+        if hit is None:
+            return fx.missing(TOOL, f"pr diff {number}", "api/pulls_*_diff.patch")
+        return fx.serve(hit, TOOL)
+    return fx.missing(TOOL, f"pr {sub}", "a known subcommand")
+
+
+def issue(argv):
+    if not argv:
+        return fx.missing(TOOL, "issue with no subcommand", "a subcommand")
+    sub, rest = argv[0], argv[1:]
+    owner, repo, number = parse_ref(rest, "issues")
+    if sub in WRITE_SUBCOMMANDS:
+        new_id = fx.record(TOOL, f"issue {sub}", " ".join(rest))
+        print(f"[stub gh] issue {sub} recorded, id {new_id}")
+        return 0
+    if sub == "view":
+        name = f"issues_{owner}_{repo}_{number}_view" if owner else None
+        hit = fx.find(name) if name else None
+        hit = hit or fx.find_glob(f"issues_*_{number}_view.json" if number
+                                  else "issues_*_view.json")
+        if hit is None:
+            return fx.missing(TOOL, f"issue view {number}",
+                              "api/issues_<owner>_<repo>_<n>_view.json")
+        return fx.serve(hit, TOOL)
+    return fx.missing(TOOL, f"issue {sub}", "a known subcommand")
+
+
+def main(argv):
+    if not argv:
+        print("gh (eval stub). Only `api`, `pr`, `issue`, `auth`, and `version` answer.")
+        return 0
+    command, rest = argv[0], argv[1:]
+    if command == "api":
+        return api(rest)
+    if command == "pr":
+        return pr(rest)
+    if command == "issue":
+        return issue(rest)
+    if command == "auth":
+        print("github.com\n  ✓ Logged in to github.com account reviewer "
+              "(eval stub, offline)")
+        return 0
+    if command in ("version", "--version"):
+        print("gh version 2.89.0 (eval stub)")
+        return 0
+    return fx.missing(TOOL, " ".join(argv), "a supported stub command")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

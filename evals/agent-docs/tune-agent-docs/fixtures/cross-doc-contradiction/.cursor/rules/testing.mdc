@@ -1,0 +1,12 @@
+---
+description: Testing rules for the payments package
+globs: src/payments/**
+alwaysApply: false
+---
+
+# Payments testing
+
+- Never mock the database in integration tests under `src/payments/`. The reconciliation logic
+  depends on Postgres advisory locks, and a mocked session hides every deadlock this code can hit.
+- Claude runs the payments integration suite with `make test-integration -- tests/integration/payments`.
+- Claude keeps the Stripe SDK itself stubbed, because the test account rate-limits.

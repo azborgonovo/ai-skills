@@ -1,0 +1,4 @@
+# Windsurf rules
+
+- Every database migration must be reversible, so always write the down step.
+- Timestamps are timezone-aware UTC `datetime` objects. Naive datetimes fail validation.

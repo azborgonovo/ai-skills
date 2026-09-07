@@ -1,0 +1,36 @@
+{
+  "title": "Export button does nothing on Safari",
+  "url": "https://github.com/acme-fixtures/exports-app/issues/42",
+  "labels": [
+    {
+      "name": "bug"
+    }
+  ],
+  "milestone": {
+    "title": "Order exports"
+  },
+  "body": "On Safari 17.5 the Export button on the orders screen does nothing. No file downloads and no error appears. The same button works in Chrome.",
+  "comments": [
+    {
+      "author": {
+        "login": "priya"
+      },
+      "createdAt": "2026-08-20T07:14:00Z",
+      "body": "Reproduced on Safari 17.5 on macOS. Chrome downloads the PDF fine."
+    },
+    {
+      "author": {
+        "login": "tomf"
+      },
+      "createdAt": "2026-08-21T09:02:00Z",
+      "body": "My guess is the backend rejecting the Safari user agent. Let us check the API first."
+    },
+    {
+      "author": {
+        "login": "priya"
+      },
+      "createdAt": "2026-08-27T14:40:00Z",
+      "body": "The export request comes back 200 with the PDF body, so the server is fine. HAR capture from the failing Safari session: https://github.com/user-attachments/files/900123/export-capture.har"
+    }
+  ]
+}

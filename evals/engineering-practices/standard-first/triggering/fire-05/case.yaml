@@ -1,0 +1,5 @@
+# Only for context.*, which prompt.md frontmatter cannot carry.
+schema_version: "1.1"
+name: standard-first-fire-05
+context:
+  scaffold_script: scaffold.sh

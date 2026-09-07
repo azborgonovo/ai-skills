@@ -1,0 +1,12 @@
+[
+  {
+    "number": 37,
+    "title": "Export endpoint returns 504 for large tenants",
+    "state": "OPEN"
+  },
+  {
+    "number": 29,
+    "title": "Rename the Export button label to Download",
+    "state": "CLOSED"
+  }
+]

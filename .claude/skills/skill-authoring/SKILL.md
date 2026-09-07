@@ -61,6 +61,29 @@ A skill earns its place only when its gains outweigh its cost. When an eval agai
 
 **Precedent — `consistency-first`**: a drafted skill for keeping generated code aligned with the existing patterns and vocabulary of a codebase. It ran across four eval iterations, on easy and hard fixtures, on Opus and Haiku, plus a drift scenario built as its best case. It produced essentially the same code as the plain model, and it spent roughly 10% more tokens. Current models already match neighboring code, read steering docs and ADRs unprompted, and re-anchor after local drift on their own. It was discarded on that evidence.
 
+### The thresholds that settle a verdict
+
+Read the eval before you apply the rule above, because one criterion does not fit every skill. The tag on its cases sorts it. A `behavior` suite measures a reasoning skill against a no-plugin baseline arm. A `mechanics` suite measures a Manual skill, which a baseline arm cannot reach at all.
+
+A reasoning skill earns its place through better thinking, so the delta over the baseline is the test. A mechanics skill earns its place by doing something a baseline cannot do, such as driving a tracker or filling a template. A delta measures nothing there, so the test is the absolute score on the with-plugin arm.
+
+A grader marked `arm: with-only` is dropped from the baseline arm and excluded from the score in both arms, so the delta compares like for like. Mark a grader that way when a baseline can never satisfy it: a format it never saw, or a skill it does not hold. Under `--ablation none` nothing is excluded, so a mechanics suite scores those graders normally, which is what its verdict needs.
+
+Read the `Fired` column before the delta. The with-plugin arm loads the plugin, and the model still decides whether to reach for the skill, so a case where the skill never fired scores a delta of zero for a reason that has nothing to do with the quality of the skill. `decide` measured this exactly: the two cases that fired returned +0.20 and +0.17, and the two that did not returned 0.00.
+
+| Verdict | Threshold |
+|---|---|
+| Decommission a reasoning skill | The baseline score matches or beats the with-plugin score, on cases where the skill fired. |
+| Decommission a mechanics skill | The score stays low after one fix attempt. A low baseline is never the reason. |
+| Improve the skill | The delta is positive, and the with-plugin score sits below about 80%. One grader that fails across cases gives the same verdict, and it names the edit. |
+| Improve the description | The delta is near zero because the skill did not fire, or the triggering axis reports a low `Fires` or `Holds` count. The skill body is not the problem. |
+| Promote Trial to Adopt | A score of about 90%, with a positive delta. |
+| Demote Adopt to Trial | The measured score does not support the claim. |
+
+A single run per case carries variance. Re-run any verdict that lands near a threshold at 3 runs before you act on it.
+
+`scripts/run_evals.py` runs every axis and writes the numbers, and `scripts/eval_report.py` turns them into the records that `README.md` reads. See [Evals](../../../README.md#evals) for the case layout, which lives under `evals/<plugin>/<skill>/` at the repository root, and for the grader types.
+
 ### Environment-specific values
 
 Do not hardcode a value that varies across machines or users. That covers a filesystem path, a clone-root convention, a tool version, and a default port. A value that matches your own setup reads as generic, and it runs correctly only on a machine shaped like yours. Everyone else gets a silent wrong answer, or a confusing failure with no clue why.

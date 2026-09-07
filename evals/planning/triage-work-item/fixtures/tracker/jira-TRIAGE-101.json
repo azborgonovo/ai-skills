@@ -1,0 +1,74 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-101",
+          "summary": "Export button does nothing on Safari",
+          "issuetype": {
+            "name": "Bug"
+          },
+          "status": {
+            "name": "To Do"
+          },
+          "issuelinks": [
+            {
+              "type": {
+                "name": "Relates"
+              },
+              "outwardIssue": {
+                "key": "TRIAGE-104",
+                "fields": {
+                  "summary": "Export endpoint returns 504 for large tenants"
+                }
+              }
+            }
+          ],
+          "attachment": [
+            {
+              "id": "10201",
+              "filename": "export-capture.har",
+              "created": "2026-08-27T16:38:00.000+0200",
+              "size": 4211,
+              "mimeType": "application/json"
+            }
+          ],
+          "renderedFields": {
+            "description": "<p>On Safari 17.5 the Export button on the orders screen does nothing. No file downloads, and no error message appears. The same button works in Chrome.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-08-20T09:14:00.000+0200",
+                  "author": {
+                    "displayName": "Priya Raman"
+                  },
+                  "body": "<p>Reproduced on Safari 17.5 on macOS. Chrome downloads the PDF fine.</p>"
+                },
+                {
+                  "created": "2026-08-21T11:02:00.000+0200",
+                  "author": {
+                    "displayName": "Tom Fischer"
+                  },
+                  "body": "<p>My guess is the backend rejecting the Safari user agent. Let us check the API first.</p>"
+                },
+                {
+                  "created": "2026-08-27T16:40:00.000+0200",
+                  "author": {
+                    "displayName": "Priya Raman"
+                  },
+                  "body": "<p>I attached a HAR capture from the failing Safari session. The export request comes back 200 with the PDF body, so the server is not the problem. Something after the fetch drops it.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

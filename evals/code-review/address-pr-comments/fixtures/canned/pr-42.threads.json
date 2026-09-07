@@ -1,0 +1,33 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "reviewThreads": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          },
+          "nodes": [
+            {
+              "id": "PRRT_kwaaa4201",
+              "isResolved": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "databaseId": 900201,
+                    "body": "The `percent < 0` branch is dead code. The API layer validates the percent before it ever reaches this function, so drop that half of the guard and keep the upper bound.",
+                    "path": "src/discount.py",
+                    "line": 7,
+                    "author": {
+                      "login": "dana"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

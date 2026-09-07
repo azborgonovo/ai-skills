@@ -1,0 +1,40 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-110",
+          "summary": "Export the order list to CSV as well as PDF",
+          "issuetype": {
+            "name": "Story"
+          },
+          "status": {
+            "name": "To Do"
+          },
+          "issuelinks": [],
+          "attachment": [],
+          "renderedFields": {
+            "description": "<p>As a user I want to export to CSV in addition to the existing PDF export, so I can open the data in a spreadsheet.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-08-28T09:00:00.000+0200",
+                  "author": {
+                    "displayName": "Maria Lopez"
+                  },
+                  "body": "<p>PDF stays the default. CSV is an extra choice in the same button.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

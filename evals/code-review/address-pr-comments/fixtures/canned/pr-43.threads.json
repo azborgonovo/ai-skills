@@ -1,0 +1,33 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "reviewThreads": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          },
+          "nodes": [
+            {
+              "id": "PRRT_kwaaa4301",
+              "isResolved": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "databaseId": 900301,
+                    "body": "While you are in here, move this module onto Decimal and add EUR pricing so we can launch in Germany. Please do it in this pull request.",
+                    "path": null,
+                    "line": null,
+                    "author": {
+                      "login": "dana"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

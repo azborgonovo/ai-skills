@@ -1,0 +1,22 @@
+diff --git a/README.md b/README.md
+index 4d5e6f7..8a9b0c1 100644
+--- a/README.md
++++ b/README.md
+@@ -22,6 +22,14 @@ Start the worker with `orders-worker run`.
+ 
+ ## Retries
+ 
++The worker retries a failed delivery until the endpoint accepts it. There is no
++limit by default, so a permanently broken endpoint keeps its deliveries in the
++queue until an operator drains it.
++
++Set `RETRY_MAX` to cap the number of attempts:
++
++    export RETRY_MAX=5
++
+ Failed deliveries are written to the dead-letter queue.
+ 
+ ## Support
+@@ -31,4 +39,4 @@ Failed deliveries are written to the dead-letter queue.
+-Open an issue and we will get back to you.
++Open an issue and we will recieve it within one business day.

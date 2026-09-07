@@ -1,0 +1,40 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-105",
+          "summary": "Exports failed for several customers during the February outage",
+          "issuetype": {
+            "name": "Bug"
+          },
+          "status": {
+            "name": "To Do"
+          },
+          "issuelinks": [],
+          "attachment": [],
+          "renderedFields": {
+            "description": "<p>During the outage on 11 February 2026 several customers reported that the order export failed. Reported by support after the fact.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-02-13T10:05:00.000+0100",
+                  "author": {
+                    "displayName": "Support Desk"
+                  },
+                  "body": "<p>Three customers raised this on 11 February. Nobody captured a request at the time.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

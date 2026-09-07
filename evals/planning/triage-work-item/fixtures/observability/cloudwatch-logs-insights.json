@@ -1,0 +1,40 @@
+{
+  "status": "Complete",
+  "statistics": {
+    "recordsMatched": 1482,
+    "recordsScanned": 918230,
+    "bytesScanned": 411203344
+  },
+  "results": [
+    [
+      {
+        "field": "@timestamp",
+        "value": "2026-09-04 07:41:12.004"
+      },
+      {
+        "field": "@message",
+        "value": "ERROR export.query timeout after 30s tenant=acme-42 rows_scanned=2143901 path=/api/exports"
+      }
+    ],
+    [
+      {
+        "field": "@timestamp",
+        "value": "2026-09-04 07:52:36.771"
+      },
+      {
+        "field": "@message",
+        "value": "ERROR export.query timeout after 30s tenant=acme-42 rows_scanned=2151044 path=/api/exports"
+      }
+    ],
+    [
+      {
+        "field": "@timestamp",
+        "value": "2026-09-04 08:03:59.318"
+      },
+      {
+        "field": "@message",
+        "value": "INFO export.query ok tenant=beta-7 rows_scanned=1840 duration_ms=210 path=/api/exports"
+      }
+    ]
+  ]
+}

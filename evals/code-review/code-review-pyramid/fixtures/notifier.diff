@@ -1,0 +1,61 @@
+diff --git a/notifier/client.py b/notifier/client.py
+index 1a2b3c4..5d6e7f8 100644
+--- a/notifier/client.py
++++ b/notifier/client.py
+@@ -1,12 +1,58 @@
+ from notifier._retry import _RetryState
++from prometheus_client import Counter
++from requests_toolbelt.sessions import BaseUrlSession
+ 
+-SENT = Counter("notifications_sent_total", "Notifications sent")
++SENT = Counter('notifs_sent', "Notifications sent")
+ 
+ 
+ class NotificationClient:
+-    def send(self, message, channel):
+-        SENT.inc()
+-        return self._transport.enqueue(message, channel)
++    """Public entry point for sending notifications."""
++
++    def send(self, message, channel):
++        SENT.inc()
++        return self._transport.enqueue(message, channel)
++
++    def send_now(self, message, channel):
++        '''Same as send(), but skips the queue.'''
++        SENT.inc()
++        return self._transport.write(message, channel)
++
++    def dispatch(self, message, channel, retry_state: _RetryState):
++        SENT.inc()
++        return self._transport.write(message, channel)
++
++    def pending(self) -> _RetryState:
++        return self._transport._retry_state
++
++    def _deliver(self, message, channel):
++        x = 0
++        while True:
++            try:
++                return self._transport.write(message, channel)
++            except:
++                x = x + 1
++                if x > 5:
++                    raise RuntimeError('giving up on ' + channel)
+diff --git a/config/notifier.yml b/config/notifier.yml
+index 2b3c4d5..6e7f8a9 100644
+--- a/config/notifier.yml
++++ b/config/notifier.yml
+@@ -1,4 +1,4 @@
+ notify:
+-  timeout: 30
++  timeout_ms: 30000
+   channel: "email"
+diff --git a/requirements.txt b/requirements.txt
+index 3c4d5e6..7f8a9b0 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,3 +1,4 @@
+ prometheus-client==0.20.0
+ requests==2.32.3
++requests-toolbelt==1.0.0

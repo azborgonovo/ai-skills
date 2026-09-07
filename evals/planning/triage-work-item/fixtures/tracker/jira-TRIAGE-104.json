@@ -1,0 +1,40 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-104",
+          "summary": "Export endpoint returns 504 for large tenants",
+          "issuetype": {
+            "name": "Bug"
+          },
+          "status": {
+            "name": "In Progress"
+          },
+          "issuelinks": [],
+          "attachment": [],
+          "renderedFields": {
+            "description": "<p>The error rate on <code>/api/exports</code> is elevated and it is still climbing today. Tenants with a large order history get a 504 after about half a minute.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-09-02T08:30:00.000+0200",
+                  "author": {
+                    "displayName": "Tom Fischer"
+                  },
+                  "body": "<p>Started this morning for acme-42 and it is happening right now. Small tenants are fine.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

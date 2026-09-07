@@ -26,6 +26,18 @@ Two things stay exactly as they are. The first is quoted material, such as an ex
 
 See the `skill-authoring` skill for the conventions to apply when creating a new skill or improving an existing one. It also carries the `check_skills.py` validator to run before committing.
 
+## Measuring a skill
+
+`claude plugin eval` measures every published skill. `scripts/run_evals.py` drives it, and `scripts/eval_report.py` turns the results into the records that `README.md` reads. See [Evals](README.md#evals) for the axes and the layout.
+
+Eval suites live at the repository root, under `evals/<plugin>/<skill>/`, and never inside a plugin. Claude Code copies a plugin's whole directory into its install cache, so a suite kept inside a plugin ships to every user who installs it, at roughly 20 times the size of the skills it measures. Each case names its plugin in its `plugins:` frontmatter, which is what lets the plugin resolve from outside its own tree. `scripts/run_evals.py` targets the repository root and passes `--eval-dir evals/<plugin>` to scope a run.
+
+Two constraints shape that layout. A per-skill eval directory inside a plugin is impossible, because `--eval-dir` refuses a path that overlaps a declared skills path. And every directory name in an eval path must start with a letter or a digit.
+
+Two rules keep a measurement honest. The first is that a case prompt must read as a real user request, because the with-plugin arm loads the plugin and the model still decides whether to reach for the skill. The second is that a grader belongs to the arm it makes sense in: mark a grader `arm: with-only` when a no-plugin baseline cannot satisfy it, so the delta compares like for like.
+
+`claude plugin eval` is in early access. An enabled organization needs nothing. Every other client needs `CLAUDE_CODE_WALNUT_SPIRE=1` in the shell or in `~/.claude/settings.json` under `env`. A repository's own `.claude/settings.json` does not work for it, because project-scoped settings apply only an allowlist before workspace trust.
+
 ## Claude plugins versioning
 
 See the `plugin-versioning` skill for how to bump a plugin's SemVer version before committing changes under `skills/<plugin>/`.

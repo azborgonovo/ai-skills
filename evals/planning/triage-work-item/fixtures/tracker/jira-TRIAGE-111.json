@@ -1,0 +1,40 @@
+{
+  "data": {
+    "items": [
+      {
+        "data": {
+          "key": "TRIAGE-111",
+          "summary": "I should be able to export my data",
+          "issuetype": {
+            "name": "Story"
+          },
+          "status": {
+            "name": "To Do"
+          },
+          "issuelinks": [],
+          "attachment": [],
+          "renderedFields": {
+            "description": "<p>As a user I should be able to export my data, but nothing happens when I click the export button.</p>",
+            "comment": {
+              "comments": [
+                {
+                  "created": "2026-08-29T13:10:00.000+0200",
+                  "author": {
+                    "displayName": "Maria Lopez"
+                  },
+                  "body": "<p>The customer sees no download and no error. It worked for them before.</p>"
+                }
+              ]
+            }
+          },
+          "parent": {
+            "key": "TRIAGE-90",
+            "fields": {
+              "summary": "Order exports"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

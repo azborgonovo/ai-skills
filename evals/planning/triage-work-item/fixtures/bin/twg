@@ -1,0 +1,86 @@
+#!/bin/sh
+# Fixture stub for the Atlassian Teamwork Graph CLI. It serves canned Jira data
+# from the sibling tracker/ directory, and it records every write instead of
+# performing one. The only programs it runs are cat, printf and date, so no
+# request ever leaves the machine.
+set -eu
+
+fixtures="$(cd "$(dirname "$0")/.." && pwd)"
+log="$PWD/posted-calls.log"
+
+deny() {
+    printf 'twg: no fixture for: %s\n' "$*" >&2
+    exit 1
+}
+
+key_from_args() {
+    for a in "$@"; do
+        a="${a##*/}"
+        case "$a" in
+            -*) continue ;;
+            [A-Z]*-[0-9]*) printf '%s' "$a"; return 0 ;;
+        esac
+    done
+    return 0
+}
+
+value_after() {
+    want="$1"
+    shift
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            "$want") printf '%s' "${2:-}"; return 0 ;;
+            "$want"=*) printf '%s' "${1#*=}"; return 0 ;;
+        esac
+        shift
+    done
+    return 0
+}
+
+case "${1:-}" in
+    help)
+        printf 'twg jira workitem bulk-get <KEY>... --fields <list> --expand renderedFields -o json\n'
+        printf 'twg jira workitem query --jql <JQL> -o json\n'
+        printf 'twg jira workitem comment create --issue-id <KEY> --body-format <html|markdown|plain> --body <text>\n'
+        exit 0
+        ;;
+    api)
+        case "${2:-}" in
+            *attachment/content/10201*)
+                cat "$fixtures/tracker/export-capture.har"
+                exit 0
+                ;;
+            *) deny "twg api ${2:-}" ;;
+        esac
+        ;;
+    jira) ;;
+    *) deny "twg ${1:-}" ;;
+esac
+
+[ "${2:-}" = "workitem" ] || deny "twg jira ${2:-}"
+
+case "${3:-}" in
+    bulk-get|get)
+        key="$(key_from_args "$@")"
+        payload="$fixtures/tracker/jira-$key.json"
+        [ -n "$key" ] || deny "twg jira workitem $3 with no work-item key"
+        [ -f "$payload" ] || deny "work item $key"
+        printf 'status: ok\ncommand: jira workitem bulk-get\noutput_files:\n  stdout: %s\nstats:\n  items: 1\n' "$payload"
+        ;;
+    query)
+        printf 'status: ok\ncommand: jira workitem query\noutput_files:\n  compact: %s\nstats:\n  issues: 3\n' "$fixtures/tracker/jira-search.json"
+        ;;
+    comment)
+        [ "${4:-}" = "create" ] || deny "twg jira workitem comment ${4:-}"
+        issue="$(value_after --issue-id "$@")"
+        body="$(value_after --body "$@")"
+        {
+            printf '=== %s WRITE BLOCKED: twg jira workitem comment create --issue-id %s ===\n' \
+                "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$issue"
+            printf '%s\n' "$body"
+            printf '=== end of recorded comment ===\n'
+        } >> "$log"
+        printf 'status: ok\ncommand: jira workitem comment create\nnote: fixture stub, recorded to %s, nothing was sent\ndata:\n  id: "90001"\n  issue: %s\n' "$log" "$issue"
+        ;;
+    *) deny "twg jira workitem ${3:-}" ;;
+esac

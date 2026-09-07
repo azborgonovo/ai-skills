@@ -1,0 +1,19 @@
+{
+  "MetricDataResults": [
+    {
+      "Id": "exports5xx",
+      "Label": "HTTPCode_Target_5XX_Count",
+      "StatusCode": "Complete",
+      "Timestamps": [
+        "2026-09-04T06:00:00Z",
+        "2026-09-04T07:00:00Z",
+        "2026-09-04T08:00:00Z"
+      ],
+      "Values": [
+        3.0,
+        214.0,
+        331.0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Cline rules
+
+- Format every Python file with `black`, line length 100.
+- Run the full suite with `pytest -q` before opening a pull request.
+- Write every commit message as a Conventional Commit, in the shape `type(scope): subject`.
+- Put new routers under `src/api/routers`, one module per resource.
