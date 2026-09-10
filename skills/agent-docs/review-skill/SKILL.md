@@ -54,7 +54,7 @@ Compare the terminology, the definitions, and the recommended patterns of the sk
 
 ## Present findings, then apply
 
-Open with a one-line verdict. State whether the skill is sound or needs work. Then list the findings ranked by severity, not grouped by dimension:
+Open with a one-line verdict. State whether the skill is sound or needs work. When the skill is genuinely sound, say so as the verdict and stop there: list no invented nits to fill out the report. A finding must trace to a concrete line, or it does not belong in the report. Otherwise, list the findings ranked by severity, not grouped by dimension:
 
 - **Blocking**: the finding breaks triggering or correctness, or the domain sources contradict it.
 - **Important**: the finding is a real weakness, such as scope creep, sprawl, duplication, vague completion criteria, or a convention violation.
