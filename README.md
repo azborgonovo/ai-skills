@@ -52,7 +52,7 @@ Explore, capture, and reconstruct the reasoning behind significant decisions as 
 
 - **[/decide](skills/decisions/decide/SKILL.md)** — Works as a thinking partner. It explores a problem and the options for it, before you make a decision. *Auto · Adopt · +10 pts vs. no skill*
 - **[/log-decision](skills/decisions/log-decision/SKILL.md)** — Captures a structured Decision Record (DR) for a significant decision. *Auto · Adopt · +16 pts vs. no skill*
-- **[/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md)** — Mines the git history of a repository for significant decisions from the past. It then writes a Decision Record for each one, with the log-decision conventions. *Manual · Trial · Scores 74%*
+- **[/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md)** — Mines the git history of a repository for significant decisions from the past. It then writes a Decision Record for each one, with the log-decision conventions. *Manual · Trial*
 
 ### `agent-docs`
 
