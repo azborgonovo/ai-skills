@@ -4,10 +4,13 @@ description: >
   Guides technical implementation to always prefer the standard, officially-documented solution over
   custom or AI-generated code. Use when you are about to write new code for a feature, suggest or add
   a library or package, scaffold a new project, or configure a framework, in any language, including
-  .NET and C#, Node.js and npm, Python, Go, Java, and the rest. Use it above all when the problem
-  sounds like something that a built-in framework feature or a package registry already solves, such
-  as logging enrichment, auth, serialization, retries, health checks, or migrations. Do not skip this
-  skill because the answer feels obvious from training data.
+  .NET and C#, Node.js and npm, Python, Go, Java, and the rest. Use it for every new implementation
+  task before you write code, not only for a problem that already sounds like something a built-in
+  framework feature or a package registry solves, such as logging enrichment, auth, serialization,
+  retries, health checks, or migrations. A bespoke rule with no published counterpart, such as an
+  internal checksum or a proprietary format, still needs this skill: concluding that no standard fits
+  and that custom code is correct is a valid, expected outcome, not a reason to skip the search. Do
+  not skip this skill because the answer feels obvious from training data.
 argument-hint: "[task description]"
 allowed-tools: [WebSearch, WebFetch, Read, Glob, Write, Bash]
 ---
@@ -72,15 +75,15 @@ After you finish searching, apply Occam's Razor. Prefer the solution with the fe
 **Decision hierarchy:**
 1. **A built-in framework feature**, which adds no dependency. Always prefer it when it covers the need.
 2. **An official or well-maintained package**, which beats custom code when it solves the problem cleanly.
-3. **Custom code**, only when no package and no built-in feature handles the problem adequately.
+3. **Custom code**, only when no package and no built-in feature handles the problem adequately. Landing here is a real conclusion, not a fallback you reach in silence: name the known standards you compared the rule against and ruled out, for example Luhn, ISO 7064, or the GS1 mod-10 scheme for a checksum, and state plainly that no standard fits and that custom code is correct.
 
 ## Step 5: Implement
 
 Implement from the official docs, and not from training-data patterns. "Simplest" means the fewest invented parts, and it does not mean ignoring official guidance. Following official best practices is simpler over time, because it prevents you from rediscovering the pitfalls that the docs already record.
 
 Every solution must include three things:
-1. **The installation command**, such as `dotnet add package`, `npm install`, or `pip install`.
+1. **The installation command**, such as `dotnet add package`, `npm install`, or `pip install`. Skip this when the solution is custom code, and use the standard library for every mechanical part it still needs, such as parsing, error wrapping, and the test runner, even while the core logic stays custom.
 2. **Working code that follows the official recommendations.** That is the minimal code needed, structured according to the official best-practice pattern rather than copied from the getting-started snippet.
-3. **A note on any deviation from a best practice.** When the existing code of the project diverges from an official recommendation, call that out instead of matching the deviation in silence.
+3. **A note on any deviation from a best practice.** When the existing code of the project diverges from an official recommendation, call that out instead of matching the deviation in silence. When you write custom code because no standard fits, state instead any assumption you had to make where the described rule stays silent.
 
 Keep the implementation concise. Show the minimum that solves the problem correctly, and do not write a comprehensive tutorial.
