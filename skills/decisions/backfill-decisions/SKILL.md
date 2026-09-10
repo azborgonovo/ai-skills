@@ -118,6 +118,8 @@ For each confirmed candidate, go straight into the writing steps of the log-deci
 
 ### Phase 6: Wrap up
 
+Before you report anything, open each DR you just wrote again and check two things: it carries the provenance line from Phase 5, and it carries at least one evidence commit citation with a real hash and a real date. Fix any DR that is missing either one before you move on.
+
 Report a table of the files you wrote, with the path, the title, the status, and the date. Remind the user that these are reconstructions and that a human review pass is worth the time. Suggest a commit. Do not offer to improve the DRs unless the user asks.
 
 ## Principles

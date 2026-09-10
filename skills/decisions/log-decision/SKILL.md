@@ -32,8 +32,8 @@ Use `AskUserQuestion` for each question, and ask about one topic area at a time.
 |---|---|
 | **Title** | A short phrase that names the problem and the solution, such as "Use PostgreSQL as primary datastore" |
 | **Context and Problem Statement** | Which situation led to this decision, and which problem it solves. Note any relevant code location or work item that gives context. |
-| **Considered Options** | Which alternatives the user evaluated. Aim for at least two. Give a brief description, the pros, and the cons for each one. Stay objective, and represent a rejected option fairly. |
-| **Decision** | Which option the user chose, and why. Prefer the **Y-Statement format**: _"In the context of [situation], facing [concern], we decided [option], to achieve [quality], accepting [downside]."_ Free-form prose also works. |
+| **Considered Options** | Which alternatives the user evaluated. Cover every option the conversation actually named, not just a minimum of two. Give a brief description, the pros, and the cons for each one. Stay objective, and represent a rejected option fairly. |
+| **Decision** | Which option the user chose, and why. Prefer the **Y-Statement format**: _"In the context of [situation], facing [concern], we decided [option], to achieve [quality], accepting [downside]."_ Both the "to achieve" clause and the "accepting" clause are required; a Y-Statement missing either one is incomplete. Free-form prose also works, as long as it states both the quality gained and the downside accepted. |
 
 **Depth**, which you ask about only when the conversation has not covered it:
 
@@ -60,7 +60,8 @@ Never assume. Ask whenever something is ambiguous.
 1. Look for an existing DR directory in the project root, in this priority order: `docs/decisions/`, then `adr/`, then `.decisions/`.
 2. When none of the three exists, use `docs/decisions/` and create it.
 3. Scan the existing files that match `DR-*.md` to find the highest sequence number, then use `N + 1`. Start at `0001` when no file exists.
-4. While you scan, note any DR whose title or content looks related to the current decision. Report those to the user, so they can reference or supersede them.
+4. While you scan, note any DR whose title looks related to the current decision. When one looks related, read that DR in full, past its title, because a full read is what surfaces the accepted downside or the rejected alternative the new record may need to reference. Report related DRs to the user, so they can reference or supersede them. Treat a DR the new decision reverses, replaces, or makes obsolete as one to supersede on its own, even when the user never uses the word "supersede."
+5. When at least one existing DR was found, read it in full and match its house style: its heading form (with or without the DR number inside the heading text), its frontmatter fields, and which sections sit at the top level versus nested. Apply that house style to the new record instead of the bundled template's own layout. Fall back to the bundled template only when the directory is new, or when its existing records show no consistent layout.
 
 ### 3. Derive the file name
 
@@ -74,7 +75,7 @@ Read the template from `${CLAUDE_SKILL_DIR}/assets/dr-template.md`. Fill every s
 
 Include markdown links wherever they help: to the PRs or issues that motivated the decision, to external docs such as RFCs, benchmarks, and vendor pages, and to related DRs. Use a relative path for a link between DR files. Use a full web URL for every other link.
 
-If the status is `superseded`, find the DR that this one supersedes. Add a "Superseded by [DR-NNNN](path)" note to its `## More Information` section, and append that section when it is absent. Then reference that DR in the `## More Information` section of the new file.
+If the status is `superseded`, use the DR that step 2.4 found. Add a "Superseded by [DR-NNNN](path)" note to its `## More Information` section, and append that section when it is absent. Then reference that DR in the `## More Information` section of the new file. Tie the new record's Context and Problem Statement to the downside that the superseded DR accepted, since that downside is usually the reason the decision is being revisited now.
 
 A DR outlives the conversation that produced it, and a reader opens it months later with none of that context. Write short sentences in the active voice, define a term that such a reader can miss at its first use, and cut filler. Keep the Y-statement shape of the Decision section, and keep every link and quoted value exactly as it is. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the draft, before you write the file.
 
