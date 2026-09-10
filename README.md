@@ -50,22 +50,22 @@ Structure and carry out code reviews with a consistent, cost-of-change-driven fr
 
 Explore, capture, and reconstruct the reasoning behind significant decisions as durable, reviewable Decision Records.
 
-- **[/decide](skills/decisions/decide/SKILL.md)** — Works as a thinking partner. It explores a problem and the options for it, before you make a decision. *Auto · Adopt · +9 pts vs. no skill*
-- **[/log-decision](skills/decisions/log-decision/SKILL.md)** — Captures a structured Decision Record (DR) for a significant decision. *Auto · Adopt*
-- **[/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md)** — Mines the git history of a repository for significant decisions from the past. It then writes a Decision Record for each one, with the log-decision conventions. *Manual · Trial*
+- **[/decide](skills/decisions/decide/SKILL.md)** — Works as a thinking partner. It explores a problem and the options for it, before you make a decision. *Auto · Adopt · +10 pts vs. no skill*
+- **[/log-decision](skills/decisions/log-decision/SKILL.md)** — Captures a structured Decision Record (DR) for a significant decision. *Auto · Adopt · +16 pts vs. no skill*
+- **[/backfill-decisions](skills/decisions/backfill-decisions/SKILL.md)** — Mines the git history of a repository for significant decisions from the past. It then writes a Decision Record for each one, with the log-decision conventions. *Manual · Trial · Scores 74%*
 
 ### `agent-docs`
 
 Author and tighten the docs that steer AI coding agents — a single SKILL.md or a repo's full CLAUDE.md/AGENTS.md/editor-rules corpus.
 
-- **[/review-skill](skills/agent-docs/review-skill/SKILL.md)** — Audits a skill that exists, for its triggering, scope, structure, prose, and domain accuracy. *Auto · Adopt*
-- **[/tune-agent-docs](skills/agent-docs/tune-agent-docs/SKILL.md)** — Reviews every markdown file that steers an AI agent in a repository as one corpus, then tightens them. That covers CLAUDE.md, AGENTS.md, the Cursor, Cline, Windsurf, and Kiro rules, and the Copilot instructions. *Auto · Trial*
+- **[/review-skill](skills/agent-docs/review-skill/SKILL.md)** — Audits a skill that exists, for its triggering, scope, structure, prose, and domain accuracy. *Auto · Adopt · +10 pts vs. no skill*
+- **[/tune-agent-docs](skills/agent-docs/tune-agent-docs/SKILL.md)** — Reviews every markdown file that steers an AI agent in a repository as one corpus, then tightens them. That covers CLAUDE.md, AGENTS.md, the Cursor, Cline, Windsurf, and Kiro rules, and the Copilot instructions. *Auto · Trial · -4 pts vs. no skill*
 
 ### `engineering-practices`
 
 Guidelines that keep execution aligned with proven engineering practices.
 
-- **[/standard-first](skills/engineering-practices/standard-first/SKILL.md)** — Guides technical implementation to prefer the standard, officially documented solution. *Auto · Adopt*
+- **[/standard-first](skills/engineering-practices/standard-first/SKILL.md)** — Guides technical implementation to prefer the standard, officially documented solution. *Auto · Adopt · +5 pts vs. no skill*
 
 ### `planning`
 
