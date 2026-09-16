@@ -90,9 +90,9 @@ A rule with `paths` frontmatter loads only when the harness touches a file that 
 
 - **[`code-comments.md`](rules/code-comments.md)** — Sets the default to no comment, and allows one only for the
   non-obvious *why*, on the line that is easy to get wrong. The rule also sets scope and volume. It allows a
-  documentation comment on public API only, and no comment at all on tests. It asks for the constraint instead of the
-  reasoning that reached it. A comment is one or two lines, and the density stays at the level of the code around it.
-  *All files*
+  documentation comment on public API only, and only where the members beside it already carry one, and no comment at
+  all on tests. It asks for the constraint instead of the reasoning that reached it. A comment is one or two lines, and
+  the density stays at the level of the code around it. *All files*
 - **[`csharp-xml-docs.md`](rules/csharp-xml-docs.md)** — Covers the C# mechanics only, for a documentation comment that
   the comments rule allows. It gives the tags that Microsoft recommends, and starts the comment at `<summary>`. It
   prefers `<inheritdoc/>` over a restatement of the interface, and holds `<remarks>` to contract detail. *`**/*.cs`*

@@ -5,7 +5,7 @@ paths:
 
 # C# XML Documentation
 
-Which members get a documentation comment, and how long it runs, is settled before you reach this file. This file covers only how to write the one you already decided on.
+Which members get a documentation comment, and how long it runs, is settled by `code-comments.md` before you reach this file. That decision includes the convention of the type you edit. This file covers only how to write the one you already decided on.
 
 Tag reference: [Microsoft's recommended tags](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags).
 
