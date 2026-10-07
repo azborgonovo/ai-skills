@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "git-workflow",
   "displayName": "Git Workflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Everyday git workflows with safe defaults that never put local or remote work at risk.",
   "author": {
     "name": "André Borgonovo",

@@ -10,9 +10,14 @@ On success, prints "MODE: main-clone", "MODE: existing-worktree", or "MODE: work
 "BASE: origin/<base>" and "WORKSPACE_PATH: <path>" as the last line. Only MODE: worktree is
 disposable. On a refusal, prints "STOP: <reason>" and exits non-zero.
 
+With --remove <path>, removes that worktree and prints "REMOVED: <path>", but only when it
+holds no uncommitted change and no commit that origin lacks. git worktree remove checks only
+the first, so a rejected push followed by a plain removal loses the updated branch.
+
 Examples:
   prepare_update_workspace.py
   prepare_update_workspace.py --repo-root ~/dev/my-service --branch feat/login --base develop
+  prepare_update_workspace.py --remove ~/dev/my-service.update-feat-login
 """
 
 import argparse
@@ -117,12 +122,32 @@ def add_worktree(repo, branch):
     return path
 
 
+def remove_worktree(path):
+    path = Path(path).expanduser().resolve()
+    repo = main_clone_of(path)
+    if path == repo.resolve():
+        stop(f"{path} is the main clone, not a worktree. Leave it in place.")
+    dirty = git(path, "status", "--porcelain").stdout.strip()
+    if dirty:
+        stop(f"{path} holds uncommitted changes:\n{dirty}\nKeep the worktree and tell the user its path.")
+    if has_unpushed_work(path):
+        stop(f"{path} holds commits that origin does not have. The push did not land. Keep the worktree and tell the user its path.")
+    remove = git(repo, "worktree", "remove", str(path))
+    if remove.returncode != 0:
+        stop(f"removing {path} failed: {remove.stderr.strip()}")
+    print(f"REMOVED: {path}")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Pick the working tree in which a branch gets updated with its base.")
     ap.add_argument("--repo-root", default=".", help="Any path inside the repository (default: the current directory)")
     ap.add_argument("--branch", help="Branch to update (default: the branch checked out at --repo-root)")
     ap.add_argument("--base", help="Base branch on origin (default: origin/HEAD)")
+    ap.add_argument("--remove", metavar="PATH", help="Remove this worktree once its branch is fully pushed, then exit")
     args = ap.parse_args()
+    if args.remove:
+        remove_worktree(args.remove)
+        return
 
     start = Path(args.repo_root).expanduser().resolve()
     repo = main_clone_of(start)

@@ -135,10 +135,12 @@ After a merge, use `git -C <workspace_path> push origin <branch>`. For a branch 
 
 ## Step 8: Clean up
 
-When Step 1 printed `MODE: worktree` and the push succeeded, remove that worktree:
+When Step 1 printed `MODE: worktree` and the push succeeded, remove that worktree through the helper:
 
 ```bash
-git -C <workspace_path> worktree remove <workspace_path>
+python3 "$PLUGIN_ROOT/scripts/prepare_update_workspace.py" --remove <workspace_path>
 ```
 
-If the user declined the push, the updated branch holds work that the remote does not have. Keep the worktree, and tell the user its path. **Never** remove a worktree with uncommitted or unpushed work. Leave `main-clone` and `existing-worktree` in place, because they belong to the user.
+**Always** use the helper, and never `git worktree remove`. A clean worktree with commits that never reached the remote still passes the check of git. The helper refuses that case, so a push that failed in silence cannot lose the updated branch. When it prints `STOP:`, keep the worktree and tell the user its path.
+
+If the user declined the push, keep the worktree, and tell the user its path. Leave `main-clone` and `existing-worktree` in place, because they belong to the user.
