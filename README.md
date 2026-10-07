@@ -67,6 +67,12 @@ Guidelines that keep execution aligned with proven engineering practices.
 
 - **[/standard-first](skills/engineering-practices/standard-first/SKILL.md)** — Guides technical implementation to prefer the standard, officially documented solution. *Auto · Adopt · +5 pts vs. no skill*
 
+### `git-workflow`
+
+Everyday git workflows with safe defaults that never put local or remote work at risk.
+
+- **[/update-branch](skills/git-workflow/update-branch/SKILL.md)** — Rebases a branch onto its base branch, or merges the base when a rebase is not an option. It then builds, runs the relevant tests, and asks before it pushes with `--force-with-lease`. A dirty checkout on another branch stays untouched, because the update runs in a separate worktree. *Manual · Trial*
+
 ### `planning`
 
 Shape units of work that are well-defined, verifiable, and ready to be executed, and triage existing ones against the codebase.
@@ -160,6 +166,7 @@ Add the marketplace one time, then install the plugins you want:
 /plugin install bdd@ai-skills
 /plugin install code-review@ai-skills
 /plugin install engineering-practices@ai-skills
+/plugin install git-workflow@ai-skills
 /plugin install planning@ai-skills
 /plugin install agent-docs@ai-skills
 ```

@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Skills and tools to enhance Claude Code — for software delivery, and for working with Claude Code itself. Grouped into focused plugins you can install independently.",
-    "version": "3.0.0"
+    "version": "3.1.0"
   },
   "plugins": [
     {
@@ -64,6 +64,20 @@
         "standard-library",
         "dependencies",
         "implementation"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "git-workflow",
+      "source": "./skills/git-workflow",
+      "description": "Everyday git workflows with safe defaults that never put local or remote work at risk.",
+      "category": "engineering",
+      "keywords": [
+        "git",
+        "rebase",
+        "merge",
+        "worktree",
+        "branch"
       ],
       "license": "MIT"
     },
