@@ -153,6 +153,8 @@ Write the summary in short sentences and the active voice, define a term that th
 
 The host adapter names the bundled script that posts the notes, which is `scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md. It also gives the exact invocation for the mode that Step 2 settled on. Both scripts read the same notes-file JSON shape, so the notes file does not change with the host. Both mark each comment and the verdict summary with a trailing 🤖. Both publish the comments before they touch the verdict, so an approval never lands without its reasoning. Both skip a finding that this account already published, instead of deleting it or duplicating it. Leave the marking to the script, because a mark you write yourself can land twice.
 
+The 🤖 marks only the findings and the verdict summary that the scripts post. After the review, the user can ask you to post a message of their own, such as a question to the author. Post that message with no 🤖, because it speaks for the user and not for the review.
+
 Read the script's tally afterward. It reports what was posted, what was skipped as already present, and what the verdict action did. Step 8 reports all three.
 
 ### Step 7: Remove the worktree
