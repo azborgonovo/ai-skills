@@ -71,7 +71,7 @@ Guidelines that keep execution aligned with proven engineering practices.
 
 Everyday git workflows with safe defaults that never put local or remote work at risk.
 
-- **[/update-branch](skills/git-workflow/update-branch/SKILL.md)** — Rebases a branch onto its base branch, or merges the base when a rebase is not an option. It then builds, runs the relevant tests, and asks before it pushes with `--force-with-lease`. A dirty checkout on another branch stays untouched, because the update runs in a separate worktree. *Manual · Trial*
+- **[/update-branch](skills/git-workflow/update-branch/SKILL.md)** — Rebases a branch onto its base branch, or merges the base when a rebase is not an option. *Manual · Trial*
 
 ### `planning`
 

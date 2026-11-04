@@ -2,9 +2,10 @@
 name: update-branch
 description: >
   Brings a branch up to date with its base branch, usually main. It rebases onto origin/<base>, or
-  merges when the user agrees, then builds, runs the relevant tests, and asks before it pushes. It
-  never uses a plain --force, and it never disturbs uncommitted work: a clone on another branch gets
-  a separate git worktree. This skill is user-only: it runs only when the user invokes
+  merges when the user agrees, then builds and runs the relevant tests. It pushes on its own when
+  the risk is low, and asks first, with the reason, when it is not. It never uses a plain --force,
+  and it never disturbs uncommitted work: a clone on another branch gets a separate git worktree.
+  This skill is user-only: it runs only when the user invokes
   /update-branch [branch] [--base <branch>] [merge]. When the user wants to update a branch with
   main, rebase onto main, or fix "branch is behind main", suggest this command.
 argument-hint: "[branch] [--base <branch>] [merge]"
@@ -50,17 +51,25 @@ If the right answer to a conflict is not clear from the code, stop and ask. If t
 
 Build the projects in `git diff --name-only <BASE>...HEAD`, and run their unit and integration tests. When a shared library changed, also test its dependents. Take the commands from the repository docs and build files. If you find none, ask.
 
-## Step 6: Report, ask, push
+## Step 6: Push and report
 
-Report the strategy, the new base commit, each conflict resolution, and the build and test results. If anything fails, stop there.
+The call to `/update-branch` gives permission to push when the risk is low. The risk is low when all of these are true:
 
-**Always** ask before the push, and show the exact command. After a rebase:
+- The build and every test from Step 5 passed, and Step 5 tested each changed project.
+- Step 4 resolved no conflict.
+- After a rebase, `git config user.email` is the author of every commit in `<BASE>..origin/<branch>`.
+
+If one condition is false, do not push. Report the false conditions and the exact push command, then ask. If a build or a test failed, stop there.
+
+After a rebase, push with the lease from Step 2:
 
 ```bash
 git -C <workspace_path> push --force-with-lease=<branch>:<lease> origin <branch>
 ```
 
 If the lease fails, stop and report it. Do not retry with a new lease. After a merge, use a plain `git push`, with `-u` for a branch that was never pushed. **Never** use `--force`, `-f`, or a `+<refspec>`.
+
+Then report the strategy, the new base commit, each conflict resolution, the build and test results, and the push result.
 
 ## Step 7: Clean up
 
@@ -70,4 +79,4 @@ Only `MODE: worktree` belongs to this run. After a successful push, remove it wi
 python3 "$PLUGIN_ROOT/scripts/prepare_update_workspace.py" --remove <workspace_path>
 ```
 
-Git removes a clean worktree with unpushed commits. The helper refuses it. If the helper prints `STOP:` or the user declined the push, keep the worktree and give the user its path.
+Git removes a clean worktree with unpushed commits. The helper refuses it. If the helper prints `STOP:` or the branch was not pushed, keep the worktree and give the user its path.
