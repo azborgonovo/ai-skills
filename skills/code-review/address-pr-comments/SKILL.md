@@ -86,9 +86,13 @@ For each open thread, read every comment in it, and put the thread in one of thr
 
 For each thread classified as **needs fix**, implement the fix with a test that fails before the fix. Land each thread as one atomic commit. Keep the fix for each thread isolated in its own commit. That isolation lets you cite a single commit SHA when you reply in Step 8. It also lets the reviewer verify the fix for one thread without reading through another.
 
+While you work on a thread, run only the tests that cover it. Pick them by the test project, file, or name filter that holds the new test. Step 6 runs the full suite once, after every fix lands.
+
+Keep build and test output short, here and in Step 6. Every line that a command prints stays in context for the rest of the run, so print only the counts and the failures. Use the quiet or minimal verbosity of the test runner, or pipe the output through `tail` or `grep`. When a failure needs more detail, rerun only that test with full output.
+
 ### Step 6: Run the test suite
 
-Run the full build, plus the unit and integration suites. Report the counts of passed, failed, and skipped tests. That result is what tells you that the fixes are safe to push, and it goes in the summary either way.
+Run the full build, plus the unit and integration suites, with the short output that Step 5 describes. Report the counts of passed, failed, and skipped tests. That result is what tells you that the fixes are safe to push, and it goes in the summary either way.
 
 If anything fails, stop and fix it before you move on. Never push, and never resolve a thread, against a red suite.
 
