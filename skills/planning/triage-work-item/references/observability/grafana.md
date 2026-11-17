@@ -1,6 +1,6 @@
 # Observability adapter: Grafana
 
-Mechanics for corroborating a hypothesis against Grafana. Read this file at Step 8, when Grafana is the available platform. Reach for it only once you already hold a specific code-level hypothesis and something concrete to look for. This step corroborates a hypothesis, and it does not explore.
+Mechanics for corroborating a hypothesis against Grafana. Read this file at Step 8, when Grafana is the available platform.
 
 ## Loading the tools
 
@@ -21,4 +21,4 @@ Look for the specific error, timeout, or pattern that the issue describes:
 
 ## Retention window, which is the Step 8 gate
 
-Hosted Loki and Tempo retention commonly runs 14 to 30 days. Check what applies to your setup when you are unsure. When the reported incident is older than the window, a log or trace lookup comes back empty, so skip it and save the round trip. Prometheus metrics often retain longer, so an aggregate error-rate check can still help after the raw logs age out.
+Hosted Loki and Tempo retention commonly runs 14 to 30 days. Prometheus metrics often retain longer, so an aggregate error-rate check can still help after the raw logs age out.

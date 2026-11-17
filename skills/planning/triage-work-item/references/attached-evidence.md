@@ -2,11 +2,9 @@
 
 How to get a file attached to an issue, and how to pull the answer out of it, without loading megabytes into your context. Read this file at Step 8, when Step 2 listed an attachment worth opening.
 
-An attached file is the highest-value evidence in a triage, and the easiest to overlook. Nobody links it from the comment that needed it. A thread often keeps asking for a capture that has sat on the issue for weeks. An attachment is also the only runtime evidence that survives past the retention window of a log backend.
-
 ## Downloading
 
-The tracker adapter holds the authenticated call, so use it instead of assembling your own request. Do not read the credential file of a CLI to build a `curl` command. A tool that already holds the session almost always exposes a raw authenticated passthrough, which for the `twg` CLI of Jira is `twg api`. The passthrough keeps the secret out of your context and out of your shell history.
+Use the authenticated call from the tracker adapter. Do not read the credential file of a CLI to build a `curl` command. The adapter's passthrough keeps the secret out of your context and out of your shell history.
 
 Write the file to the scratchpad directory, and not into the user's project.
 
@@ -55,6 +53,4 @@ Two requests that carry the same single-use value, and a redirect target that ne
 
 ## Quoting it in the comment
 
-Quote the smallest set of entries that carries the conclusion. Strip the rows that take no part, such as analytics beacons, fonts, images, and unrelated third-party calls. A trimmed six-line request timeline that shows a duplicate call and a dead redirect is an argument. The raw capture pasted in is a data dump, and the reader has to re-derive the argument from it.
-
-Reconstructing a timeline is usually worth more than any single field. Give the request, the status, and the elapsed time in order, annotated with what each step means. Then a reader can follow the failure without opening the file.
+Quote the smallest set of entries that carries the conclusion, per "Keep it tight" in Step 10. Strip the rows that take no part, such as analytics beacons, fonts, images, and unrelated third-party calls. A timeline usually beats any single field: give the request, the status, and the elapsed time in order, each annotated with what it means.

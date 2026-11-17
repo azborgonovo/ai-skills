@@ -1,14 +1,13 @@
 # Writing a good codebase-investigation subagent prompt
 
-The quality of the findings in Step 7 depends almost entirely on how well the delegating prompt briefs the agent. A vague prompt gets back a vague report that hedges everything. The agent has no memory of the issue and no memory of the conversation, so brief it like a colleague who never saw the report.
+The agent has no memory of the issue or the conversation, so brief it like a colleague who never saw the report. A vague prompt gets back a vague report.
 
 ## Structure that works
 
-1. **State the user-visible symptom, or the requested change, in plain terms**, as if you were explaining the report itself. Do not use the internal jargon of the tracker, and do not use the issue ID. For a bug, the agent must understand *what a user experiences*. For a change request, it must understand *what new or changed behavior someone wants*. It needs that before it starts to grep.
-2. **Name the repos to search**, plus any class or pattern that you already suspect is involved. Hints come from the service ownership of a related issue, or from a naming convention visible in a sibling feature. A wrong guess here is fine, because a good agent course-corrects, and a starting guess focuses the first few searches.
-3. **Enumerate exactly what you want back**: file paths, line numbers, actual code snippets rather than paraphrases, and configuration values. For a bug, also ask for an explicit stated hypothesis about why the current code produces the symptom. For a change request, ask instead for a description of how the current code works, plus a candidate approach for the change. Ask for git history and blame on the relevant code when a recent change looks suspicious.
-4. **Cap the scope.** Give a limit such as "under 500 words plus code snippets", or "focus on the request and response path, not the whole module". A capped report comes back usable, instead of as a full tour of the repo.
-5. When the feature spans several repos, such as a backend service and its frontend caller, run one agent per repo in parallel. That usually beats one agent trying to cover both, because each agent gets a more focused brief and a tighter search space.
+1. **State the user-visible symptom, or the requested change, in plain terms.** Leave out the issue ID and tracker jargon, because the agent cannot fetch the tracker. For a bug, the agent must understand *what a user experiences*. For a change request, it must understand *what new or changed behavior someone wants*.
+2. **Name the repos to search**, plus any class or pattern that you already suspect, such as one from the service ownership of a related issue. A wrong guess is fine, because it still focuses the first searches.
+3. **Enumerate exactly what you want back**, per the list in Step 7: file paths, line numbers, actual code snippets rather than paraphrases, and configuration values. A summary without `file:line` gives Step 9 nothing to check.
+4. **Cap the scope.** Give a limit such as "under 500 words plus code snippets", or "focus on the request and response path, not the whole module".
 
 ## Examples
 
@@ -47,10 +46,3 @@ Please find and report on:
 
 Report back: exact file paths and line numbers, the specific code responsible, and a candidate approach with its trade-offs. Keep it under 500 words plus snippets.
 ```
-
-## Anti-patterns
-
-- **"Investigate issue PROJ-123"**: the agent cannot fetch the tracker. The key means nothing to it until you translate the symptom into plain language.
-- **"Find the bug", or "Find how we would build this"**: no scope, no repo, and no hypothesis or candidate approach. You get a generic tour of the codebase instead of a targeted answer.
-- **Asking for a summary instead of evidence**: "explain how the export feature works" produces prose that you then cannot verify. Asking for `file:line` plus snippets gives you something that Step 9 can check.
-- **Dispatching against a checkout that you have not confirmed is current**: run the freshness check from Step 5 *before* you launch the agent, and not after it reports back. An agent has no way to know that its search space is missing recent commits. So a stale checkout produces a plausible-sounding "no such code found", instead of an error.

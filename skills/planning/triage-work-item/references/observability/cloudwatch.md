@@ -1,8 +1,8 @@
 # Observability adapter: AWS CloudWatch
 
-Mechanics for corroborating a hypothesis against AWS CloudWatch. Read this file at Step 8, when CloudWatch is the available platform. Reach for it only once you already hold a specific code-level hypothesis and something concrete to look for. This step corroborates a hypothesis, and it does not explore.
+Mechanics for corroborating a hypothesis against AWS CloudWatch. Read this file at Step 8, when CloudWatch is the available platform.
 
-**Status**: verified against the installed `aws` CLI, version 2.36.8. The client-side validation of the CLI confirms all four commands and their required parameters, such as `--query-id`, and the trio `--metric-data-queries`, `--start-time`, and `--end-time`. They match the official reference. That includes the per-command time-unit difference: `logs start-query` and `xray get-trace-summaries` take epoch seconds, and `cloudwatch get-metric-data` takes ISO 8601 timestamps. The live API round-trip is untested, because this machine has no AWS credentials configured. Run `aws sts get-caller-identity` first, then one real query, before you trust the output.
+**Status**: the commands and their required parameters match the `aws` CLI 2.36.8 reference. Mind the time units: `logs start-query` and `xray get-trace-summaries` take epoch seconds, and `cloudwatch get-metric-data` takes ISO 8601 timestamps. No live API round trip ran, so run `aws sts get-caller-identity` and one real query before you trust the output.
 
 ## Tooling
 

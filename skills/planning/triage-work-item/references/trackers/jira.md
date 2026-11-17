@@ -63,7 +63,7 @@ Two search leads are worth running. The first finds siblings under the same pare
 twg jira workitem comment create --issue-id <KEY> --body-format markdown --body "$COMMENT"
 ```
 
-`--body-format` accepts `html`, which is the default, plus `markdown` and `plain`. This command has no `--body-file` flag, so build a multi-line body into a shell variable first, and pass it as one quoted argument:
+This command has no `--body-file` flag, so read a multi-line body into a shell variable first, and pass it as one quoted argument:
 
 ```
 COMMENT=$(cat "${TMPDIR:-/tmp}/triage-comment.md")
@@ -100,7 +100,7 @@ Downloading an attachment is the gap in this backend. `mcp__claude_ai_Atlassian_
 
 Use `searchJiraIssuesUsingJql`, with the same two leads as Backend A.
 
-**The results of `searchJiraIssuesUsingJql` are often huge**, and they can exceed the token limit of the tool. The result is then saved to a file, instead of returned inline. When that happens, use `jq` on that file, instead of trying to `Read` it directly. Pull out `key`, `summary`, and `status` first, and scan those for candidates, before you fetch anything in full.
+**The results of `searchJiraIssuesUsingJql` are often huge**, and they can spill to a file. Use `jq` on that file, and not `Read`, per Step 6.
 
 ### Post the comment (Step 11)
 
