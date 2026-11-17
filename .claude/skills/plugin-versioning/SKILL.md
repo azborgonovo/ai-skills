@@ -24,6 +24,8 @@ python .claude/skills/plugin-versioning/scripts/upgrade-plugin-versions.py --plu
 
 The marketplace-wide `version` in `.claude-plugin/marketplace.json` is separate. Bump it by hand only for a marketplace-structure change, which is a plugin added, removed, or renamed.
 
+**After a rebase onto `origin/main`**, make sure that each bumped `version` is still higher than the value on `origin/main`. Another commit can bump the same plugin to the same version first. Git then merges the two equal edits with no conflict, and your bump disappears. The script cannot repeat the bump, because the rebased HEAD already holds that version. Raise the `version` by hand to the next value at your level, and amend the commit before you push.
+
 **Working across several commits on an unmerged branch**: the script bumps relative to HEAD, so one call per commit compounds. The HEAD of each new commit already includes the previous bump. A branch with three `feat`-sized commits then ends up three versions higher than it needs to be. None of those intermediate versions were ever released, because `main` never saw them. Only the version present when the branch finally merges is real.
 
 Bump once for the whole branch instead, sized to the highest-order Conventional Commit type across all of its commits. A single `feat` anywhere means MINOR for the branch as a whole, even when the other commits on it are `fix`, `docs`, or `chore`. When you already bumped per commit before you noticed, collapse it. Reset `version` back to the value it held before the branch started, then bump once at that level.
