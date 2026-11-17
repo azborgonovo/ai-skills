@@ -3,15 +3,15 @@
 status: {draft | proposed | rejected | adopted | retired | superseded by DR-0123}
 date: {YYYY-MM-DD when the decision was last updated}
 decision-makers: {list everyone who took part in the decision}
-consulted: {list everyone whose opinion was sought, usually the subject-matter experts, and with whom there is two-way communication}
-informed: {list everyone who is kept up to date on progress, and with whom there is one-way communication}
+consulted: {list everyone whose opinion was sought, in two-way communication}
+informed: {list everyone who is kept up to date, in one-way communication}
 ---
 
 # {{short title, representative of the problem solved and the solution found}}
 
 ## Context and Problem Statement
 
-{{Describe the circumstances that made this decision necessary, and the problem that it solves. Use two or three sentences of free prose, or tell an illustrative story. Write each distinct aspect as its own paragraph, separated by a blank line. You can state the problem as a question. Add links to relevant code, collaboration boards, or issue management systems.}}
+{{Describe the circumstances that made this decision necessary, and the problem that it solves, in two or three sentences or as a question. Write each distinct aspect as its own paragraph. Link relevant code or issues.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## Forces and Constraints
@@ -20,7 +20,7 @@ informed: {list everyone who is kept up to date on progress, and with whom there
 
 ## Considered Options
 
-{{List each option that was considered, described briefly, with its pros and its cons. Write this objectively, and represent every other option fairly.}}
+{{List each option that was considered. Write objectively, and represent every rejected option fairly.}}
 
 ### {{Title of option 1}}
 
@@ -41,7 +41,7 @@ informed: {list everyone who is kept up to date on progress, and with whom there
 <!-- This is an optional element. Feel free to remove. -->
 ### Consequences
 
-{{The ramifications of this decision, both positive and negative. Write each distinct consequence as its own paragraph, separated by a blank line.}}
+{{The positive and negative ramifications of this decision, one paragraph per consequence.}}
 
 <!-- This is an optional element. Feel free to remove. -->
 ## More Information
