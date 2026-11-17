@@ -28,7 +28,7 @@ See the `skill-authoring` skill for the conventions to apply when creating a new
 
 ## Measuring a skill
 
-`claude plugin eval` measures every published skill. `scripts/run_evals.py` drives it, and `scripts/eval_report.py` turns the results into the records that `README.md` reads. See [Evals](README.md#evals) for the axes and the layout.
+`claude plugin eval` measures every published skill. `scripts/run_evals.py` drives it, and `scripts/eval_report.py` turns the results into the records that `README.md` reads. See [Evals](README.md#evals) for the axes and the layout. To judge an edit to one skill, follow [Measuring a change to one skill](evals/README.md#measuring-a-change-to-one-skill).
 
 Eval suites live at the repository root, under `evals/<plugin>/<skill>/`, and never inside a plugin. Claude Code copies a plugin's whole directory into its install cache, so a suite kept inside a plugin ships to every user who installs it, at roughly 20 times the size of the skills it measures. Each case names its plugin in its `plugins:` frontmatter, which is what lets the plugin resolve from outside its own tree. `scripts/run_evals.py` targets the repository root and passes `--eval-dir evals/<plugin>` to scope a run.
 
