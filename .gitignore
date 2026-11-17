@@ -19,6 +19,8 @@ evals/code-review/review-changes/fixtures/*/
 evals/code-review/pr-review/fixtures/mr-*/
 evals/code-review/pr-review/fixtures/pr-*/
 **/fixtures/*-repo/
+# Plain files with no build.sh, so they must be tracked.
+!evals/agent-docs/review-skill/fixtures/payments-repo/
 
 # .NET build output from fixture projects. The bin/ that sits directly under
 # fixtures/ holds tracked CLI stubs, so the pattern skips that level.
