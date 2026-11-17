@@ -10,23 +10,14 @@ description: >
 
 # Code Review Pyramid
 
-The Code Review Pyramid provides guidance on aspects to focus on during code reviews, prioritized by the cost of fixing issues later. Layers at the bottom of the pyramid deserve more attention because they are harder and more expensive to change after. Layers at the top are easier to address (often automatable) and warrant proportionally less manual review effort.
+The Code Review Pyramid orders review attention by what a problem costs to fix later. It has five layers, numbered from the base up. Give the base the most manual attention, because a change there is the hardest to reverse. Give the apex the least, and automate its checks where you can. Each layer lists the questions to ask.
 
 *Adapted from the [Code Review Pyramid](https://www.morling.dev/blog/the-code-review-pyramid/) by [Gunnar Morling](https://www.morling.dev/), licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).*
 
-## The Pyramid
+## Layer 1: API Semantics
 
-Five layers, numbered from the base up. Manual review attention should be highest at the base and taper toward the apex, where checks should be automated as much as possible:
+Focus here most.
 
-1. **API Semantics** — base: focus here most
-2. **Implementation Semantics** — focus here
-3. **Documentation**
-4. **Tests** — automate where possible
-5. **Code Style** — apex: automate
-
-## Layer 1 — API Semantics
-
-Questions to ask:
 - API as small as possible, as large as needed?
 - Is there one way of doing one thing, not multiple?
 - Is it consistent? Does it follow the principle of least surprise?
@@ -34,9 +25,10 @@ Questions to ask:
 - Are there no breaking changes to user-facing parts (API classes, configuration, metrics, log formats, etc.)?
 - Is a new API generally useful and not overly specific?
 
-## Layer 2 — Implementation Semantics
+## Layer 2: Implementation Semantics
 
-Questions to ask:
+Focus here.
+
 - Does it satisfy the original requirements?
 - Is it logically correct?
 - Is there no unnecessary complexity?
@@ -46,25 +38,26 @@ Questions to ask:
 - Is it observable? (e.g. metrics, logging, tracing, etc.)
 - Do newly added dependencies pull their weight? Are their licenses acceptable?
 
-## Layer 3 — Documentation
+## Layer 3: Documentation
 
-Questions to ask:
 - Are new features reasonably documented?
 - Are the relevant kinds of docs covered: README, API docs, user guide, reference docs, etc.?
 - Are docs understandable? Are there no significant typos or grammar mistakes?
 
-## Layer 4 — Tests
+## Layer 4: Tests
 
-Questions to ask:
+Automate where possible.
+
 - Are all tests passing?
 - Are new features reasonably tested?
 - Are corner cases tested?
 - Is it using unit tests where possible, integration tests where necessary?
 - Are there tests for NFRs, e.g. performance?
 
-## Layer 5 — Code Style
+## Layer 5: Code Style
 
-Questions to ask:
+Automate.
+
 - Is the project's formatting style applied?
 - Does it adhere to agreed naming conventions?
 - Is it DRY?
