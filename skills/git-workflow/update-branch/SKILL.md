@@ -2,19 +2,17 @@
 name: update-branch
 description: >
   Brings a branch up to date with its base branch, usually main. It rebases onto origin/<base>, or
-  merges when the user agrees, then builds and runs the relevant tests. It pushes on its own when
-  the risk is low, and asks first, with the reason, when it is not. It never uses a plain --force,
-  and it never disturbs uncommitted work: a clone on another branch gets a separate git worktree.
-  This skill is user-only: it runs only when the user invokes
-  /update-branch [branch] [--base <branch>] [merge]. When the user wants to update a branch with
-  main, rebase onto main, or fix "branch is behind main", suggest this command.
+  merges when the user agrees, then builds and runs the relevant tests. It pushes on its own when it
+  resolved every conflict without doubt and every test passed, and asks first when not. It never
+  uses a plain --force, and it never disturbs uncommitted work: a clone on another branch gets a
+  separate git worktree.
 argument-hint: "[branch] [--base <branch>] [merge]"
 disable-model-invocation: true
 ---
 
 # Update Branch
 
-A rebase rewrites published history, so every step that can lose work has a check in front of it. The branch defaults to the current branch, and the base defaults to `origin/HEAD`. The word `merge` asks for a merge.
+The branch defaults to the current branch. The base defaults to `origin/HEAD`. The argument `merge` selects a merge.
 
 ## Step 1: Pick the workspace
 
@@ -27,27 +25,22 @@ The helper fetches, then prints `MODE:`, `BASE:`, and `WORKSPACE_PATH:`. Run eve
 
 ## Step 2: Protect the remote commits
 
-Record `origin/<branch>` as the lease for Step 6. A branch with no remote ref was never pushed, so skip the rest of this step.
+Record `origin/<branch>` as the lease for Step 6. If `origin/<branch>` does not exist, skip the rest of this step.
 
-A rebase and a forced push delete the commits in `<branch>..origin/<branch>` from the remote. If the local branch has nothing of its own past `origin/<branch>`, fast-forward to it. Otherwise the two diverged, so show both sides and ask.
+A rebase and a forced push delete the commits in `<branch>..origin/<branch>` from the remote. If the local branch has no commits past `origin/<branch>`, fast-forward to it. Otherwise show both sides and ask.
 
 ## Step 3: Choose rebase or merge
 
-Rebase by default. When one of these is true, propose a merge and wait for the answer:
+Rebase unless the user asked for a merge. Propose a merge and wait for the answer in these cases:
 
 - `<BASE>..origin/<branch>` holds commits by another author than `git config user.email`.
 - The repository docs ask for merge commits.
-- The user asked for a merge.
-
-**Never** switch strategy without consent.
 
 ## Step 4: Update the branch
 
-Read the conflict conventions in the repository docs before you resolve a conflict. Keep the intent of both sides, and read the base commit that touched the same lines. Record each resolution for the report, including any edit outside the conflict markers.
+Read the conflict conventions in the repository docs first. For each conflict, read the base commit that touched the same lines. Resolve a conflict on your own only when one answer in the code keeps the intent of both sides. Otherwise stop and ask. Record each resolution for the report, including any edit outside the conflict markers.
 
-Mark each resolution as a union or a judgment. A union resolution keeps every line of both sides, and adds only the syntax that joins them, such as a comma or a closing brace. Two features that each add an entry to the same list give a union. Every other resolution is a judgment: it picks one side, drops or rewrites a line, or edits outside the conflict markers.
-
-If the right answer to a conflict is not clear from the code, stop and ask. If the same lines conflict in commit after commit, abort the rebase and offer a merge.
+If the same lines conflict in commit after commit, abort the rebase and offer a merge.
 
 ## Step 5: Build and test
 
@@ -55,13 +48,7 @@ Build the projects in `git diff --name-only <BASE>...HEAD`, and run their unit a
 
 ## Step 6: Push and report
 
-The call to `/update-branch` gives permission to push when the risk is low. The risk is low when all of these are true:
-
-- The build and every test from Step 5 passed, and Step 5 tested each changed project.
-- Step 4 marked no resolution as a judgment.
-- After a rebase, `git config user.email` is the author of every commit in `<BASE>..origin/<branch>`.
-
-If one condition is false, do not push. Report the false conditions and the exact push command, then ask. If a build or a test failed, stop there.
+Push without asking only when you resolved every conflict on your own and every build and test from Step 5 passed. Otherwise report the reason and the exact push command, then ask.
 
 After a rebase, push with the lease from Step 2:
 
@@ -69,16 +56,16 @@ After a rebase, push with the lease from Step 2:
 git -C <workspace_path> push --force-with-lease=<branch>:<lease> origin <branch>
 ```
 
-If the lease fails, stop and report it. Do not retry with a new lease. After a merge, use a plain `git push`, with `-u` for a branch that was never pushed. **Never** use `--force`, `-f`, or a `+<refspec>`.
+If the lease fails, stop and report it. Do not retry with a new lease. After a merge, run `git push`, with `-u` for a branch that was never pushed. **Never** use `--force`, `-f`, or a `+<refspec>`.
 
 Then report the strategy, the new base commit, each conflict resolution, the build and test results, and the push result.
 
 ## Step 7: Clean up
 
-Only `MODE: worktree` belongs to this run. After a successful push, remove it with the helper, never with `git worktree remove`:
+For `MODE: worktree` only, remove the worktree with the helper after the push. **Never** use `git worktree remove`, because it removes a clean worktree with unpushed commits.
 
 ```bash
 python3 "$PLUGIN_ROOT/scripts/prepare_update_workspace.py" --remove <workspace_path>
 ```
 
-Git removes a clean worktree with unpushed commits. The helper refuses it. If the helper prints `STOP:` or the branch was not pushed, keep the worktree and give the user its path.
+If there was no push, or the helper prints `STOP:`, keep the worktree and give the user its path.
