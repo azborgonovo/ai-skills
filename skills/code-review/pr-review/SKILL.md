@@ -18,18 +18,16 @@ disable-model-invocation: true
 
 # PR/MR Review
 
-The review lands on the change itself. The author sees inline comments, and the host records the verdict as an approval or a request for changes.
-
 ## What this skill owns
 
-The review itself belongs to the [review-changes](../review-changes/SKILL.md) skill. That skill reviews the diff between `HEAD` and a fixed point across the Code Review Pyramid. It checks the change against its spec, and against the repo's documented standards. It splits the findings into blocking and non-blocking, and it resolves them into one verdict. None of that judgment is repeated here. This skill supplies the four things that review-changes cannot reach from a URL alone:
+The [review-changes](../review-changes/SKILL.md) skill owns every review judgment: the layers, the spec check, the split into blocking and non-blocking, and the verdict. This skill supplies the four things that review-changes cannot reach from a URL alone:
 
 - It resolves the change and its work item, through host and tracker adapters.
 - It isolates the change locally, so the review reads real files at the exact head SHA of the change.
 - It renders the findings as inline comments anchored to the diff.
 - It turns the verdict into the host's approve action or request-changes action.
 
-Two generic terms run through this skill. A "change" is what the host calls a merge request on GitLab, or a pull request on GitHub and Bitbucket. A "work item" is whatever the tracker holds, such as a Jira issue or a GitHub issue. The mechanics for a specific host or tracker live in adapter files under `references/`. Each one loads only when you reach the step that needs it, so the always-loaded body stays host-agnostic.
+A "change" is a merge request on GitLab, or a pull request on GitHub and Bitbucket. A "work item" is whatever the tracker holds, such as a Jira issue or a GitHub issue. The mechanics for each host and tracker live in adapter files under `references/`. Load each one only at the step that needs it.
 
 ## Modes
 
@@ -41,28 +39,28 @@ The word after the URL chooses how much of the review lands on the change. With 
 | `/pr-review <url> comments-only` | published directly | reported in the conversation only |
 | `/pr-review <url> draft` | drafts for the user to submit | reported in the conversation only |
 
-**Self-authored changes**: both hosts reject a verdict from the author of the change. Step 2 compares the author against the authenticated user, and drops to `comments-only` when they match. Say so in the output of Step 8. The verdict is still worth reading, and the host cannot record it.
+**Self-authored changes**: a host does not accept a verdict from the author of the change. Step 2 drops a self-review to `comments-only`. Say so in the output of Step 8.
 
 ## Workflow
 
 ### Step 1: Identify the host and load its adapter
 
-Determine which host holds the change, mainly from the shape of the URL:
+Determine the host from the shape of the URL:
 
 - A URL that contains `…/-/merge_requests/<n>` is GitLab. Read `references/hosts/gitlab.md`.
 - A URL that matches `github.com/<owner>/<repo>/pull/<n>` is GitHub. Read `references/hosts/github.md`.
 
-The adapter file is the authority for the mechanics of that host. It covers URL parsing, the auth check, and the exact calls that fetch metadata and diffs. It covers the shape of the local clone path, how to post comments in either mode, and how to record a verdict. It also covers the gotchas of that host. Read it now, and follow it wherever a later step says "per the host adapter".
+Read the adapter now. It governs every later step that says "per the host adapter".
 
-When no adapter file exists for the host in front of you, degrade instead of stopping. Discover the relevant tools with a keyword `ToolSearch`, or with the platform's CLI or API. Make sure that the fetch-metadata, fetch-diff, and post-comment operations you need exist. Then run in `comments-only` mode. Recording a verdict through an interface you have not verified is the one part that is not worth improvising. Tell the user that you are running without a dedicated adapter, so they know that host-specific behavior is best-effort.
+When no adapter exists for the host, degrade instead of stopping. Discover the tools with a keyword `ToolSearch`, or with the platform's CLI or API. Make sure that the fetch-metadata, fetch-diff, and post-comment operations exist. Then run in `comments-only` mode, because a verdict through an unverified interface is not worth the risk. Tell the user that host-specific behavior is best-effort, because no dedicated adapter exists.
 
 ### Step 2: Fetch change metadata
 
 Use the metadata call from the host adapter. Fetch the title, the description, and the author of the change. Fetch its source branch and target branch, the SHAs that inline comment positions need, the checks or pipeline status, and the web URL.
 
-Compare the author against the authenticated user. The adapter names both calls. On a match, the run is a self-review, so switch to `comments-only` for the rest of the workflow.
+Compare the author against the authenticated user. The adapter names both calls. On a match, switch to `comments-only` for the rest of the workflow.
 
-**If the metadata call fails with an auth error**, the CLI or tool that the host adapter names is not authenticated. An auth error is a 401, or a "not logged in" message. Stop and ask the user to authenticate, and quote the exact command from the adapter. Do not pre-check auth separately. A success here also proves that auth works for posting in Step 6, because both use the same credentials.
+**If the metadata call fails with an auth error**, such as a 401 or a "not logged in" message, stop. Ask the user to authenticate, and quote the exact command from the adapter. Do not pre-check auth separately. A success here also proves that posting in Step 6 works, because both use the same credentials.
 
 ### Step 3: Resolve the work item and save it as the spec
 
@@ -71,17 +69,17 @@ Scan the title and the description for a work-item reference:
 - A Jira key, which matches the regex `[A-Z][A-Z0-9]+-\d+`, bare or inside a full `…atlassian.net/browse/<KEY>` URL. Read `references/trackers/jira.md`.
 - A GitHub issue reference. That is a full `github.com/<owner>/<repo>/issues/<n>` URL, a cross-repo `<owner>/<repo>#<n>` reference, or a bare `#<n>` when the change sits on GitHub in the same repo. Read `references/trackers/github.md`.
 
-A full URL names its tracker without ambiguity, so prefer it over a bare key or number when both appear. The tracker is independent of the code host. A GitLab MR can reference a GitHub issue for its requirements, and the reverse also happens.
+Prefer a full URL over a bare key or number when both appear, because a URL names its tracker without ambiguity. The tracker is independent of the code host. A GitLab MR can reference a GitHub issue, and the reverse also happens.
 
-The tracker adapter is the authority for fetching that work item. It covers how to load or authenticate its tools, the exact call that fetches the item, and the fields to extract. Those fields are the summary, the description or acceptance criteria, and the issue type. Read it now, and follow it as "per the tracker adapter".
+Read the tracker adapter now. It governs the fetch of the work item, as "per the tracker adapter". The skill never posts back to the work item.
 
-Write what you fetched to `${TMPDIR:-/tmp}/<change-id>-work-item.md`, word for word. Write the summary, the description, the acceptance criteria, and the URL of the work item. Step 5 hands that path to review-changes as the spec. A file keeps the requirements in the tracker's own words, and a paraphrase loses the exact wording that a conformance check needs.
+Write what you fetched to `${TMPDIR:-/tmp}/<change-id>-work-item.md`, word for word: the summary, the description, the acceptance criteria, and the URL. A conformance check needs the tracker's exact wording, and a paraphrase loses it.
 
-When no adapter exists for the tracker in front of you, degrade the same way as in Step 1. When you find no work-item reference at all, or the fetch fails, continue with no spec file. review-changes then reports the review as spec-less, and the output of Step 8 carries the caveat that nobody assessed conformance.
+When no adapter exists for the tracker, degrade as in Step 1. When you find no work-item reference, or the fetch fails, continue with no spec file. review-changes then reports the review as spec-less, and the output of Step 8 carries that caveat.
 
 ### Step 4: Isolate the change in a review worktree
 
-A checkout of the change in the user's main clone switches what is checked out under them. It disrupts the branch or the uncommitted work that they hold there. A disposable worktree, detached at the head SHA of the change, gives the review its own directory instead. A detached checkout also cannot collide with a branch that the user has checked out somewhere else.
+Review from a disposable worktree, detached at the head SHA of the change. A checkout in the user's main clone disrupts the branch or the uncommitted work that they hold there.
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(readlink -f "<skill_dir>/SKILL.md")")")}"
@@ -90,86 +88,84 @@ python3 "$PLUGIN_ROOT/scripts/setup_workspace.py" \
   --source-branch <source_branch> --target-branch <target_branch> --detach-sha <head_sha>
 ```
 
-Use `python` in place of `python3` when `python3` is not on `PATH`. Some native Windows installs carry only one of the two.
+Use `python` in place of `python3` when `python3` is not on `PATH`. `<repo_path>` is the relative shape that the host adapter states. The script searches for the clone. The `--target-branch` flag also fetches the diff base, so the fixed point of Step 5 resolves locally.
 
-The first line resolves the shared helper at the plugin root, in either install mode. `<repo_path>` is the relative shape that the host adapter states, which is the namespace for GitLab and `owner/repo` for GitHub. The script searches common project roots, and then searches by remote URL, because no single clone location is standard enough to assume. The `--target-branch` flag fetches the diff base too, which is what makes the fixed point in Step 5 resolvable locally.
+On success the script prints `MODE: worktree`, then `WORKSPACE_PATH: <path>`. Use that path for every read, every `grep`, and every `git` call from here on. On a refusal, the script prints `STOP: <reason>` and exits non-zero. Never force past a refusal, and never fall back to a checkout in the user's main clone. When the script cannot find the clone, ask the user for the path, and re-run with `--repo-root <path>` in place of `--repo-path`.
 
-On success the script prints `MODE: worktree`, then `WORKSPACE_PATH: <path>`. A review always detaches, so the mode is always `worktree` here. Use that path for every read, every `grep`, and every `git` call from here on. On a refusal, the script prints `STOP: <reason>` and exits non-zero. A refusal happens when a leftover worktree is dirty or unpushed, or when the script cannot find the clone. Never force past a refusal, and never fall back to a checkout of the change in the user's main clone. When the script cannot locate the clone, ask the user for the path, and re-run with `--repo-root <path>` in place of `--repo-path`.
-
-With no worktree, the review is diff-only. Fetch the diff of every changed file per the host adapter, including its truncation check, and write it to `${TMPDIR:-/tmp}/<change-id>.diff`. Step 5 hands that file over in place of the worktree. Step 8 carries the limitation as a caveat, because with no working tree you cannot settle any claim by running the code.
+With no worktree, the review is diff-only. Fetch the diff of every changed file per the host adapter, including its truncation check, and write it to `${TMPDIR:-/tmp}/<change-id>.diff`. When the diff is truncated or a file has no diff, review the riskiest files first. Those are auth, data access, and the public API surface. Step 8 carries the limitation as a caveat, because no claim can be settled by running the code.
 
 ### Step 5: Hand the review to review-changes, then come straight back
 
 Invoke the `review-changes` skill through the Skill tool, with `skill: "review-changes"`. Pass these six things:
 
-- **The worktree path**, with the instruction to run every git command as `git -C <worktree_path>`. The working directory of the shell is still the user's main clone. A review that silently diffs the wrong repo is the one failure mode here worth spelling out.
-- **The fixed point**, which is the base SHA from Step 2. The target branch also works, because review-changes diffs with three dots, so either input resolves to the merge base. In diff-only mode there is no working tree to diff, so hand over `${TMPDIR:-/tmp}/<change-id>.diff` as the already-captured diff, and say that you did.
+- **The worktree path**, with the instruction to run every git command as `git -C <worktree_path>`. The shell still sits in the user's main clone, and a review that diffs the wrong repo fails silently.
+- **The fixed point**, which is the base SHA from Step 2. In diff-only mode, hand over `${TMPDIR:-/tmp}/<change-id>.diff` as the already-captured diff, and say that you did.
 - **The spec**, which is the `${TMPDIR:-/tmp}/<change-id>-work-item.md` path from Step 3. When there is no spec, say that there is none.
-- **The test signal**, which is the checks or pipeline status from Step 2, passed as the CI result to report. This is someone else's repo, freshly fetched, so report the host's verdict instead of building and running its suite unprompted.
-- **Where the report goes**, which is `${TMPDIR:-/tmp}/<change-id>-review.md`, written as a file instead of printed in the conversation. The output of Step 8 is the only review that the user has to read. A report printed here says the same thing twice, and the second copy does not know what actually reached the author.
-- **How long each finding can run**, which is the finding-length budget of review-changes, set here to 2 to 4 sentences of continuous prose per entry. Each entry names the symbol, states the concrete problem, and then gives the fix or the question. Step 6 posts those entries word for word as the inline comments. A requested change asserts the problem and prescribes the fix. A suggestion leaves the decision with the author, who is accountable for the change. Phrase it as a direct question when the code can be deliberate, or as a fix that the author can take or leave. Never add a sentence about the comment itself, such as who resolves the thread or who decides. Go past one tight paragraph only when the failure mechanism needs the room. A concurrency race, a security hole, and a scope change that spans callers all need the room. Two things sit outside that budget. The first is a word-for-word quote of an unmet acceptance criterion. The second is a fenced code block that carries the corrected expression, when the fix is shorter to show than to describe.
+- **The test signal**, which is the checks or pipeline status from Step 2, passed as the CI result to report.
+- **Where the report goes**, which is `${TMPDIR:-/tmp}/<change-id>-review.md`, written as a file instead of printed in the conversation. The output of Step 8 is the only review that the user reads.
+- **The finding-length budget**: 2 to 4 sentences of continuous prose per entry. Step 6 posts those entries word for word. A requested change asserts the problem and prescribes the fix. A suggestion leaves the decision with the author. Phrase it as a direct question when the code can be deliberate, or as an optional fix. Never add a sentence about the comment itself, such as who resolves the thread or who decides. Go past one paragraph only when the failure mechanism needs the room. A concurrency race, a security hole, and a scope change across callers all can. Two things sit outside the budget: a word-for-word quote of an unmet acceptance criterion, and a fenced code block that carries the corrected expression.
 
-**review-changes runs inside this workflow, not in place of it.** Its process is numbered independently of this one, and it ends in a step called "Report". Writing the file above satisfies that step, and it is not the end of the run. Read the file back and go straight into Step 6 in the same turn. Publishing is what this skill exists to do, and a review that stops at the report has produced nothing that the author can see.
+**review-changes runs inside this workflow, not in place of it.** It ends in its own step called "Report". Writing the file satisfies that step, and it does not end the run. Read the file back and go straight into Step 6 in the same turn.
 
-That report is the review of record. It holds the verdict, the split between blocking and non-blocking, the spec accounting, and the list of what the review checked and found clean. Steps 6 through 8 turn that report into comments, a verdict action, and output. They do not review the change again.
+That report is the review of record. Steps 6 through 8 turn it into comments, a verdict action, and output. They do not review the change again.
 
 ### Step 6: Post the findings per the host adapter
 
-Every finding that review-changes reported becomes one note object. Its text is **the entry as review-changes wrote it, word for word**, including the layer tag and the `file:line` citation. Do not re-draft, expand, re-explain, or trim it. The report and the change must say the same thing, and a rewrite here reliably comes out longer than the entry it replaced. Strip only the list number, which belongs to the report's ordering and means nothing on a standalone comment. Then promote a fenced code block into the host's suggestion syntax, where the rules below allow it.
+Every finding that review-changes reported becomes one note object. Its text is **the entry as review-changes wrote it, word for word**, including the layer tag and the `file:line` citation. Do not re-draft, expand, or trim it. Strip only the list number. Then promote a fenced code block into the host's suggestion syntax, where the rules below allow it.
 
-Keep the citation even though the anchor points at the same line, because the anchor can fail to survive. When a host cannot resolve a position, it re-posts the same text with no position, through the `line_code` path of GitLab described in the adapter. A comment that lost its anchor is exactly the comment that has to name its own file and line.
+Keep the `file:line` citation even on an anchored note, because a note that cannot anchor is re-posted with no position.
 
-So a report entry that reads
+**Marking a suggestion**: post each suggestion with `non-blocking` in its layer tag, as in `**[Code Style · non-blocking]**`. The author then tells it apart from a requested change at a glance.
 
+An entry too long to read as an inline comment is an entry to shorten in *both* places. Tighten it in the report, instead of posting one length and reporting another.
+
+**The notes file**: write the findings to a JSON array, with one object per finding. Both host scripts read the same shape:
+
+```json
+[
+  { "note": "<the entry, word for word>", "new_path": "src/user.go", "new_line": 47 },
+  { "note": "<a finding with no good line anchor>", "general": true }
+]
 ```
-1. **[Impl. Semantics]** `svc/user.go:47` — `fetchUser` does not handle the case where the DB returns `null`, so the `.Name` access will panic at runtime. Add a nil check or return an early error.
-```
 
-posts as
+**Anchors**: a finding cited as `file:line` becomes an inline note, with `new_path` plus `new_line`, the line number in the new file as an integer. A cross-cutting finding with no single site becomes `"general": true`, rather than a note pinned to a misleading line. `new_line` must be a line that this change added. Find it with `grep -n '<snippet>' <worktree_path>/<file>`, then make sure that it carries a `+` in `git -C <worktree_path> diff <base_sha>...HEAD -- <file>`. A finding on an unchanged line anchors to the nearest added line, or it goes general.
 
-```
-**[Impl. Semantics]** `svc/user.go:47` — `fetchUser` does not handle the case where the DB returns `null`, so the `.Name` access will panic at runtime. Add a nil check or return an early error.
-```
+**Suggested changes**: a fenced `suggestion` block inside an inline comment renders as a patch that the author applies in one click. Use one when the fix is an exact replacement of the lines that the comment anchors to. The adapter gives the syntax. The block replaces those lines whole: keep the original indentation, add no leading `+`, and leave nothing for the author to fill in. Read the current text out of the worktree with `sed -n`, instead of reconstructing it from the diff. Use prose instead in four cases:
 
-**Marking a suggestion**: the author must be able to tell a suggestion from a requested change at a glance. Post each suggestion with `non-blocking` in its layer tag, as in `**[Code Style · non-blocking]**`. That label tells the author that the decision is theirs, so the comment text never has to say it.
+- a fix that spans several files or non-contiguous lines
+- a finding that the author has a genuine choice about
+- a general comment, where the block renders as inert code
+- diff-only mode, where no worktree exists to read from
 
-An entry too long to read as an inline comment is an entry to shorten in *both* places. Go back and tighten it in the report, instead of posting one length and reporting another.
+**What stays out of the comments**: the summary paragraph, the "checked and clean" list, and the path to merge belong to the Step 8 output. Skip a suggestion that no author will act on, such as a style nit that automation must catch. Where the same finding recurs across files, post the clearest occurrence once.
 
-**Anchors**: a finding cited as `file:line` becomes an inline note, with `new_path` plus `new_line`. A cross-cutting finding with no single site becomes `"general": true`, rather than a note pinned to a misleading line. `new_line` must be a line that this change added. Find it with `grep -n '<snippet>' <worktree_path>/<file>` instead of counting diff lines. Then make sure that it carries a `+` in `git -C <worktree_path> diff <base_sha>...HEAD -- <file>`. A finding that lands on an unchanged line anchors to the nearest added line, or it goes general. Both host scripts reject or downgrade an anchor that the diff does not contain.
-
-**Suggested changes**: both hosts render a fenced `suggestion` block inside an inline comment as a patch that the author applies in one click. A finding whose fix is an exact replacement of the lines its comment anchors to belongs in one of those blocks. The adapter gives the syntax for that host. The block carries the whole replacement: the original indentation, code that is valid on its own, and nothing left for the author to fill in. Read the block word for word out of the worktree, instead of reconstructing it from the diff. Prose stays the right answer in four cases. The first is a fix that spans several files or non-contiguous lines. The second is a finding that the author has a genuine choice about. The third is anything that lands as a general comment, because the block is inert outside the diff. The fourth is diff-only mode, where no worktree exists to read the current line from.
-
-**What stays out of the comments**: the summary paragraph, the "checked and clean" list, and the path to merge all belong to the Step 8 output in the conversation. Skip a suggestion that no author will act on, such as a style nit that automation must catch. Where the same finding recurs across files, post the clearest occurrence once.
-
-**The verdict summary**: only a Request changes verdict in the default mode posts one. GitHub requires a body on that event, and GitLab has nowhere else to state the verdict. Write the one thing that the author needs to act on, and do not write a second copy of the review:
+**The verdict summary**: only a Request changes verdict in the default mode posts one, because the host needs the reason on the change. Write the one thing that the author needs to act on:
 
 ```
 This <merge request | pull request> was not approved because <the blocking finding, in one sentence>. <Why that blocks: the defect that will reach production, the contract broken for callers, or the acceptance criterion left unmet.> <Where the detail is: the inline comment on `<file>`, or "the N inline comments" when there are several.>
 ```
 
-Write two or three sentences in the third person, with no headings and no lists. Write about the change, and never as "I". The inline comments carry the mechanism. The suggestions, the "checked and clean" list, and the path to merge stay in the Step 8 output. Write the summary to `${TMPDIR:-/tmp}/<change-id>-summary.md`, and pass it as `--summary-file`. The script marks it, so leave the 🤖 off.
+Write two or three sentences in the third person, with no headings, no lists, and no "I". Keep the passive opening of the template, because it states the verdict without naming a reviewer. When a plain-English writing skill such as `simple-english` is available, apply its rules to the summary. Where they pull against the sentence limit, the limit wins. Write the summary to `${TMPDIR:-/tmp}/<change-id>-summary.md`, and pass it as `--summary-file`.
 
-Write the summary in short sentences and the active voice, define a term that the author can miss at its first use, and cut filler. Where that pulls against the two-sentence-to-three-sentence limit above, the limit wins. The opening sentence keeps the passive form of the template, because it states the verdict without naming a reviewer. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the summary. The findings need no pass here, because review-changes already wrote them in plain English and this step posts them word for word.
+**The posting script**: the host adapter names it and gives the invocation for the mode that Step 2 settled on. The script marks each comment and the verdict summary with a trailing 🤖, so leave the mark off. It publishes the comments before it touches the verdict. It skips a finding that this account already published, instead of deleting or duplicating it. It downgrades an anchor that the diff does not contain.
 
-The host adapter names the bundled script that posts the notes, which is `scripts/post_review_notes_gitlab.py` or `scripts/post_review_notes_github.py`, relative to this SKILL.md. It also gives the exact invocation for the mode that Step 2 settled on. Both scripts read the same notes-file JSON shape, so the notes file does not change with the host. Both mark each comment and the verdict summary with a trailing 🤖. Both publish the comments before they touch the verdict, so an approval never lands without its reasoning. Both skip a finding that this account already published, instead of deleting it or duplicating it. Leave the marking to the script, because a mark you write yourself can land twice.
-
-The 🤖 marks only the findings and the verdict summary that the scripts post. After the review, the user can ask you to post a message of their own, such as a question to the author. Post that message with no 🤖, because it speaks for the user and not for the review.
+The 🤖 marks only what the script posts. The user can later ask you to post a message of their own, such as a question to the author. Post it with no 🤖, because it speaks for the user.
 
 Read the script's tally afterward. It reports what was posted, what was skipped as already present, and what the verdict action did. Step 8 reports all three.
 
 ### Step 7: Remove the worktree
 
-Remove the worktree that this run created, even when an earlier step failed partway, such as a posting error or an abandoned review. When Step 4 hit its STOP check, this run created no worktree, so leave the existing one untouched.
+Remove the worktree that this run created, even when an earlier step failed partway. When Step 4 hit its STOP check, this run created no worktree, so leave the existing one untouched.
 
 ```bash
 git -C <repo_path> worktree remove "<worktree_path>"
 ```
 
-If git refuses the removal, leave the worktree in place. Tell the user exactly what git reported, so they can decide what to do with it.
+If git refuses the removal, leave the worktree in place, and tell the user exactly what git reported.
 
 ### Step 8: Output the review
 
-Output the full review in the conversation. The change carries the comments and the verdict, and it does not carry the reasoning around them. Step 5 kept the report of review-changes in a file, so this output is the only review that the user reads. It has to stand on its own. Lead with the verdict from review-changes, keep its lists as it wrote them, and add what only this skill knows: where the change and the work item live, what the author will see, and where the attention of a human is worth spending.
+Output the full review in the conversation. It is the only review that the user reads, so it has to stand on its own. Lead with the verdict from review-changes, and keep its lists as it wrote them. Add what only this skill knows: where the change and the work item live, what the author sees, and where human attention pays off.
 
 ```markdown
 ## <Approved | Approved with suggestions | Request changes>
@@ -197,19 +193,19 @@ Output the full review in the conversation. The change carries the comments and 
 
 ### On the change
 - <N comments published inline, M in the conversation, K skipped as already posted. In draft mode, N drafts awaiting submission.>
-- <the verdict action taken, or why none was taken: comments-only mode, a self-authored change, or a 409 on a moved head>
+- <the verdict action taken, or why none was taken: comments-only mode, a self-authored change, or the host refused because the head moved>
 - <the reversal or submit line from the closing lines of the host adapter>
 ```
 
-**Marking posted findings**: tag each finding that reached the change with *(posted inline)* or *(posted to the conversation)*. Tag each finding that the script skipped with *(already on the change)*. That marking is the only way the reader can tell what the author sees from what stayed between the two of you.
+**Marking posted findings**: tag each finding that reached the change with *(posted inline)* or *(posted to the conversation)*. Tag each finding that the script skipped with *(already on the change)*.
 
-**Worth your own look**: name the files where the independent judgment of a human pays off most, whatever the AI found there. Two kinds qualify. The first kind defines or changes a public contract that other code depends on. That contract is an interface, an exported type, or a signature that callers rely on. The second kind carries business-rule logic, such as a branch that encodes a business decision, a state transition, or orchestration across domain concerns. Judge by the role that a file plays, not by its path or its language. A controller with real branching of its own qualifies, and a "domain" file of pure boilerplate does not. Be selective. Let the criteria filter the list rather than a number, and omit the section when nothing rises to it.
+**Worth your own look**: name the files where the independent judgment of a human pays off most, whatever the AI found there. Two kinds qualify. The first defines or changes a public contract that other code depends on, such as an interface, an exported type, or a signature. The second carries business-rule logic, such as a branch that encodes a business decision, a state transition, or orchestration across domain concerns. Judge by the role of a file, not by its path or its language. Let the criteria filter the list rather than a number, and omit the section when nothing qualifies.
 
 ## Hard constraints
 
-The steps above carry their own reasoning. These four repeat because each one is either irreversible for the author once done, or leaves the run having delivered nothing.
+Each of these is irreversible for the author, or leaves the run with nothing delivered.
 
-- **Never** end the turn between the review and the posting. The report of review-changes is an intermediate artifact, and the run is not finished until Step 6 has posted and Step 8 has reported. If the user has to ask whether the comments went up, this skill failed.
-- **Never** act on the verdict outside the default mode. `draft` and `comments-only` report the verdict in the conversation and leave the approval state of the change untouched, and so does a self-authored change.
-- **Never** delete or overwrite a comment that is already published, on a rerun or at any other time. The author can have replied to it. A rerun skips what is already there.
-- **Never** check out the change in the user's main clone. Always review from the isolated worktree that Step 4 created.
+- **Never** end the turn between the review and the posting. The run is not finished until Step 6 has posted and Step 8 has reported.
+- **Never** act on the verdict outside the default mode. `draft`, `comments-only`, and a self-authored change leave the approval state of the change untouched.
+- **Never** delete or overwrite a published comment, on a rerun or at any other time. The author can have replied to it.
+- **Never** check out the change in the user's main clone. Always review from the worktree of Step 4.
