@@ -45,6 +45,8 @@ Rebase by default. When one of these is true, propose a merge and wait for the a
 
 Read the conflict conventions in the repository docs before you resolve a conflict. Keep the intent of both sides, and read the base commit that touched the same lines. Record each resolution for the report, including any edit outside the conflict markers.
 
+Mark each resolution as a union or a judgment. A union resolution keeps every line of both sides, and adds only the syntax that joins them, such as a comma or a closing brace. Two features that each add an entry to the same list give a union. Every other resolution is a judgment: it picks one side, drops or rewrites a line, or edits outside the conflict markers.
+
 If the right answer to a conflict is not clear from the code, stop and ask. If the same lines conflict in commit after commit, abort the rebase and offer a merge.
 
 ## Step 5: Build and test
@@ -56,7 +58,7 @@ Build the projects in `git diff --name-only <BASE>...HEAD`, and run their unit a
 The call to `/update-branch` gives permission to push when the risk is low. The risk is low when all of these are true:
 
 - The build and every test from Step 5 passed, and Step 5 tested each changed project.
-- Step 4 resolved no conflict.
+- Step 4 marked no resolution as a judgment.
 - After a rebase, `git config user.email` is the author of every commit in `<BASE>..origin/<branch>`.
 
 If one condition is false, do not push. Report the false conditions and the exact push command, then ask. If a build or a test failed, stop there.
