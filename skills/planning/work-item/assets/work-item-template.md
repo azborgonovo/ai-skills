@@ -1,6 +1,8 @@
 # Work item template
 
-Section headers are bold text, not markdown `##` or `###` headers. That matches how well-formed work items are written in the tools that hold them. Jira, GitHub, Azure DevOps, and Linear all render plain bold correctly. A markdown header often looks oversized in a narrow tracker pane, and sometimes it does not render at all.
+Section headers are bold text, not markdown `##` or `###` headers. Trackers render plain bold correctly, but a markdown header often looks oversized in a narrow tracker pane, or does not render at all.
+
+Include an optional section only when real analysis or real ambiguity gives it content. Never write a placeholder.
 
 ## Skeleton
 
@@ -9,20 +11,20 @@ Section headers are bold text, not markdown `##` or `###` headers. That matches 
 
 <1 to 3 short paragraphs, or a numbered list, depending on the framing section>
 
-**Root cause** (optional: include it only after real analysis)
+**Root cause** (optional)
 
-<what the analysis found, and never a placeholder>
+<what the analysis found>
 
-**Plan** (optional: include it only after real analysis. Use it in place of Root cause for feature or infrastructure work)
+**Plan** (optional: use it in place of Root cause for feature or infrastructure work)
 
 <the approach, as a short list of concrete steps>
 
-**Acceptance criteria** (mandatory, except for a conditionally-exempt child item. See SKILL.md)
+**Acceptance criteria** (mandatory, except for a minimal child item)
 
 - <testable, observable outcome>
 - <testable, observable outcome>
 
-**Out of Scope** (optional: include it only when real ambiguity is worth ruling out)
+**Out of Scope** (optional: only to rule out real ambiguity)
 
 - <something that this work item deliberately does not cover>
 ```
@@ -88,7 +90,7 @@ We are moving the notification service off the shared message bus and onto its o
 
 ### Child item that needs its own acceptance criteria, because it is independently verifiable
 
-The parent is "Migrate all services off the shared message bus onto dedicated queues", which is a standalone work item that carries the overall Plan. This child item covers one specific service, which deploys and gets verified on its own schedule, independently of the other services in the migration.
+The parent, "Migrate all services off the shared message bus onto dedicated queues", carries the overall Plan. This child covers one service, which deploys and gets verified independently.
 
 **Context**
 
@@ -101,6 +103,6 @@ Cut the billing service over to its dedicated queue, as part of the shared messa
 
 ### Child item correctly left minimal, with no acceptance criteria
 
-The parent is "Add profanity filtering to comment submission", which is a standalone work item that carries the overall acceptance criteria for the whole feature. This child item is one granular checklist entry under that parent. It has no independent "done" state, so it needs neither its own framing nor its own acceptance criteria.
+The parent, "Add profanity filtering to comment submission", carries the acceptance criteria for the whole feature. This child is one checklist entry with no independent "done" state.
 
 (No content beyond the title. The acceptance criteria of the parent work item already cover this.)
