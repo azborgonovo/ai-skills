@@ -16,7 +16,7 @@ Review the diff between `HEAD` and a fixed point that the user supplies, driven 
 
 The [Code Review Pyramid](../code-review-pyramid/SKILL.md) orders review attention by what a mistake costs to unwind. API semantics sit at the base, and code style sits at the apex. Read the base hardest.
 
-Where a finding sits in that pyramid says nothing about whether it blocks the change. Keeping those two axes apart is the job here. A review that blurs "this is wrong" into "I have a different preference" leaves the reader to work out what gates the merge. That failure is why this skill exists.
+Where a finding sits in that pyramid says nothing about whether it blocks the change. Keep those two axes apart. A review that blurs "this is wrong" into "I have a different preference" leaves the reader to work out what gates the merge.
 
 ## Process
 
@@ -24,13 +24,11 @@ Where a finding sits in that pyramid says nothing about whether it blocks the ch
 
 Whatever the user named is the fixed point. It can be a commit SHA, a branch name, a tag, `main`, or `HEAD~5`. When the user named none, ask for one.
 
-Capture the diff once with `git diff <fixed-point>...HEAD`. The three dots compare against the merge-base. Capture the commit list with `git log <fixed-point>..HEAD --oneline`.
+Make sure that the ref resolves, with `git rev-parse <fixed-point>`, so that a bad ref fails here and not halfway through the review. Capture the diff once with `git diff <fixed-point>...HEAD`, which compares against the merge-base, and make sure that it is not empty. Capture the commit list with `git log <fixed-point>..HEAD --oneline`.
 
-Make sure that the ref resolves, with `git rev-parse <fixed-point>`, and that the diff is not empty, before you go further. Then a bad ref fails here instead of halfway through a review.
+The caller can name a repository directory, such as a prepared worktree or a clone outside the shell's working directory. Then run every git command with `git -C <dir>`, and read every file under it. A review of the wrong repository looks complete and describes nothing that the caller asked about.
 
-When the caller names a repository directory, run every git command against it with `git -C <dir>`, and read every file under it. This happens when another skill hands you a worktree that it prepared. It also happens when a user points at a clone that is not the working directory of the shell. A review of the wrong repository produces a report that looks complete and describes nothing that the caller asked about.
-
-When the caller hands you a diff that it captured itself, review that diff instead of running your own. This happens when a change comes from a code host and no clone is available locally. Add the caveat that there is no working tree, because with no code to run, every claim rests on reading alone.
+When the caller hands you a diff that it captured itself, for example from a code host with no local clone, review that diff instead of your own. Add the caveat that there is no working tree, because every claim then rests on reading alone.
 
 ### 2. Gather review context
 
@@ -41,7 +39,7 @@ When the caller hands you a diff that it captured itself, review that diff inste
 3. A spec file that matches the branch name or the feature.
 4. When nothing turns up, ask the user where the spec is.
 
-If the user says that no spec exists, review without one, and report the review as spec-less. That becomes a caveat in step 5, because nobody assessed conformance.
+If the user says that no spec exists, review without one, and report the review as spec-less. That is a caveat in step 5.
 
 **The standards**: there are two kinds, and both carry weight.
 
@@ -54,9 +52,9 @@ Take the standards only from the repo under review. A `CLAUDE.md` that already s
 
 ### 3. Load the pyramid
 
-Invoke the `code-review-pyramid` skill through the Skill tool, with `skill: "code-review-pyramid"`, to load the layer definitions and their questions. It ships in this plugin, so it is installed wherever this skill is.
+Invoke the `code-review-pyramid` skill, which ships in this plugin, to load the layer definitions and their questions.
 
-Work through the questions of every layer, instead of stopping at what surfaces first. Spend attention in proportion to the order of the pyramid. Go deepest at API semantics and implementation semantics, and go lightest at code style, where automation must do the work.
+Work through the questions of every layer, instead of stopping at what surfaces first. Go deepest at API semantics and implementation semantics, and go lightest at code style, where automation must do the work.
 
 ### 4. Set the severity bar
 
@@ -65,11 +63,11 @@ Every finding either blocks the change or does not, and that split decides the v
 - **Requested change**: the author must act before this change lands. This covers anything that will cause a defect in production, and an unintended breaking change to a user-facing contract. It covers a spec requirement that is missing, partial, or implemented wrongly. It covers a hard breach of a documented repo standard.
 - **Suggestion**: a reasonable author can decline it. This covers judgment calls, optional refactors, naming and formatting preferences, docs or tests that no standard mandates, and follow-up ideas.
 
-Severity is independent of layer. A code style finding that breaches a documented standard is a requested change. An observation about API semantics can be a suggestion.
+A code style finding that breaches a documented standard is a requested change. An observation about API semantics can be a suggestion.
 
 Hold a blocking claim to a higher bar than a suggestion. A false blocker costs the author a round trip, and it costs you their trust in the next review. Where a claim is cheap to settle by running the code, run the code. When a claim does not substantiate, downgrade it or drop it. Never hedge it into the blocking list.
 
-**Test status**: establish it rather than assume it. A caller sometimes hands you the test signal, such as a pipeline or checks result from a code host. Report that signal, and do not build the repo yourself. Otherwise use the CI result of the repo when it has CI, and run the suite yourself when it does not. Either way, say which signal you used. Report the status as unverified only when no signal is available. On a repo where the answer is one command away, "unverified" is a caveat that you invented. Treat a test committed as skipped or disabled as unverified coverage, not as a passing test.
+**Test status**: establish it rather than assume it. When a caller hands you a test signal, such as a pipeline result from a code host, report it and do not build the repo yourself. Otherwise use the CI result of the repo, or run the suite yourself when it has no CI. Say which signal you used. Report the status as unverified only when no signal is available. On a repo where the answer is one command away, "unverified" is an invented caveat. Treat a test committed as skipped or disabled as unverified coverage, not as a passing test.
 
 ### 5. Decide the verdict
 
@@ -77,15 +75,15 @@ Hold a blocking claim to a higher bar than a suggestion. A false blocker costs t
 - **Approved with suggestions**: no requested changes, and at least one suggestion or at least one caveat.
 - **Approved**: nothing to act on and nothing caveated.
 
-Two caveats belong in the summary whatever the verdict is. The first is that no spec existed to check conformance against. The second is that you cannot establish the test status. Disclosing them is the point, because it is how the reader learns what the review did *not* check. That matters as much under "Request changes" as under an approval.
+Two caveats belong in the summary whatever the verdict is: no spec existed to check conformance against, and you cannot establish the test status. They tell the reader what the review did *not* check, which matters under "Request changes" too.
 
 ### 6. Report
 
 Lead with the verdict. Then write a summary paragraph under all three outcomes. Cover the fixed point, the diff scope in commits and files, what the review verified, and any caveat.
 
-When the caller supplied a destination for the report, writing the report to that path *is* how this step is satisfied. This happens when another skill invokes this one as a step inside its own workflow. Write the file and print nothing in the conversation, because the caller's own output is what the user reads.
+When the caller supplies a destination for the report, write the report to that path. Print nothing in the conversation, because the caller's own output is what the user reads.
 
-**Finding length**: a caller that republishes these entries word for word sometimes states how long each one can run. Write to that budget. With none given, write one or two sentences per finding: the symbol, the concrete problem, then the fix or the question.
+**Finding length**: when a caller states a length budget per finding, write to it. With none given, write one or two sentences per finding: the symbol, the concrete problem, then the fix or the question.
 
 **Plain English**: the author of the change reads these findings, and a caller sometimes posts them word for word. Write short sentences in the active voice, define a term that the reader can miss at its first use, and cut filler. Keep every layer tag, `file:line` citation, symbol name, and code snippet exactly as it is. Where this pulls against the length budget above, the budget wins. When a plain-English writing skill such as `simple-english` is available, invoke it and apply its rules to the report.
 
@@ -108,7 +106,7 @@ When the caller supplied a destination for the report, writing the report to tha
 1. <the requested changes, in the order worth addressing them>
 ```
 
-**Ordering**: sort each list by consequence, worst first. The layer tag is a label, not a sort key. An implementation defect that loses money leads over a naming change one layer below it, because the reader needs the outcome before the detail.
+**Ordering**: sort each list by consequence, worst first. The layer tag is a label, not a sort key. An implementation defect that loses money leads over a naming change one layer below it.
 
 **Layer tags**: use `[API Semantics]`, `[Impl. Semantics]`, `[Documentation]`, `[Tests]`, and `[Code Style]`. Give each finding exactly one tag. When a finding genuinely spans layers, use the lowest-numbered layer that it belongs to. A defect whose effect a caller can observe reaches Layer 1, no matter how deep in the implementation it starts. Examples are a response field of the wrong type, and a rejection where the call used to succeed.
 
@@ -118,4 +116,4 @@ When the caller supplied a destination for the report, writing the report to tha
 
 **Spec accounting**: when a spec exists, account for every requirement explicitly rather than in prose. Name each requirement, and say whether the diff satisfies it. Quote the spec line for anything missing, partial, or implemented wrongly. Separately, flag behavior that the diff adds and the spec never asked for.
 
-**Nothing manufactured**: report only what the files in front of you substantiate. A layer question that raises nothing belongs under "Checked and clean". Recording that it yielded nothing is worth more to the reader than a finding invented to fill the section.
+**Nothing manufactured**: report only what the files in front of you substantiate. A layer question that raises nothing belongs under "Checked and clean", not as a finding invented to fill a section.
