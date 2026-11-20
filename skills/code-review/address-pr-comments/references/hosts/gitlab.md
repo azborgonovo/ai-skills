@@ -32,12 +32,14 @@ Extract `title`, `source_branch`, and `web_url`.
 ## List open threads (Step 2)
 
 ```
-GET projects/<project_path_encoded>/merge_requests/<mr_iid>/discussions   (per_page: 100)
+mcp__glab__glab_api
+  args:  ["projects/<project_path_encoded>/merge_requests/<mr_iid>/discussions?per_page=100"]
+  flags: { "paginate": true, "output": "ndjson" }
 ```
 
-Paginate with the `page` parameter when the `X-Total-Pages` header of the response shows more than one page.
+Always pass `"output": "ndjson"` on this call. With the default `json` output, the `glab` MCP server returns the array as structured content, and Claude Code rejects it with `expected record, received array`. The `ndjson` output gives one discussion per line.
 
-Each element is a discussion with a `notes` array, which holds one entry per comment in the thread, oldest first. Keep only the discussions where the first note has `"resolvable": true` and `"resolved": false`, because those are the open threads. For each one, capture:
+Each line is a discussion with a `notes` array, which holds one entry per comment in the thread, oldest first. Keep only the discussions where the first note has `"resolvable": true` and `"resolved": false`, because those are the open threads. For each one, capture:
 - `id`, which is the discussion ID, and which you need to reply and to resolve.
 - `notes[].body` and `notes[].author`, which give the full exchange.
 - `notes[0].position.new_path` and `notes[0].position.new_line`, which give the inline anchor when they are present.
