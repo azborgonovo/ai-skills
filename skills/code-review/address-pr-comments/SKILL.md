@@ -57,6 +57,8 @@ Use `python` in place of `python3` when `python3` is not on `PATH`. `<repo_path>
 
 On success it prints two lines. `MODE:` is `main-clone` or `worktree`, and Step 9 reads it. `WORKSPACE_PATH: <path>` is the workspace. Use that path for every read, every edit, and every commit from here on.
 
+A new worktree has no installed dependencies, such as `node_modules`. If `MODE:` is `worktree`, install them with the lockfile command of the repo before Step 5 runs a test.
+
 On a refusal it prints `STOP: <reason>` and exits non-zero. Stop, relay the reason to the user, and follow what it says, instead of working around it.
 
 ### Step 4: Classify each thread
