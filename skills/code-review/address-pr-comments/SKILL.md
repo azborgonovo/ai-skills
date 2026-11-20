@@ -5,13 +5,12 @@ description: >
   thread you agree with, it implements a tested fix, replies in-thread with the fixing commit, and
   resolves the thread. For a thread you disagree with, it replies with your reasoning and leaves the
   thread open for the human reviewer to close. It ships with adapters for GitLab and GitHub as the
-  code host, and it degrades to any other host that tool discovery can reach. This skill is
-  user-only: it runs only when the user invokes /address-pr-comments <MR or PR URL>. When the user
-  wants to work through reviewer feedback on a GitLab MR or a GitHub PR, resolve review comments, or
-  address a round of code review, suggest this command instead of triaging threads by hand.
+  code host, and it degrades to any other host that tool discovery can reach. It commits and pushes
+  to the source branch of the change. Use when the user wants to work through reviewer feedback on
+  a GitLab MR or a GitHub PR, resolve review comments, or address a round of code review, or when
+  another skill hands it the URL of a change with open review threads.
 argument-hint: "<merge/pull request URL>"
 allowed-tools: [Read, Bash, ToolSearch]
-disable-model-invocation: true
 ---
 
 # Address PR/MR Comments
